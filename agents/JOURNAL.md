@@ -11,3 +11,4 @@
 | 2026-09-29 | 0010 README 정리 | 흐름도·강제 장치·실험 현황 표, ALL PASS | 로드맵 0004가 0009와 중복이었음 → 대체 표기 | [trace](intent/specs/0010-readme/trace.md) |
 | 2026-09-29 | 0011 포트폴리오 README + trace 누락 표기 | 테스트 34개, 다이어그램 2개 렌더, ALL PASS | 재구성 trace가 소급 작성 금지 원칙 위반 → 누락 표기(0008 이전만 허용) | [trace](intent/specs/0011-readme-portfolio/trace.md) |
 | 2026-09-29 | 0012 역할 분리 실험 설계 | PRD·SDD·태스크 0013~0016, 테스트 35개, ALL PASS | 게이트 검사기 오탐(번호 목록) 발견·수정 / `agent_type` 미검증 | [trace](intent/specs/0012-role-split-design/trace.md) |
+| 2026-09-29 | 0017 커밋·이슈 지침서 + 토큰 자동 집계 | 테스트 45개, git commit e2e 5종, ALL PASS | transcript 스트리밍 중복(2.6배 과대) / 제목을 트레일러로 오인 / prepare 생략 | [trace](intent/specs/0017-commit-issue-guide/trace.md) |

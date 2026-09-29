@@ -13,6 +13,7 @@
 2. **문서 먼저:** 모든 태스크는 `agents/intent/specs/NNNN-슬러그/`에 `prd.md`·`sdd.md`를 먼저 쓰고, 작업 내내 `trace.md`에 과정을 남긴다. 브랜치는 `task/NNNN-슬러그`(hooks 자동 기록 위치가 여기서 정해짐).
 3. **클레임과 기록:** [TASKS.md](agents/orchestration/TASKS.md)에서 태스크를 점유하고, 끝나면 [JOURNAL.md](agents/JOURNAL.md)에 남긴다.
 4. **실험은 기록한다:** 하네스 실험 결과(효과 있음/없음)는 [LEARNINGS.md](LEARNINGS.md)에 남긴다.
+5. **커밋·이슈·PR에 허점·보완·토큰:** 태스크 커밋은 `[허점]` `[보완]` `[컨텍스트·토큰]` 섹션을 쓴다. 토큰은 `pnpm usage`가 자동으로 채우고, 누락 시 commit-msg hook이 커밋을 거부한다. [지침서](agents/harness/commit-and-issue.md)
 
 ## 2. 계층
 

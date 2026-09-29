@@ -1,0 +1,16 @@
+#!/usr/bin/env node
+// 태스크 브랜치 커밋은 [허점] [보완] [컨텍스트·토큰] 섹션이 있어야 한다. 누락이면 exit 1로 커밋 거부.
+import { readFileSync } from "node:fs";
+import { currentBranch, parseTaskId } from "../agents/harness/hooks/lib/records.mjs";
+import { checkMessage, GUIDE } from "../agents/harness/commit/message.mjs";
+
+let problems = [];
+try {
+  if (parseTaskId(currentBranch(process.cwd()))) problems = checkMessage(readFileSync(process.argv[2], "utf8"));
+} catch (error) {
+  process.stderr.write(`[commit-msg] 내부 오류(커밋은 계속): ${error.message}\n`);
+}
+if (problems.length > 0) {
+  process.stderr.write(`\n[커밋 거부] ${problems.join(" / ")}\n${GUIDE}\n\n`);
+  process.exit(1);
+}
