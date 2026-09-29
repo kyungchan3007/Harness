@@ -9,3 +9,4 @@
 | 2026-09-29 | 0008 PRD·SDD·Trace 분리 + hooks 자동 기록 | 테스트 19개, e2e 2종, ALL PASS | 이 태스크 자체는 harness-lab 밖 세션이라 자동 기록 없음 | [trace](intent/specs/0008-trace-observability/trace.md) |
 | 2026-09-29 | 0009 기록 강제 장치 | 테스트 33개, e2e 2종(차단·Stop 돌려보냄), ALL PASS | 차단된 시도가 자동 기록에서 빠졌음 → 보완 / Bash 쓰기는 사후에만 잡힘 | [trace](intent/specs/0009-record-enforcement/trace.md) |
 | 2026-09-29 | 0010 README 정리 | 흐름도·강제 장치·실험 현황 표, ALL PASS | 로드맵 0004가 0009와 중복이었음 → 대체 표기 | [trace](intent/specs/0010-readme/trace.md) |
+| 2026-09-29 | 0011 포트폴리오 README + trace 누락 표기 | 테스트 34개, 다이어그램 2개 렌더, ALL PASS | 재구성 trace가 소급 작성 금지 원칙 위반 → 누락 표기(0008 이전만 허용) | [trace](intent/specs/0011-readme-portfolio/trace.md) |

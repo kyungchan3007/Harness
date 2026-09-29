@@ -12,3 +12,4 @@
 | 0008 | PRD·SDD·Trace 분리 + hooks 자동 기록 (Observability 실험) | claude | done | [0008](../intent/specs/0008-trace-observability/prd.md) |
 | 0009 | 기록 강제 장치 (게이트·PreToolUse·Stop·SessionStart hooks) | claude | done | [0009](../intent/specs/0009-record-enforcement/prd.md) |
 | 0010 | README 정리 (한눈에 보이는 소개·흐름도·결과) | claude | done | [0010](../intent/specs/0010-readme/prd.md) |
+| 0011 | 포트폴리오 README + 0001·0002 trace 누락 표기 | claude | done | [0011](../intent/specs/0011-readme-portfolio/prd.md) |

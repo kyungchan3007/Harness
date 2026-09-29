@@ -68,7 +68,14 @@ export function checkSdd(text) {
   return SDD_REQUIRED.filter((label) => !sectionField(text, label)).map((label) => `"${label}" 항목을 채우세요`);
 }
 
-export function checkTrace(text) {
+/** trace 제도(0008)가 생기기 전 태스크만 "과정 기록 누락" 표기로 trace 행 검사를 면제한다 */
+export const TRACE_REQUIRED_FROM = "0008";
+export const TRACE_OMITTED_MARK = "> **과정 기록 누락:**";
+
+export function checkTrace(text, id = TRACE_REQUIRED_FROM) {
+  if (text.includes(TRACE_OMITTED_MARK)) {
+    return id < TRACE_REQUIRED_FROM ? [] : [`"과정 기록 누락" 표기는 ${TRACE_REQUIRED_FROM} 이전 태스크만 쓸 수 있습니다. 판단·이유를 표에 기록하세요`];
+  }
   const rows = text
     .split("\n")
     .filter((line) => line.startsWith("|") && !/^\|\s*-/.test(line))
@@ -102,7 +109,7 @@ export function inspectTask(projectDir, folder, { requireTrace = true } = {}) {
   if (requireTrace) {
     const trace = read("trace.md");
     if (trace === undefined) problems.push(`${SPECS_DIR}/${folder}/trace.md 가 없습니다 (템플릿: agents/intent/templates/trace.md)`);
-    else problems.push(...checkTrace(trace).map((p) => `trace.md: ${p}`));
+    else problems.push(...checkTrace(trace, id).map((p) => `trace.md: ${p}`));
   }
 
   const tasksPath = join(projectDir, TASKS_FILE);
