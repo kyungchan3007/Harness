@@ -13,3 +13,8 @@
 | 0009 | 기록 강제 장치 (게이트·PreToolUse·Stop·SessionStart hooks) | claude | done | [0009](../intent/specs/0009-record-enforcement/prd.md) |
 | 0010 | README 정리 (한눈에 보이는 소개·흐름도·결과) | claude | done | [0010](../intent/specs/0010-readme/prd.md) |
 | 0011 | 포트폴리오 README + 0001·0002 trace 누락 표기 | claude | done | [0011](../intent/specs/0011-readme-portfolio/prd.md) |
+| 0012 | 역할 분리 실험 설계 (설계자·구현자·검증자) | claude | done | [0012](../intent/specs/0012-role-split-design/prd.md) |
+| 0013 | 역할 식별 e2e 확인 + 역할별 권한 강제 | - | todo (← 0012) | - |
+| 0014 | 검증자 판정 흐름(verdict) + 게이트 | - | todo (← 0013) | - |
+| 0015 | 역할 분리 실험 과제(쿠폰) + 숨겨진 oracle 테스트 | - | todo (← 0012) | - |
+| 0016 | 역할 분리 실험 실행·비교·결론 (A·B 각 3회) | - | todo (← 0014·0015) | - |

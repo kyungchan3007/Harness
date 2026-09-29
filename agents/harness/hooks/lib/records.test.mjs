@@ -61,6 +61,11 @@ describe("템플릿 탐지", () => {
     expect(checkTrace(omitted, "0042")[0]).toContain("0008 이전 태스크만");
   });
 
+  it("sdd 하위 항목은 번호 목록도 인정한다", () => {
+    const numbered = "- **접근:**\n  1. 서브에이전트로 역할 정의\n- **대안·트레이드오프:** 없음\n- **검증 계획:** e2e\n";
+    expect(checkSdd(numbered)).toEqual([]);
+  });
+
   it("다른 태스크 번호의 제목은 미완이다", () => {
     expect(checkPrd(FILLED_PRD, "0043")).toHaveLength(1);
   });
