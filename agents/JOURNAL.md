@@ -10,3 +10,4 @@
 | 2026-09-29 | 0009 기록 강제 장치 | 테스트 33개, e2e 2종(차단·Stop 돌려보냄), ALL PASS | 차단된 시도가 자동 기록에서 빠졌음 → 보완 / Bash 쓰기는 사후에만 잡힘 | [trace](intent/specs/0009-record-enforcement/trace.md) |
 | 2026-09-29 | 0010 README 정리 | 흐름도·강제 장치·실험 현황 표, ALL PASS | 로드맵 0004가 0009와 중복이었음 → 대체 표기 | [trace](intent/specs/0010-readme/trace.md) |
 | 2026-09-29 | 0011 포트폴리오 README + trace 누락 표기 | 테스트 34개, 다이어그램 2개 렌더, ALL PASS | 재구성 trace가 소급 작성 금지 원칙 위반 → 누락 표기(0008 이전만 허용) | [trace](intent/specs/0011-readme-portfolio/trace.md) |
+| 2026-09-29 | 0012 역할 분리 실험 설계 | PRD·SDD·태스크 0013~0016, 테스트 35개, ALL PASS | 게이트 검사기 오탐(번호 목록) 발견·수정 / `agent_type` 미검증 | [trace](intent/specs/0012-role-split-design/trace.md) |

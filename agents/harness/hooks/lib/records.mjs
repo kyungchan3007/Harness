@@ -50,7 +50,8 @@ function sectionField(text, label) {
   const inline = lines[i].slice(`- **${label}:**`.length).trim();
   if (inline) return inline;
   const next = lines[i + 1] ?? "";
-  return /^\s+-\s+\S/.test(next) ? next.trim() : "";
+  // 하위 항목은 불릿(-)이나 번호 목록(1.) 모두 인정
+  return /^\s+(-|\d+\.)\s+\S/.test(next) ? next.trim() : "";
 }
 
 export function checkPrd(text, id) {
