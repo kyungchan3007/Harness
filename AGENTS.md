@@ -5,7 +5,7 @@
 
 ## 0. 한 줄 요약
 
-에이전트 하네스 실험용 TypeScript 샌드박스. 도메인은 메모 저장소(`src/memo.ts`) 하나뿐입니다.
+에이전트 하네스 실험용 TypeScript 샌드박스. 실험 대상 도메인은 쇼핑몰 할인·주문 엔진이고, 규칙의 단일 소스는 [domain.md](agents/context/domain.md)입니다.
 
 ## 1. 절대 규칙
 
@@ -19,7 +19,7 @@
 | 계층 | 위치 |
 | --- | --- |
 | Intent | [agents/intent/](agents/intent/) |
-| Context | [agents/context/architecture.md](agents/context/architecture.md) |
+| Context | [architecture](agents/context/architecture.md) · [domain](agents/context/domain.md) |
 | Harness | [agents/harness/](agents/harness/README.md) |
 | Orchestration | [agents/orchestration/](agents/orchestration/TASKS.md) |
 
