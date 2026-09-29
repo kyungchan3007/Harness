@@ -49,6 +49,15 @@ describe("trace hook", () => {
     expect(failed).toMatchObject({ tool: "Bash", detail: "pnpm check", ok: false, error: "exit 1" });
   });
 
+  it("guard가 차단한 호출은 blocked로 남긴다", () => {
+    const entry = toEntry(
+      { hook_event_name: "PreToolUse", tool_name: "Edit", tool_input: { file_path: `${PROJECT}/src/a.ts` }, reason: "[기록 강제] src/a.ts 수정 차단" },
+      PROJECT,
+      NOW,
+    );
+    expect(entry).toMatchObject({ event: "PreToolUse", tool: "Edit", detail: "src/a.ts", ok: false, blocked: true, error: "[기록 강제] src/a.ts 수정 차단" });
+  });
+
   it("프롬프트·세션 시작·종료 이벤트도 남긴다", () => {
     expect(toEntry({ hook_event_name: "UserPromptSubmit", prompt: "0003 진행해줘" }, PROJECT, NOW).detail).toBe("0003 진행해줘");
     expect(toEntry({ hook_event_name: "SessionStart", source: "startup" }, PROJECT, NOW).detail).toBe("startup");

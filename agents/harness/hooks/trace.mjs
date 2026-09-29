@@ -68,7 +68,11 @@ export function toEntry(input, projectDir, now = new Date()) {
   } else if (input.tool_name) {
     entry.tool = input.tool_name;
     entry.detail = sanitize(describeTool(input.tool_name, input.tool_input) ?? "", projectDir);
-    if (event === "PostToolUseFailure") {
+    if (event === "PreToolUse") {
+      entry.ok = false;
+      entry.blocked = true;
+      if (input.reason) entry.error = sanitize(input.reason, projectDir);
+    } else if (event === "PostToolUseFailure") {
       entry.ok = false;
       if (input.error) entry.error = sanitize(input.error, projectDir);
     } else {
@@ -103,15 +107,19 @@ function listSpecFolders(projectDir) {
   }
 }
 
+/** 현재 태스크의 자동 기록 파일에 한 줄을 남긴다 (guard가 차단을 기록할 때도 쓴다) */
+export function appendTrace(projectDir, entry) {
+  const file = join(projectDir, resolveTraceFile(currentBranch(projectDir), listSpecFolders(projectDir)));
+  mkdirSync(dirname(file), { recursive: true });
+  appendFileSync(file, JSON.stringify(entry) + "\n");
+}
+
 async function main() {
   let raw = "";
   for await (const chunk of process.stdin) raw += chunk;
   const input = JSON.parse(raw);
   const projectDir = process.env.CLAUDE_PROJECT_DIR || input.cwd || process.cwd();
-
-  const file = join(projectDir, resolveTraceFile(currentBranch(projectDir), listSpecFolders(projectDir)));
-  mkdirSync(dirname(file), { recursive: true });
-  appendFileSync(file, JSON.stringify(toEntry(input, projectDir)) + "\n");
+  appendTrace(projectDir, toEntry(input, projectDir));
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {

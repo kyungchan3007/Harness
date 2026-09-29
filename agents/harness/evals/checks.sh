@@ -27,7 +27,7 @@ echo "════════════════════════�
 run "Typecheck" pnpm exec tsc --noEmit
 run "Unit tests" pnpm exec vitest run
 run "No npm/yarn lockfiles" bash -c '! find . -type d -name node_modules -prune -o -type f \( -name package-lock.json -o -name yarn.lock \) -print | grep -q .'
-run "Spec folders complete (prd·sdd·trace)" bash agents/harness/evals/check-spec-folders.sh
+run "Task records (prd·sdd·trace·TASKS)" node agents/harness/evals/check-task-records.mjs
 
 # ── 새 검사는 위 형식으로 한 줄씩 추가 (실험 결과는 LEARNINGS.md에) ──
 

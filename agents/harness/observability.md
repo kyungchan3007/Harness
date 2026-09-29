@@ -13,6 +13,7 @@
 
 - 설정: [.claude/settings.json](../../.claude/settings.json) → [hooks/trace.mjs](hooks/trace.mjs)
 - 이벤트: SessionStart · UserPromptSubmit · PostToolUse · PostToolUseFailure · Stop
+- 차단 기록: guard가 막은 수정(`PreToolUse`, `blocked: true`)과 Stop에서 돌려보낸 순간(`StopBlocked`)도 남는다. 차단된 호출에는 PostToolUse가 오지 않아 hook이 직접 남긴다.
 - 위치: 브랜치 `task/NNNN-*` → 해당 태스크 폴더. 그 외 브랜치 → `hooks/.unassigned.jsonl`(커밋 안 됨)
 - 보기: `pnpm trace NNNN`
 - **public repo 주의:** 도구 결과는 남기지 않고, 비밀값 패턴은 `[REDACTED]`, 경로는 상대 경로로 바꾸고 200자로 자른다. 패턴에 없는 비밀값은 못 막으니 프롬프트에 비밀값을 넣지 않는다.

@@ -12,6 +12,8 @@
 
 **1~7 내내:** `trace.md`에 판단·이유·막힘·되돌림을 직접 남긴다. 도구 호출은 hooks가 `trace.auto.jsonl`에 자동으로 남긴다(브랜치가 `task/NNNN-*`일 때). 템플릿: [templates/](../intent/templates/)
 
+**강제:** 1~3을 건너뛰고 코드를 고치면 hook이 막고, trace 없이 끝내려 하면 돌려보낸다. 자세한 내용은 [guardrails.md](guardrails.md#자동-강제-hooks게이트-0009).
+
 ## 막혔을 때
 
 - 게이트가 계속 실패하면 검사를 약화하지 말고 원인부터 진단한다.
