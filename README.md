@@ -86,10 +86,6 @@
 
 > **한 줄 요약** — 태스크를 점유하고 → PRD·SDD를 쓴 뒤에야 → 코드를 고칠 수 있고 → 게이트를 통과하고 → trace를 남겨야 끝낼 수 있습니다.
 
-<table>
-<tr>
-<td width="360" valign="top">
-
 ```mermaid
 flowchart TD
     S(["🔔 세션 시작"]):::start
@@ -119,9 +115,6 @@ flowchart TD
     classDef done fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#111
 ```
 
-</td>
-<td valign="top">
-
 **단계 (그림의 번호와 동일)**
 
 1. **CLAIM** — `task/NNNN-슬러그` 브랜치를 만들고 `TASKS.md`에 행을 추가합니다.
@@ -145,10 +138,6 @@ flowchart TD
 | --- | --- |
 | ✍️ `trace.md` — 판단·막힘·되돌림 | 에이전트 |
 | 🤖 `trace.auto.jsonl` — 도구 호출 | hooks 자동 |
-
-</td>
-</tr>
-</table>
 
 ---
 
