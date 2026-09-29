@@ -12,7 +12,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "check": "bash agents/harness/evals/checks.sh",
-    "trace": "node agents/harness/hooks/trace-report.mjs"
+    "trace": "node agents/harness/hooks/trace-report.mjs",
+    "usage": "node agents/harness/usage/usage.mjs",
+    "prepare": "git config core.hooksPath .githooks || true"
   },
   "devDependencies": {
     "@types/node": "^26.6.3",
