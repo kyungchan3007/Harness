@@ -53,6 +53,14 @@ describe("템플릿 탐지", () => {
     expect(checkTrace(FILLED_TRACE)).toEqual([]);
   });
 
+  it("과정 기록 누락 표기는 0008 이전 태스크만 허용한다", () => {
+    const omitted = "# 0001 — Trace\n\n> **과정 기록 누락:** trace 제도 도입 전 태스크\n";
+    expect(checkTrace(omitted, "0001")).toEqual([]);
+    expect(checkTrace(omitted, "0007")).toEqual([]);
+    expect(checkTrace(omitted, "0008")).toHaveLength(1);
+    expect(checkTrace(omitted, "0042")[0]).toContain("0008 이전 태스크만");
+  });
+
   it("다른 태스크 번호의 제목은 미완이다", () => {
     expect(checkPrd(FILLED_PRD, "0043")).toHaveLength(1);
   });
