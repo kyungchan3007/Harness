@@ -10,7 +10,7 @@
 ## 1. 절대 규칙
 
 1. **완료 전 게이트:** `pnpm check`가 PASS여야 "done"이라고 말할 수 있다.
-2. **문서 먼저:** 모든 태스크는 `agents/intent/specs/NNNN-슬러그.md`(PRD+SDD)를 먼저 쓴다.
+2. **문서 먼저:** 모든 태스크는 `agents/intent/specs/NNNN-슬러그/`에 `prd.md`·`sdd.md`를 먼저 쓰고, 작업 내내 `trace.md`에 과정을 남긴다. 브랜치는 `task/NNNN-슬러그`(hooks 자동 기록 위치가 여기서 정해짐).
 3. **클레임과 기록:** [TASKS.md](agents/orchestration/TASKS.md)에서 태스크를 점유하고, 끝나면 [JOURNAL.md](agents/JOURNAL.md)에 남긴다.
 4. **실험은 기록한다:** 하네스 실험 결과(효과 있음/없음)는 [LEARNINGS.md](LEARNINGS.md)에 남긴다.
 

@@ -6,3 +6,6 @@ coverage/
 !.env.example
 .DS_Store
 *.log
+
+# trace hook: 태스크 브랜치가 아닐 때의 기록
+agents/harness/hooks/.unassigned.jsonl

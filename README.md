@@ -11,18 +11,26 @@ AI 코딩 에이전트(Claude Code, Codex)를 감싸는 **하네스**(Loop · Gu
 ```bash
 pnpm install
 pnpm check      # 완료 게이트 (typecheck + test + 문서 규칙)
+pnpm trace 0008 # 태스크의 hooks 자동 기록 요약
 ```
 
 ## 구조
 
 | 계층 | 위치 | 역할 |
 | --- | --- | --- |
-| Intent | `agents/intent/` | 무엇을 만드는가 (spec = PRD + SDD) |
+| Intent | `agents/intent/specs/NNNN-*/` | 태스크마다 `prd.md`(왜·무엇) · `sdd.md`(어떻게) · `trace.md`(과정) |
 | Context | `agents/context/` | 무엇이 참인가 |
 | Harness | `agents/harness/` | 어떻게 안전하게 돌리는가 |
 | Orchestration | `agents/orchestration/` | 여러 에이전트를 어떻게 엮는가 |
 
 에이전트 진입점: [AGENTS.md](AGENTS.md)
+
+## 에이전트 과정 기록 (블랙박스 열기)
+
+에이전트가 무엇을 읽고 어디서 헤맸는지 남기기 위해 두 가지 기록을 병행합니다. 자세한 내용은 [observability.md](agents/harness/observability.md)를 보세요.
+
+- **직접 기록** `trace.md`: 에이전트가 판단과 이유를 쓴다
+- **자동 기록** `trace.auto.jsonl`: Claude Code hooks가 도구 호출을 빠짐없이 남긴다
 
 ## 실험 로드맵
 

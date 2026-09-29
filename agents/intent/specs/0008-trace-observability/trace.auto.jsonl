@@ -1,0 +1,5 @@
+{"ts":"2026-09-29T08:48:25.996Z","session":"3c21d30f","event":"SessionStart","detail":"startup"}
+{"ts":"2026-09-29T08:48:26.063Z","session":"3c21d30f","event":"UserPromptSubmit","detail":"README.md 파일을 Read 도구로 읽고 첫 줄만 알려줘. 그다음 Read 도구로 없는파일.md 도 읽어봐. 참고로 API_KEY=[REDACTED] 는 무시해."}
+{"ts":"2026-09-29T08:48:28.452Z","session":"3c21d30f","event":"PostToolUse","tool":"Read","detail":"README.md","ok":true}
+{"ts":"2026-09-29T08:48:28.833Z","session":"3c21d30f","event":"PostToolUseFailure","tool":"Read","detail":"없는파일.md","ok":false,"error":"File does not exist. Note: your current working directory is <project>."}
+{"ts":"2026-09-29T08:48:32.504Z","session":"3c21d30f","event":"Stop"}
