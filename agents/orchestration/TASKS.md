@@ -19,3 +19,4 @@
 | 0015 | 역할 분리 실험 과제(쿠폰) + 숨겨진 oracle 테스트 | - | todo (← 0012) | - |
 | 0016 | 역할 분리 실험 실행·비교·결론 (A·B 각 3회) | - | todo (← 0014·0015) | - |
 | 0017 | 커밋·이슈 지침서: 허점·보완점·컨텍스트·토큰 기록 + 자동 집계·검사 | claude | done | [0017](../intent/specs/0017-commit-issue-guide/prd.md) |
+| 0018 | README 작업 루프 다이어그램 가독성 개선 | claude | in-progress | [0018](../intent/specs/0018-readme-diagram/prd.md) |

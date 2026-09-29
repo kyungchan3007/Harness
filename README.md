@@ -86,29 +86,69 @@
 
 > **한 줄 요약** — 태스크를 점유하고 → PRD·SDD를 쓴 뒤에야 → 코드를 고칠 수 있고 → 게이트를 통과하고 → trace를 남겨야 끝낼 수 있습니다.
 
+<table>
+<tr>
+<td width="360" valign="top">
+
+```mermaid
+flowchart TD
+    S(["🔔 세션 시작"]):::start
+    C["① CLAIM<br/>task 브랜치 + TASKS 행"]
+    D["② DEFINE<br/>prd.md"]
+    P["③ PLAN<br/>sdd.md"]
+    K1{{"🛑 기록 있나?"}}:::guard
+    B["④ BUILD<br/>코드 + 테스트"]
+    G{{"⑤ GATE · pnpm check"}}:::gate
+    R["⑥ RECORD<br/>sdd 검증 결과 · JOURNAL"]
+    K2{{"↩️ trace 남겼나?"}}:::stop
+    T["✍️ trace.md 작성"]
+    E(["✅ 완료"]):::done
+
+    S --> C --> D --> P --> K1
+    K1 -->|"아니오 · 코드 수정 차단"| C
+    K1 -->|"예"| B --> G
+    G -->|"FAIL"| B
+    G -->|"PASS"| R --> K2
+    K2 -->|"아니오 · 돌려보냄"| T --> K2
+    K2 -->|"예"| E
+
+    classDef start fill:#eef2ff,stroke:#6366f1,color:#111
+    classDef guard fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#111
+    classDef stop fill:#ffedd5,stroke:#ea580c,stroke-width:2px,color:#111
+    classDef gate fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#111
+    classDef done fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#111
+```
+
+</td>
+<td valign="top">
+
 **단계 (그림의 번호와 동일)**
 
 1. **CLAIM** — `task/NNNN-슬러그` 브랜치를 만들고 `TASKS.md`에 행을 추가합니다.
 2. **DEFINE** — `prd.md`에 왜·무엇·Acceptance를 씁니다.
 3. **PLAN** — `sdd.md`에 접근·대안·검증 계획을 씁니다.
-4. **BUILD** — 코드와 테스트를 작성합니다. *(1~3이 없으면 여기서 차단)*
+4. **BUILD** — 코드와 테스트를 작성합니다.
 5. **GATE** — `pnpm check`가 PASS할 때까지 반복합니다.
-6. **RECORD** — `sdd.md`에 계획과 달라진 점·검증 결과를, JOURNAL에 한 줄을 남깁니다. *(trace가 없으면 종료 불가)*
+6. **RECORD** — `sdd.md`에 계획과 달라진 점·검증 결과, JOURNAL에 한 줄.
 
-```mermaid
-flowchart LR
-    S([🔔 세션 시작]) --> C["① CLAIM<br/>task 브랜치 + TASKS 행"]
-    C --> D["② DEFINE<br/>prd.md"]
-    D --> P["③ PLAN<br/>sdd.md"]
-    P -->|"🛑 없으면 차단"| B["④ BUILD<br/>코드 + 테스트"]
-    B --> G{"⑤ GATE<br/>pnpm check"}
-    G -->|FAIL| B
-    G -->|PASS| R["⑥ RECORD<br/>sdd 검증 · JOURNAL"]
-    R -->|"↩️ trace 없으면 돌려보냄"| E([종료])
+**강제 지점 (그림의 색)**
 
-    B -. 작업 내내 .-> T[("✍️ trace.md<br/>판단 · 막힘 · 되돌림")]
-    B -. 도구 호출마다 .-> A[("🤖 trace.auto.jsonl<br/>hooks 자동 기록")]
-```
+| 색 | 지점 | 없으면 |
+| --- | --- | --- |
+| 🟥 | 🛑 코드 수정 직전 | 브랜치·TASKS·prd·sdd 없으면 **차단** |
+| 🟦 | ⑤ 게이트 | 타입·테스트·기록 실패면 **FAIL** |
+| 🟧 | ↩️ 종료 직전 | trace 없으면 **돌려보냄** |
+
+**작업 내내 남는 기록**
+
+| 기록 | 누가 |
+| --- | --- |
+| ✍️ `trace.md` — 판단·막힘·되돌림 | 에이전트 |
+| 🤖 `trace.auto.jsonl` — 도구 호출 | hooks 자동 |
+
+</td>
+</tr>
+</table>
 
 ---
 
