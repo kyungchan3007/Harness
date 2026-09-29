@@ -23,6 +23,6 @@ console.log("| 도구 | 성공 | 실패 |\n| --- | --- | --- |");
 for (const [tool, c] of Object.entries(byTool)) console.log(`| ${tool} | ${c.ok} | ${c.fail} |`);
 console.log("\n| 시각 | 이벤트 | 도구 | 내용 |\n| --- | --- | --- | --- |");
 for (const e of entries) {
-  const detail = [e.detail, e.error && `❌ ${e.error}`].filter(Boolean).join(" ").replaceAll("|", "\\|");
+  const detail = [e.blocked && "🛑 차단", e.detail, e.error && `❌ ${e.error}`].filter(Boolean).join(" ").replaceAll("|", "\\|");
   console.log(`| ${e.ts.slice(11, 19)} | ${e.event} | ${e.tool ?? ""} | ${detail} |`);
 }

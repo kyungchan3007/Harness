@@ -31,6 +31,7 @@ pnpm trace 0008 # 태스크의 hooks 자동 기록 요약
 
 - **직접 기록** `trace.md`: 에이전트가 판단과 이유를 쓴다
 - **자동 기록** `trace.auto.jsonl`: Claude Code hooks가 도구 호출을 빠짐없이 남긴다
+- **강제:** 태스크 브랜치·TASKS 행·PRD·SDD 없이 코드를 고치면 hook이 막고, trace 없이 끝내려 하면 돌려보낸다 ([guardrails.md](agents/harness/guardrails.md))
 
 ## 실험 로드맵
 

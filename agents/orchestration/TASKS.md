@@ -10,3 +10,4 @@
 | 0006 | 할인·배송 모듈 서브에이전트 병렬 작업 (Orchestration 실험) | - | todo | - |
 | 0007 | GitHub Actions에서 게이트 실행 | - | todo | - |
 | 0008 | PRD·SDD·Trace 분리 + hooks 자동 기록 (Observability 실험) | claude | done | [0008](../intent/specs/0008-trace-observability/prd.md) |
+| 0009 | 기록 강제 장치 (게이트·PreToolUse·Stop·SessionStart hooks) | claude | done | [0009](../intent/specs/0009-record-enforcement/prd.md) |
