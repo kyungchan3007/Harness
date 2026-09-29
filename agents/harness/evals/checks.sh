@@ -27,7 +27,7 @@ echo "════════════════════════�
 run "Typecheck" pnpm exec tsc --noEmit
 run "Unit tests" pnpm exec vitest run
 run "No npm/yarn lockfiles" bash -c '! find . -type d -name node_modules -prune -o -type f \( -name package-lock.json -o -name yarn.lock \) -print | grep -q .'
-run "Every spec has Acceptance" bash -c 'for f in agents/intent/specs/*.md; do grep -q "^## Acceptance" "$f" || { echo "  누락: $f"; exit 1; }; done'
+run "Spec folders complete (prd·sdd·trace)" bash agents/harness/evals/check-spec-folders.sh
 
 # ── 새 검사는 위 형식으로 한 줄씩 추가 (실험 결과는 LEARNINGS.md에) ──
 

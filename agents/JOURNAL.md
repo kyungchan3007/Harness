@@ -1,16 +1,9 @@
-# JOURNAL — 사후 결과 로그 (append-only)
+# JOURNAL — 태스크 목차 (append-only)
 
-## 2026-09-29 · 0001 뼈대 구성 · claude
-- **무엇:** TS 샌드박스, 메모 도메인, 4계층 문서, `pnpm check` 게이트
-- **왜:** ClauseLens 작업 루프와 분리해서 하네스를 실험하기 위해
-- **게이트:** ALL PASS
-- **드러난 공백:** CI 없음 → 0002
-- **다음:** 0003 hooks 가드레일 실험
+태스크당 한 줄. 자세한 과정은 각 태스크 폴더의 `trace.md`(직접)·`trace.auto.jsonl`(자동)에 있다.
 
-## 2026-09-29 · 0002 도메인 전환: 장바구니 금액 계산 · claude
-- **무엇:** 메모 도메인 제거. `Cart`(장바구니 규칙 1~5), `priceCart`(배송비 규칙 1~3), `domain.md` 추가
-- **왜:** 메모 CRUD는 에이전트가 틀릴 일이 없어 하네스 효과를 관찰할 수 없음
-- **파일:** `src/{money.ts,cart/,pricing/}`, `agents/context/{domain,architecture}.md`, spec 0002
-- **게이트:** ALL PASS (테스트 13개)
-- **드러난 공백:** 규칙-테스트 추적을 테스트 이름 관례로만 지키고 있음. 게이트가 강제하지 않음
-- **다음:** 0003 쿠폰 규칙 (Intent 실험)
+| 날짜 | 태스크 | 결과 | 드러난 공백 | 기록 |
+| --- | --- | --- | --- | --- |
+| 2026-09-29 | 0001 뼈대 구성 | 게이트 ALL PASS | CI 없음 → 0007 | [trace](intent/specs/0001-bootstrap/trace.md) |
+| 2026-09-29 | 0002 장바구니 금액 계산 | 테스트 13개, ALL PASS | 규칙↔테스트 누락을 게이트가 못 잡음 | [trace](intent/specs/0002-cart-pricing/trace.md) |
+| 2026-09-29 | 0008 PRD·SDD·Trace 분리 + hooks 자동 기록 | 테스트 19개, e2e 2종, ALL PASS | 이 태스크 자체는 harness-lab 밖 세션이라 자동 기록 없음 | [trace](intent/specs/0008-trace-observability/trace.md) |

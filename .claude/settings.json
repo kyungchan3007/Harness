@@ -1,0 +1,9 @@
+{
+  "hooks": {
+    "SessionStart": [{ "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/agents/harness/hooks/trace.mjs\"" }] }],
+    "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/agents/harness/hooks/trace.mjs\"" }] }],
+    "PostToolUse": [{ "matcher": ".*", "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/agents/harness/hooks/trace.mjs\"" }] }],
+    "PostToolUseFailure": [{ "matcher": ".*", "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/agents/harness/hooks/trace.mjs\"" }] }],
+    "Stop": [{ "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/agents/harness/hooks/trace.mjs\"" }] }]
+  }
+}

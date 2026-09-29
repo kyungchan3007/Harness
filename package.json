@@ -11,7 +11,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "check": "bash agents/harness/evals/checks.sh"
+    "check": "bash agents/harness/evals/checks.sh",
+    "trace": "node agents/harness/hooks/trace-report.mjs"
   },
   "devDependencies": {
     "@types/node": "^26.6.3",
