@@ -14,6 +14,7 @@
 3. **클레임과 기록:** [TASKS.md](agents/orchestration/TASKS.md)에서 태스크를 점유하고, 끝나면 [JOURNAL.md](agents/JOURNAL.md)에 남긴다.
 4. **실험은 기록한다:** 하네스 실험 결과(효과 있음/없음)는 [LEARNINGS.md](LEARNINGS.md)에 남긴다.
 5. **커밋·이슈·PR에 허점·보완·토큰:** 태스크 커밋은 `[허점]` `[보완]` `[컨텍스트·토큰]` 섹션을 쓴다. 토큰은 `pnpm usage`가 자동으로 채우고, 누락 시 commit-msg hook이 커밋을 거부한다. [지침서](agents/harness/commit-and-issue.md)
+6. **모든 브랜치는 이슈에서:** 이슈를 먼저 만들고 `gh issue develop`으로 브랜치를 만들어 연결한다. 기존 이슈의 fix는 새 이슈 없이 그 이슈에서 `fix/NNNN-슬러그`, fix 중 나온 공통 모듈·다른 기능·다른 도메인은 새 이슈. [지침서](agents/harness/branch-and-issue.md)
 
 ## 2. 계층
 

@@ -15,7 +15,8 @@
     "trace": "node agents/harness/hooks/trace-report.mjs",
     "usage": "node agents/harness/usage/usage.mjs",
     "prepare": "git config core.hooksPath .githooks || true",
-    "metrics": "node agents/harness/metrics/metrics.mjs"
+    "metrics": "node agents/harness/metrics/metrics.mjs",
+    "issue-link": "node agents/harness/evals/issue-link.mjs"
   },
   "devDependencies": {
     "@types/node": "^26.6.3",

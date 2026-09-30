@@ -12,8 +12,21 @@ export function isRecordPath(relPath) {
   return RECORD_PREFIXES.some((prefix) => relPath === prefix || relPath.startsWith(prefix));
 }
 
+/** task/NNNN-* 와 fix/NNNN-* 모두 태스크 NNNN 소속 (fix는 원 이슈·원 태스크 폴더를 쓴다) */
 export function parseTaskId(branch) {
-  return /^task\/(\d{4})-/.exec(branch ?? "")?.[1];
+  return /^(?:task|fix)\/(\d{4})-/.exec(branch ?? "")?.[1];
+}
+
+export function isFixBranch(branch) {
+  return /^fix\/\d{4}-/.test(branch ?? "");
+}
+
+/** 이 번호부터는 prd에 연결된 GitHub 이슈 번호가 필수 (이전 태스크는 이슈 없이 진행됨) */
+export const ISSUE_REQUIRED_FROM = "0021";
+export const ISSUE_LINE = /^- \*\*이슈:\*\* #(\d+)/m;
+
+export function issueNumberOf(prdText) {
+  return ISSUE_LINE.exec(prdText ?? "")?.[1];
 }
 
 export function git(projectDir, args) {
@@ -60,6 +73,9 @@ export function checkPrd(text, id) {
   if (!title.startsWith(`# ${id}`) || /NNNN|— 제목 —/.test(title)) problems.push(`제목을 "# ${id} — <태스크 제목> — PRD"로 채우세요`);
   const acceptance = text.split(/^## Acceptance\s*$/m)[1]?.split(/^## /m)[0] ?? "";
   if (!/^- \[[ x]\] \S/m.test(acceptance)) problems.push("## Acceptance에 내용 있는 체크박스를 1개 이상 쓰세요");
+  if (id >= ISSUE_REQUIRED_FROM && !issueNumberOf(text)) {
+    problems.push('"- **이슈:** #번호" 줄이 없습니다. 이슈를 먼저 만들고 그 이슈에서 브랜치를 만드세요 (gh issue develop <번호> --name task/NNNN-슬러그 --checkout)');
+  }
   return problems;
 }
 
@@ -135,7 +151,8 @@ export function decideEdit(projectDir, relPath) {
       reason: [
         `[기록 강제] ${relPath} 수정 차단: 현재 브랜치(${branch || "알 수 없음"})가 태스크 브랜치가 아닙니다.`,
         "먼저 할 일:",
-        "1. git checkout -b task/NNNN-슬러그  (NNNN = TASKS.md의 다음 번호)",
+        "1. 이슈 먼저: gh issue create → gh issue develop <이슈> --name task/NNNN-슬러그 --base main --checkout",
+        "   (기존 이슈 작업의 fix면 새 이슈 없이 그 이슈에서 fix/NNNN-슬러그)",
         `2. ${TASKS_FILE}에 행 추가 (owner·status=in-progress)`,
         `3. ${SPECS_DIR}/NNNN-슬러그/에 prd.md·sdd.md·trace.md 작성 (agents/intent/templates/)`,
       ].join("\n"),

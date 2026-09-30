@@ -56,3 +56,4 @@ Co-Authored-By: ...
 
 - 이슈: [.github/ISSUE_TEMPLATE/task.md](../../.github/ISSUE_TEMPLATE/task.md) — 만들 때 예상 허점·확인할 것, 닫을 때 실제 허점·보완·토큰
 - PR: [.github/pull_request_template.md](../../.github/pull_request_template.md) — 태스크 커밋들의 세 섹션을 모아 쓴다
+- 브랜치와 이슈 연결 규칙: [branch-and-issue.md](branch-and-issue.md)

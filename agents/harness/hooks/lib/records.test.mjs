@@ -5,12 +5,12 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { beforeEach, describe, expect, it } from "vitest";
 import { describeSession } from "../session-context.mjs";
-import { checkBeforeStop, checkPrd, checkSdd, checkTrace, decideEdit, inspectTask, isRecordPath } from "./records.mjs";
+import { checkBeforeStop, checkPrd, checkSdd, checkTrace, decideEdit, inspectTask, isFixBranch, isRecordPath, issueNumberOf, parseTaskId } from "./records.mjs";
 
 const TEMPLATES = join(dirname(fileURLToPath(import.meta.url)), "../../../intent/templates");
 const template = (name) => readFileSync(join(TEMPLATES, name), "utf8");
 
-const FILLED_PRD = "# 0042 — 추가 배송비 — PRD\n\n## Acceptance\n- [ ] 도서산간 3,000원 추가\n";
+const FILLED_PRD = "# 0042 — 추가 배송비 — PRD\n\n- **이슈:** #12\n\n## Acceptance\n- [ ] 도서산간 3,000원 추가\n";
 const FILLED_SDD = "# 0042 — SDD\n\n## 설계\n- **접근:** 배송 정책에 지역 가산 추가\n- **대안·트레이드오프:**\n  - 지역 테이블 분리: 과함 → 기각\n- **검증 계획:** 경계값 테스트\n";
 const FILLED_TRACE = "# 0042 — Trace\n\n| 순서 | 단계 | 한 일 | 판단·이유 |\n| --- | --- | --- | --- |\n| 1 | CLAIM | 브랜치 생성 | - |\n";
 
@@ -42,7 +42,7 @@ const fillTask = ({ trace = true } = {}) => {
 
 describe("템플릿 탐지", () => {
   it("실제 템플릿 파일은 모두 미완으로 판정한다", () => {
-    expect(checkPrd(template("prd.md"), "0042")).toHaveLength(2);
+    expect(checkPrd(template("prd.md"), "0042")).toHaveLength(3); // 제목 · Acceptance · 이슈 번호("#번호" 자리표시)
     expect(checkSdd(template("sdd.md"))).toHaveLength(3);
     expect(checkTrace(template("trace.md"))).toHaveLength(1);
   });
@@ -64,6 +64,22 @@ describe("템플릿 탐지", () => {
   it("sdd 하위 항목은 번호 목록도 인정한다", () => {
     const numbered = "- **접근:**\n  1. 서브에이전트로 역할 정의\n- **대안·트레이드오프:** 없음\n- **검증 계획:** e2e\n";
     expect(checkSdd(numbered)).toEqual([]);
+  });
+
+  it("0021부터 prd에 이슈 번호가 필수, 이전 태스크는 면제", () => {
+    const noIssue = FILLED_PRD.replace("- **이슈:** #12\n", "");
+    expect(checkPrd(noIssue, "0042")[0]).toContain("gh issue develop");
+    expect(checkPrd(noIssue.replace("# 0042", "# 0019"), "0019")).toEqual([]);
+    expect(issueNumberOf(FILLED_PRD)).toBe("12");
+    expect(issueNumberOf("- **이슈:** #번호")).toBeUndefined();
+  });
+
+  it("fix 브랜치는 원 태스크 번호로 인식한다", () => {
+    expect(parseTaskId("task/0042-extra")).toBe("0042");
+    expect(parseTaskId("fix/0042-rounding")).toBe("0042");
+    expect(parseTaskId("feature/0042-x")).toBeUndefined();
+    expect(isFixBranch("fix/0042-rounding")).toBe(true);
+    expect(isFixBranch("task/0042-extra")).toBe(false);
   });
 
   it("다른 태스크 번호의 제목은 미완이다", () => {
@@ -110,6 +126,15 @@ describe("PreToolUse: decideEdit", () => {
     fillTask();
     write("agents/orchestration/TASKS.md", "| ID | 제목 |\n| --- | --- |\n");
     expect(decideEdit(repo, "src/a.ts").reason).toContain("0042 행이 없습니다");
+  });
+});
+
+describe("fix 브랜치", () => {
+  it("fix/NNNN 브랜치에서도 원 태스크 폴더 기록을 기준으로 수정을 허용한다", () => {
+    git("checkout", "-qb", "fix/0042-rounding");
+    fillTask();
+    expect(decideEdit(repo, "src/a.ts")).toEqual({ allow: true });
+    expect(describeSession(repo)).toContain("fix 브랜치");
   });
 });
 

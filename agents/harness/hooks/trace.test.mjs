@@ -10,6 +10,10 @@ describe("trace hook", () => {
     expect(resolveTraceFile("task/0008-anything", folders)).toBe("agents/intent/specs/0008-trace-observability/trace.auto.jsonl");
   });
 
+  it("fix 브랜치는 원 태스크 폴더에 기록한다", () => {
+    expect(resolveTraceFile("fix/0008-mask", ["0008-trace-observability"])).toBe("agents/intent/specs/0008-trace-observability/trace.auto.jsonl");
+  });
+
   it("태스크 브랜치가 아니거나 폴더가 없으면 커밋되지 않는 파일로 보낸다", () => {
     expect(resolveTraceFile("main", ["0002-cart-pricing"])).toBe(UNASSIGNED_FILE);
     expect(resolveTraceFile("task/0099-none", ["0002-cart-pricing"])).toBe(UNASSIGNED_FILE);
