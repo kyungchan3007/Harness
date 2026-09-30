@@ -129,6 +129,21 @@ describe("PreToolUse: decideEdit", () => {
   });
 });
 
+describe("done 작업의 체크박스 방치 금지", () => {
+  it("TASKS가 done인데 사유 없는 미체크가 있으면 문제, 사유가 있으면 통과", () => {
+    const tasksDone = "| ID | 제목 | owner | status | spec |\n| --- | --- | --- | --- | --- |\n| 0042 | x | c | done | - |\n";
+    write(`${TASK}/prd.md`, FILLED_PRD);
+    write(`${TASK}/sdd.md`, FILLED_SDD);
+    write(`${TASK}/trace.md`, FILLED_TRACE);
+    write("agents/orchestration/TASKS.md", tasksDone);
+    expect(inspectTask(repo, "0042-extra-shipping").join("\n")).toContain("사유 없이 미체크");
+    write(`${TASK}/prd.md`, FILLED_PRD.replace("- [ ] 도서산간 3,000원 추가", "- [ ] 도서산간 3,000원 추가 (후속 #13)"));
+    expect(inspectTask(repo, "0042-extra-shipping")).toEqual([]);
+    write(`${TASK}/prd.md`, FILLED_PRD.replace("- [ ]", "- [x]"));
+    expect(inspectTask(repo, "0042-extra-shipping")).toEqual([]);
+  });
+});
+
 describe("fix 브랜치", () => {
   it("fix/NNNN 브랜치에서도 원 태스크 폴더 기록을 기준으로 수정을 허용한다", () => {
     git("checkout", "-qb", "fix/0042-rounding");

@@ -6,9 +6,11 @@
 3. PLAN     같은 폴더 sdd.md → 접근·대안·트레이드오프·파일 계획·검증 계획
 4. BUILD    Guardrails를 지키며 작게 구현 + 단위 테스트
 5. GATE     pnpm check → PASS까지 반복
-6. RECORD   sdd.md에 "계획과 달라진 점"·검증 결과, JOURNAL.md 한 줄, Acceptance 갱신, TASKS.md status=done
+6. RECORD   sdd.md에 "계획과 달라진 점"·검증 결과, JOURNAL.md 한 줄, prd Acceptance 갱신 → pnpm issue-sync(이슈 동기화), TASKS.md status=done → 머지 후 pnpm issue-sync --close
 7. REFLECT  드러난 규칙·문서 공백을 Intent/Context에 반영, 실험이면 LEARNINGS.md 기록
 ```
+
+**복기:** 대화 시작과 날짜·브랜치가 바뀐 첫 요청에서 hooks가 미처리 `[보완]`·최근 일지를 자동으로 보여준다. 관련 있으면 먼저 반영하거나 TASKS에 등록한다.
 
 **1~7 내내:** `trace.md`에 판단·이유·막힘·되돌림을 직접 남긴다. 도구 호출은 hooks가 `trace.auto.jsonl`에 자동으로 남긴다(브랜치가 `task/NNNN-*`일 때). 템플릿: [templates/](../intent/templates/)
 

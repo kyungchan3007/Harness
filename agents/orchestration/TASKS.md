@@ -22,3 +22,4 @@
 | 0018 | README 작업 루프 다이어그램 가독성 개선 | claude | done | [0018](../intent/specs/0018-readme-diagram/prd.md) |
 | 0019 | 복기 참조·체크박스 측정 도구 + 기준선 | claude | done | [0019](../intent/specs/0019-recall-metrics/prd.md) |
 | 0021 | 이슈·브랜치 연결 규칙 (모든 브랜치는 이슈에서, fix는 기존 이슈에) | claude | done | [0021](../intent/specs/0021-issue-branch-rule/prd.md) · #10 |
+| 0020 | 복기 주입 + 체크박스 한 곳 관리·동기화 + 머지 후 이슈 확인 | claude | done | [0020](../intent/specs/0020-recall-and-checkbox-sync/prd.md) · #12 |
