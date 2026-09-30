@@ -1,0 +1,11 @@
+{"ts":"2026-09-30T10:53:48.409Z","session":"ce942d8f","event":"SessionStart","detail":"startup"}
+{"ts":"2026-09-30T10:53:48.461Z","session":"ce942d8f","event":"RecallInjected","detail":"대화 시작 · 보완 6개 · 일지 3개"}
+{"ts":"2026-09-30T10:53:48.519Z","session":"ce942d8f","event":"UserPromptSubmit","detail":"도구나 파일을 전혀 쓰지 말고, 지금 너에게 주어진 컨텍스트만 보고 답해줘: '미처리 [보완]' 항목이 보이면 그중 두 개를 그대로 적고, 안 보이면 '없음'이라고만 답해."}
+{"ts":"2026-09-30T10:53:59.202Z","session":"ce942d8f","event":"Stop"}
+{"ts":"2026-09-30T10:54:15.198Z","session":"c30ce47d","event":"SessionStart","detail":"startup"}
+{"ts":"2026-09-30T10:54:15.244Z","session":"c30ce47d","event":"RecallInjected","detail":"대화 시작 · 보완 6개 · 일지 3개"}
+{"ts":"2026-09-30T10:54:15.290Z","session":"c30ce47d","event":"UserPromptSubmit","detail":"도구나 파일을 전혀 쓰지 말고, 지금 너에게 주어진 컨텍스트만 보고 답해줘: '미처리 [보완]' 항목이 보이면 그중 두 개를 그대로 적고, 안 보이면 '없음'이라고만 답해."}
+{"ts":"2026-09-30T10:54:25.324Z","session":"c30ce47d","event":"Stop"}
+{"ts":"2026-09-30T10:54:36.151Z","session":"c30ce47d","event":"SessionStart","detail":"resume"}
+{"ts":"2026-09-30T10:54:36.236Z","session":"c30ce47d","event":"UserPromptSubmit","detail":"'확인'이라고만 답해."}
+{"ts":"2026-09-30T10:54:38.412Z","session":"c30ce47d","event":"Stop"}

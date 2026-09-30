@@ -49,9 +49,16 @@ gh issue develop <이슈번호> --name task/NNNN-슬러그 --base main --checkou
 gh issue develop <원 이슈번호> --name fix/NNNN-슬러그 --base main --checkout
 gh issue comment <원 이슈번호> --body "fix: <무엇을 왜> (브랜치 fix/NNNN-슬러그)"
 
-# PR 전에 연결 확인
-pnpm issue-link
+# PR 전에 연결·체크박스 확인 (prd.md Acceptance가 원본, 이슈는 복사본)
+pnpm issue-link          # 브랜치 ↔ 이슈 연결
+pnpm issue-sync          # 이슈 체크박스를 prd에 맞춤
+pnpm issue-sync --check  # 어긋나면 실패
+
+# 머지 후 — "Closes #N"이 이슈를 닫지 못하는 경우가 있다 (0021에서 실제 발생)
+pnpm issue-sync --close  # PR이 합쳐졌는데 이슈가 열려 있으면 닫음 (사유 없는 미체크가 있으면 거부)
 ```
+
+**체크박스 규칙:** 완료 조건의 원본은 `prd.md`의 `## Acceptance` 하나다. 이슈는 `pnpm issue-sync`로 복사한다. 작업 보드에서 done인 작업은 prd에 **사유 없는 미체크**가 있으면 완료 검사가 실패한다 — 못 한 항목은 `- [ ] … (후속 #번호)`처럼 사유를 적는다.
 
 ## 하네스가 강제하는 것
 

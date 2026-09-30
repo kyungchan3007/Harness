@@ -1,4 +1,5 @@
 // 복기 참조·체크박스 측정 — 순수 함수 (입출력은 metrics.mjs)
+import { REASON_MARK } from "../hooks/lib/records.mjs";
 
 export const EDIT_TOOLS = new Set(["Edit", "Write", "MultiEdit", "NotebookEdit"]);
 
@@ -12,7 +13,8 @@ export const PAST_RECORD_RULES = [
 const NOTION = /notion-(fetch|search)/;
 
 export const CHECK_REQUEST = /체크\s*(해|박스|표시)|check ?box/i;
-export const REASON_MARK = /후속|다음|이후|보류|제외|대체|범위 밖|비목표|사유|별도|#\d+|→/;
+// 사유 표지는 hooks·완료 검사와 같은 기준을 쓴다
+export { REASON_MARK };
 
 export function localDate(ts, offsetHours = 9) {
   return new Date(new Date(ts).getTime() + offsetHours * 3600_000).toISOString().slice(0, 10);

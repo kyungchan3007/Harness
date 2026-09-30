@@ -101,6 +101,32 @@ export function checkTrace(text, id = TRACE_REQUIRED_FROM) {
   return rows.some((cells) => cells[3]) ? [] : ['표에 "한 일"을 채운 행을 1개 이상 쓰세요'];
 }
 
+// ── 체크박스 (원본 = prd.md의 ## Acceptance) ─────────────────
+
+/** 미체크 항목에 이 표지가 있으면 "사유 있는 미체크"(후속으로 넘김 등) */
+export const REASON_MARK = /후속|다음|이후|보류|제외|대체|범위 밖|비목표|사유|별도|#\d+|→/;
+
+export function acceptanceSection(prdText) {
+  return prdText.split(/^## Acceptance\s*$/m)[1]?.split(/^## /m)[0] ?? "";
+}
+
+export function parseChecklist(text) {
+  const items = [];
+  for (const line of text.split("\n")) {
+    const m = /^\s*[-*] \[( |x|X)\] (.+)$/.exec(line);
+    if (!m) continue;
+    const checked = m[1] !== " ";
+    items.push({ text: m[2].trim(), checked, reasoned: !checked && REASON_MARK.test(m[2]) });
+  }
+  return items;
+}
+
+/** TASKS.md에서 태스크의 status 칸 */
+export function taskStatus(tasksText, id) {
+  const row = tasksText.split("\n").find((line) => new RegExp(`^\\|\\s*${id}\\s*\\|`).test(line));
+  return row?.split("|")[4]?.trim();
+}
+
 export function hasTasksRow(tasksText, id) {
   return new RegExp(`^\\|\\s*${id}\\s*\\|`, "m").test(tasksText);
 }
@@ -132,6 +158,12 @@ export function inspectTask(projectDir, folder, { requireTrace = true } = {}) {
   const tasksPath = join(projectDir, TASKS_FILE);
   const tasks = existsSync(tasksPath) ? readFileSync(tasksPath, "utf8") : "";
   if (!hasTasksRow(tasks, id)) problems.push(`${TASKS_FILE}에 ${id} 행이 없습니다 (owner·status=in-progress로 추가)`);
+
+  // 완료(done)로 표시한 작업은 prd의 완료 조건이 모두 체크됐거나, 미체크면 사유가 있어야 한다
+  if (prd !== undefined && taskStatus(tasks, id) === "done") {
+    const abandoned = parseChecklist(acceptanceSection(prd)).filter((i) => !i.checked && !i.reasoned);
+    for (const item of abandoned) problems.push(`prd.md: done인데 사유 없이 미체크된 완료 조건 — "${item.text.slice(0, 60)}" (체크하거나 "(후속 #번호)"처럼 사유를 적으세요)`);
+  }
 
   return problems;
 }

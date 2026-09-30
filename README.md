@@ -147,7 +147,7 @@ flowchart TD
 
 | 지점 | 장치 | 확인하는 것 | 위반 시 |
 | --- | --- | --- | --- |
-| 🔔 세션 시작 | `session-context.mjs` | - | 현재 브랜치·태스크·기록 상태를 에이전트에게 주입 |
+| 🔔 세션 시작 · 날짜/브랜치 변경 | `session-context.mjs` · `recall-hook.mjs` | - | 현재 작업 상태 + **미처리 `[보완]`·최근 일지(복기)**를 에이전트에게 주입 |
 | 🛑 코드 수정 직전 | `guard.mjs` (PreToolUse) | 태스크 브랜치 + TASKS 행 + 채워진 prd·sdd | **수정 차단** + 해야 할 일 안내 |
 | ↩️ 응답 종료 | `stop-check.mjs` (Stop) | 코드를 바꿨으면 trace.md 갱신 | **1회 돌려보냄** |
 | ✅ 완료 선언 | `check-task-records.mjs` (게이트) | 모든 태스크의 기록 + 타입·테스트 | **`pnpm check` FAIL** |
@@ -327,6 +327,7 @@ pnpm trace 0009   # 태스크의 hooks 자동 기록 요약
 pnpm usage        # 현재 태스크 브랜치의 토큰·컨텍스트 사용량 (transcript 실측)
 pnpm metrics --project <경로> --repo <owner/name>   # 복기 참조율·체크박스 방치율 측정
 pnpm issue-link   # 현재 브랜치가 prd의 이슈에 연결됐는지 확인 (PR 전)
+pnpm issue-sync   # 이슈 체크박스를 prd.md Acceptance에 맞춤 (--check 검사 · --close 머지 후 닫기)
 ```
 
 hooks는 **이 폴더에서 Claude Code 세션을 열면** 자동으로 동작합니다 ([.claude/settings.json](.claude/settings.json)).

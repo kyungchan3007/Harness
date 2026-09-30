@@ -26,7 +26,17 @@ export function describeSession(projectDir) {
 if (isMain(import.meta.url)) {
   runHook("session-context", async () => {
     const input = await readHookInput();
-    process.stdout.write(describeSession(projectDirOf(input)) + "\n");
+    const projectDir = projectDirOf(input);
+    // 대화 시작에도 복기를 넣고, 같은 날·같은 브랜치의 첫 요청에서 반복하지 않도록 상태를 기록한다
+    const { recallOnPrompt } = await import("./recall-hook.mjs");
+    const recap = recallOnPrompt(projectDir, String(input.session_id ?? "unknown"));
+    if (recap) {
+      try {
+        const { appendTrace, toEntry } = await import("./trace.mjs");
+        appendTrace(projectDir, { ...toEntry(input, projectDir), event: "RecallInjected", detail: `대화 시작 · 보완 ${recap.followups}개 · 일지 ${recap.journal}개` });
+      } catch {}
+    }
+    process.stdout.write((recap ? recap.text : describeSession(projectDir)) + "\n");
     process.exit(0);
   });
 }
