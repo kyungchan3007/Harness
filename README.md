@@ -325,6 +325,7 @@ pnpm install
 pnpm check        # 완료 게이트: 타입 · 테스트 · lockfile · 태스크 기록
 pnpm trace 0009   # 태스크의 hooks 자동 기록 요약
 pnpm usage        # 현재 태스크 브랜치의 토큰·컨텍스트 사용량 (transcript 실측)
+pnpm metrics --project <경로> --repo <owner/name>   # 복기 참조율·체크박스 방치율 측정
 ```
 
 hooks는 **이 폴더에서 Claude Code 세션을 열면** 자동으로 동작합니다 ([.claude/settings.json](.claude/settings.json)).
