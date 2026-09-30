@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { beforeEach, describe, expect, it } from "vitest";
 import { describeSession } from "../session-context.mjs";
-import { checkBeforeStop, checkPrd, checkSdd, checkTrace, decideEdit, inspectTask, isFixBranch, isRecordPath, issueNumberOf, parseTaskId } from "./records.mjs";
+import { checkBeforeStop, checkPrd, checkSdd, checkTrace, decideEdit, decideRole, inspectTask, isFixBranch, isRecordPath, issueNumberOf, ownersOf, parseTaskId } from "./records.mjs";
 
 const TEMPLATES = join(dirname(fileURLToPath(import.meta.url)), "../../../intent/templates");
 const template = (name) => readFileSync(join(TEMPLATES, name), "utf8");
@@ -141,6 +141,54 @@ describe("done 작업의 체크박스 방치 금지", () => {
     expect(inspectTask(repo, "0042-extra-shipping")).toEqual([]);
     write(`${TASK}/prd.md`, FILLED_PRD.replace("- [ ]", "- [x]"));
     expect(inspectTask(repo, "0042-extra-shipping")).toEqual([]);
+  });
+});
+
+describe("역할별 권한 (0013)", () => {
+  const SPEC = "agents/intent/specs/0042-x";
+  const cases = [
+    // [역할, 경로, 허용?]
+    ["designer", `${SPEC}/prd.md`, true],
+    ["designer", "agents/context/domain.md", true],
+    ["designer", "agents/orchestration/TASKS.md", true],
+    ["designer", "src/money.ts", false],
+    ["designer", `${SPEC}/verdict.md`, false],
+    ["builder", "src/cart/cart.ts", true],
+    ["builder", `${SPEC}/trace.md`, true],
+    ["builder", `${SPEC}/prd.md`, false],
+    ["builder", `${SPEC}/sdd.md`, false],
+    ["builder", `${SPEC}/verdict.md`, false],
+    ["verifier", `${SPEC}/verdict.md`, true],
+    ["verifier", `${SPEC}/trace.md`, true],
+    ["verifier", "src/money.ts", false],
+    ["verifier", `${SPEC}/prd.md`, false],
+  ];
+  it.each(cases)("%s → %s : %s", (role, path, allowed) => {
+    expect(decideRole(role, path).allow).toBe(allowed);
+  });
+
+  it("차단 이유에 그 파일을 맡을 역할을 알려준다", () => {
+    expect(decideRole("builder", `${SPEC}/prd.md`).reason).toContain("설계자(designer)");
+    expect(decideRole("verifier", "src/money.ts").reason).toContain("구현자(builder)");
+    expect(decideRole("designer", "README.md").reason).toContain("메인 대화");
+    expect(ownersOf(`${SPEC}/trace.md`)).toEqual(["designer", "builder", "verifier"]);
+  });
+
+  it("역할이 없거나 모르는 역할이면 역할 판정을 하지 않는다 (기존 규칙)", () => {
+    expect(decideRole(undefined, "src/a.ts")).toBeUndefined();
+    expect(decideRole("probe-reader", "src/a.ts")).toBeUndefined();
+  });
+
+  it("역할 규칙이 기록 경로 허용보다 먼저 — 구현자는 태스크 브랜치여도 prd를 못 고친다", () => {
+    git("checkout", "-qb", "task/0042-extra-shipping");
+    fillTask();
+    expect(decideEdit(repo, `${TASK}/prd.md`, "builder").allow).toBe(false);
+    expect(decideEdit(repo, `${TASK}/prd.md`).allow).toBe(true); // 메인 대화는 그대로
+    expect(decideEdit(repo, "src/a.ts", "builder").allow).toBe(true);
+  });
+
+  it("구현자의 코드 수정도 기존 규칙(작업 브랜치·기록)을 함께 따른다", () => {
+    expect(decideEdit(repo, "src/a.ts", "builder").allow).toBe(false); // main 브랜치
   });
 });
 
