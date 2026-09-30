@@ -2,6 +2,7 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { NEXT_LABEL, parseVerdict, ROLE_SPLIT_LINE, verdictStatus } from "./verdict.mjs";
 
 export const SPECS_DIR = "agents/intent/specs";
 export const TASKS_FILE = "agents/orchestration/TASKS.md";
@@ -158,6 +159,14 @@ export function inspectTask(projectDir, folder, { requireTrace = true } = {}) {
   const tasksPath = join(projectDir, TASKS_FILE);
   const tasks = existsSync(tasksPath) ? readFileSync(tasksPath, "utf8") : "";
   if (!hasTasksRow(tasks, id)) problems.push(`${TASKS_FILE}에 ${id} 행이 없습니다 (owner·status=in-progress로 추가)`);
+
+  // 판정서(0014): 있으면 형식 검사, 역할 분리 작업이 done이면 최신 판정이 통과여야 한다
+  const verdictText = read("verdict.md");
+  const vs = verdictStatus(verdictText === undefined ? [] : parseVerdict(verdictText));
+  problems.push(...vs.problems.map((p) => `verdict.md: ${p}`));
+  if (prd !== undefined && ROLE_SPLIT_LINE.test(prd) && taskStatus(tasks, id) === "done" && vs.next !== "done") {
+    problems.push(`역할 분리 작업이 done인데 판정이 통과가 아닙니다 (${NEXT_LABEL[vs.next]})`);
+  }
 
   // 완료(done)로 표시한 작업은 prd의 완료 조건이 모두 체크됐거나, 미체크면 사유가 있어야 한다
   if (prd !== undefined && taskStatus(tasks, id) === "done") {

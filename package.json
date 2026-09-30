@@ -17,7 +17,8 @@
     "prepare": "git config core.hooksPath .githooks || true",
     "metrics": "node agents/harness/metrics/metrics.mjs",
     "issue-link": "node agents/harness/evals/issue-link.mjs",
-    "issue-sync": "node agents/harness/evals/issue-sync.mjs"
+    "issue-sync": "node agents/harness/evals/issue-sync.mjs",
+    "verdict": "node agents/harness/evals/verdict.mjs"
   },
   "devDependencies": {
     "@types/node": "^26.6.3",
