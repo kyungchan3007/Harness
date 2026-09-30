@@ -18,7 +18,10 @@
     "metrics": "node agents/harness/metrics/metrics.mjs",
     "issue-link": "node agents/harness/evals/issue-link.mjs",
     "issue-sync": "node agents/harness/evals/issue-sync.mjs",
-    "verdict": "node agents/harness/evals/verdict.mjs"
+    "verdict": "node agents/harness/evals/verdict.mjs",
+    "exp:prepare": "node experiments/role-split/prepare.mjs",
+    "exp:score": "node experiments/role-split/score.mjs",
+    "exp:selfcheck": "node experiments/role-split/selfcheck.mjs"
   },
   "devDependencies": {
     "@types/node": "^26.6.3",
