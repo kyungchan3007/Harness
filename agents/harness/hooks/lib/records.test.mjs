@@ -144,6 +144,33 @@ describe("done 작업의 체크박스 방치 금지", () => {
   });
 });
 
+describe("역할 분리 작업의 판정서 (0014)", () => {
+  const V_REJECT = "## 1차 · 2026-09-30\n판정: rejected\n### 근거\n- 규칙 2 — 입력: 50,000원 / 기대: 0원 / 실제: 3,000원\n";
+  const V_OK = V_REJECT + "## 2차 · 2026-09-30\n판정: approved\n### 확인한 것\n- pnpm check 통과\n";
+  const done = "| ID | 제목 | owner | status | spec |\n| --- | --- | --- | --- | --- |\n| 0042 | x | c | done | - |\n";
+  const prep = (verdict) => {
+    write(`${TASK}/prd.md`, FILLED_PRD.replace("- [ ]", "- [x]").replace("## Acceptance", "- **역할 분리:** on\n\n## Acceptance"));
+    write(`${TASK}/sdd.md`, FILLED_SDD);
+    write(`${TASK}/trace.md`, FILLED_TRACE);
+    write("agents/orchestration/TASKS.md", done);
+    if (verdict) write(`${TASK}/verdict.md`, verdict);
+  };
+
+  it("역할 분리 작업이 done인데 판정서가 없거나 반려 상태면 실패", () => {
+    prep();
+    expect(inspectTask(repo, "0042-extra-shipping").join("\n")).toContain("판정이 통과가 아닙니다");
+    prep(V_REJECT);
+    expect(inspectTask(repo, "0042-extra-shipping").join("\n")).toContain("구현자 차례");
+  });
+
+  it("최신 판정이 통과면 통과, 판정서 형식 오류는 실패", () => {
+    prep(V_OK);
+    expect(inspectTask(repo, "0042-extra-shipping")).toEqual([]);
+    prep("## 1차 · x\n판정: rejected\n");
+    expect(inspectTask(repo, "0042-extra-shipping").join("\n")).toContain("verdict.md: 1차: 반려인데");
+  });
+});
+
 describe("역할별 권한 (0013)", () => {
   const SPEC = "agents/intent/specs/0042-x";
   const cases = [

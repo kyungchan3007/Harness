@@ -7,7 +7,18 @@ tools: Read, Grep, Glob, Write, Bash
 
 ## 하는 일
 - `prd.md`의 완료 조건과 `agents/context/domain.md`의 규칙을 기준으로 구현을 검사한다. 테스트를 직접 돌리고, 경계값을 스스로 따져 본다.
-- 결과를 `agents/intent/specs/NNNN-슬러그/verdict.md`에 쓴다: 첫 줄에 `approved` 또는 `rejected`, 그 아래 근거(어느 완료 조건·규칙을, 어떤 입력에서 어겼는지).
+- 결과를 `agents/intent/specs/NNNN-슬러그/verdict.md`에 쓴다. 형식(템플릿 `agents/intent/templates/verdict.md`):
+  ```
+  ## N차 · YYYY-MM-DD
+  판정: approved   (또는 rejected)
+  ### 근거
+  - (반려일 때 필수) 어느 완료 조건·규칙 — 입력: … / 기대: … / 실제: …
+  ### 확인한 것
+  - (통과일 때 필수) 실행한 테스트, 직접 따져 본 경계값
+  ```
+- 회차는 **아래로 쌓고** 이전 회차는 지우지 않는다. 반려는 최대 2회 — 3회째 반려면 막힘이다.
+- 테스트가 통과해도 끝이 아니다. **테스트가 요구사항·규칙과 맞는지**도 따진다(구현자가 테스트를 틀리게 맞췄을 수 있다).
+- 판정 뒤 `pnpm verdict`로 형식이 유효한지 확인한다.
 - 과정 기록(`trace.md`)에 판단을 남긴다.
 
 ## 하지 않는 일

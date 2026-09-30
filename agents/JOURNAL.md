@@ -17,3 +17,4 @@
 | 2026-09-30 | 0021 이슈·브랜치 연결 규칙 (#10) | 테스트 57개, e2e 6종, issue-link 확인, ALL PASS | 연결 여부는 오프라인 게이트로 못 봄 → 별도 명령 / e2e 절차 실수 1회 | [trace](intent/specs/0021-issue-branch-rule/trace.md) |
 | 2026-09-30 | 0020 복기 주입 + 체크박스 동기화 (#12) | 테스트 67개, e2e 5종, issue-sync 실동작, ALL PASS | 주입 ≠ 반영(행동 변화는 미측정) / 이슈·prd 따로 쓰면 즉시 어긋남 / 테스트 흔적이 실제 기록에 섞임 | [trace](intent/specs/0020-recall-and-checkbox-sync/trace.md) |
 | 2026-09-30 | 0013 역할 식별 확인 + 역할별 권한 강제 (#14) | 프로브로 agent_type 확인, 테스트 86개, 실제 보조 에이전트 e2e 5종, ALL PASS | 역할 없는 메인 대화는 우회 가능 / "막혔다"만 보면 누가 막았는지 놓침 | [trace](intent/specs/0013-role-permissions/trace.md) |
+| 2026-09-30 | 0014 검사자 판정 흐름 (#16) | 테스트 93개, 실제 반려→수정→통과 e2e, ALL PASS | 준비 커밋 메시지가 검사자에게 힌트로 새어 나감 / 판정서 내용의 사실 여부는 자동 기록과 대조해야 함 | [trace](intent/specs/0014-verdict-flow/trace.md) |
