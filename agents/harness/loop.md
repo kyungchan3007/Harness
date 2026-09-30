@@ -1,7 +1,7 @@
 # Loop — 작업 루프
 
 ```
-1. CLAIM    TASKS.md에서 owner=나, status=in-progress
+1. CLAIM    이슈 생성 → gh issue develop으로 task/NNNN 브랜치(fix는 기존 이슈에서 fix/NNNN) → TASKS.md owner=나, status=in-progress
 2. DEFINE   intent/specs/NNNN-슬러그/prd.md → 왜/무엇 + Acceptance
 3. PLAN     같은 폴더 sdd.md → 접근·대안·트레이드오프·파일 계획·검증 계획
 4. BUILD    Guardrails를 지키며 작게 구현 + 단위 테스트

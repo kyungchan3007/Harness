@@ -117,7 +117,7 @@ flowchart TD
 
 **단계 (그림의 번호와 동일)**
 
-1. **CLAIM** — `task/NNNN-슬러그` 브랜치를 만들고 `TASKS.md`에 행을 추가합니다.
+1. **CLAIM** — **이슈를 먼저 만들고** 그 이슈에서 `task/NNNN-슬러그` 브랜치를 만들어(`gh issue develop`) `TASKS.md`에 행을 추가합니다. 기존 이슈의 fix는 그 이슈에서 `fix/NNNN-슬러그`. ([지침서](agents/harness/branch-and-issue.md))
 2. **DEFINE** — `prd.md`에 왜·무엇·Acceptance를 씁니다.
 3. **PLAN** — `sdd.md`에 접근·대안·검증 계획을 씁니다.
 4. **BUILD** — 코드와 테스트를 작성합니다.
@@ -326,6 +326,7 @@ pnpm check        # 완료 게이트: 타입 · 테스트 · lockfile · 태스�
 pnpm trace 0009   # 태스크의 hooks 자동 기록 요약
 pnpm usage        # 현재 태스크 브랜치의 토큰·컨텍스트 사용량 (transcript 실측)
 pnpm metrics --project <경로> --repo <owner/name>   # 복기 참조율·체크박스 방치율 측정
+pnpm issue-link   # 현재 브랜치가 prd의 이슈에 연결됐는지 확인 (PR 전)
 ```
 
 hooks는 **이 폴더에서 Claude Code 세션을 열면** 자동으로 동작합니다 ([.claude/settings.json](.claude/settings.json)).

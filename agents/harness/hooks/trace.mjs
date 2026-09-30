@@ -84,7 +84,7 @@ export function toEntry(input, projectDir, now = new Date()) {
 
 /** 브랜치 이름으로 기록할 파일(프로젝트 기준 상대 경로)을 정한다 */
 export function resolveTraceFile(branch, specFolders) {
-  const id = /^task\/(\d{4})-/.exec(branch ?? "")?.[1];
+  const id = /^(?:task|fix)\/(\d{4})-/.exec(branch ?? "")?.[1]; // fix 브랜치는 원 태스크 폴더에 기록
   const folder = id && specFolders.find((name) => name.startsWith(`${id}-`));
   return folder ? `${SPECS_DIR}/${folder}/trace.auto.jsonl` : UNASSIGNED_FILE;
 }

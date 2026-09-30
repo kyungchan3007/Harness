@@ -7,6 +7,7 @@
 | Eval | [evals/checks.sh](evals/checks.sh) | 완료 판정 게이트 |
 | Observability | [observability.md](observability.md) | 무슨 일이 있었는지 남김 |
 | 커밋·이슈 지침 | [commit-and-issue.md](commit-and-issue.md) | 허점·보완·컨텍스트·토큰을 커밋·이슈·PR에 |
+| 이슈·브랜치 지침 | [branch-and-issue.md](branch-and-issue.md) | 모든 브랜치는 이슈에서, fix는 기존 이슈에 |
 
 ```
         ┌─ Guardrails: 하지 말아야 할 일을 막는다 (사전)
