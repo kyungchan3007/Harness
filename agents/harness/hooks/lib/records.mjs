@@ -168,11 +168,45 @@ export function inspectTask(projectDir, folder, { requireTrace = true } = {}) {
   return problems;
 }
 
+// ── 역할별 권한 (0013) ─────────────────────────────────────────
+// 역할은 Claude Code 보조 에이전트 이름(hook 입력의 agent_type). 역할이 없으면(메인 대화) 기존 규칙만 적용.
+
+const TRACE_FILE = /^agents\/intent\/specs\/[^/]+\/trace\.md$/;
+export const ROLE_PATHS = {
+  designer: [/^agents\/intent\//, /^agents\/context\//, /^agents\/orchestration\/TASKS\.md$/],
+  builder: [/^src\//, TRACE_FILE],
+  verifier: [/^agents\/intent\/specs\/[^/]+\/verdict\.md$/, TRACE_FILE],
+};
+export const ROLE_LABEL = { designer: "설계자(designer)", builder: "구현자(builder)", verifier: "검사자(verifier)" };
+
+/** 이 파일을 고칠 수 있는 역할들 */
+export function ownersOf(relPath) {
+  return Object.keys(ROLE_PATHS).filter((role) => ROLE_PATHS[role].some((re) => re.test(relPath)));
+}
+
+/** 역할이 있으면 역할 권한 판정, 없으면 undefined(기존 규칙으로) */
+export function decideRole(role, relPath) {
+  if (!role || !ROLE_PATHS[role]) return undefined;
+  // 설계자의 권한 안이라도 판정서는 검사자만 쓴다
+  if (role === "designer" && /\/verdict\.md$/.test(relPath)) return { allow: false, reason: roleReason(role, relPath) };
+  if (ROLE_PATHS[role].some((re) => re.test(relPath))) return { allow: true };
+  return { allow: false, reason: roleReason(role, relPath) };
+}
+
+function roleReason(role, relPath) {
+  const owners = ownersOf(relPath).filter((r) => r !== role && !(r === "designer" && /\/verdict\.md$/.test(relPath)));
+  const who = owners.length ? owners.map((r) => ROLE_LABEL[r]).join(" 또는 ") : "역할 없는 메인 대화(조율자)";
+  return `[역할 권한] ${ROLE_LABEL[role]}는 ${relPath}를 고칠 수 없습니다. 이 파일은 ${who}의 일입니다. 우회하지 말고 과정 기록(trace.md)에 필요한 변경을 적어 넘기세요.`;
+}
+
 // ── PreToolUse 판정 ─────────────────────────────────────────
 
 /** 코드 수정 허용 여부. 차단이면 에이전트에게 보여줄 이유를 돌려준다 */
-export function decideEdit(projectDir, relPath) {
+export function decideEdit(projectDir, relPath, role) {
   if (relPath.startsWith("..") || relPath.startsWith("/")) return { allow: true };
+  // 역할 규칙을 기록 경로 허용보다 먼저 — 구현자가 prd·sdd를 코드에 맞춰 고치지 못하게
+  const byRole = decideRole(role, relPath);
+  if (byRole && !byRole.allow) return byRole;
   if (isRecordPath(relPath)) return { allow: true };
 
   const branch = currentBranch(projectDir);

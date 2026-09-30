@@ -53,6 +53,12 @@ describe("trace hook", () => {
     expect(failed).toMatchObject({ tool: "Bash", detail: "pnpm check", ok: false, error: "exit 1" });
   });
 
+  it("보조 에이전트의 호출은 역할(role)을 함께 남긴다", () => {
+    const e = toEntry({ hook_event_name: "PostToolUse", tool_name: "Read", tool_input: { file_path: "a" }, agent_type: "builder" }, PROJECT, NOW);
+    expect(e.role).toBe("builder");
+    expect(toEntry({ hook_event_name: "PostToolUse", tool_name: "Read", tool_input: { file_path: "a" } }, PROJECT, NOW).role).toBeUndefined();
+  });
+
   it("guard가 차단한 호출은 blocked로 남긴다", () => {
     const entry = toEntry(
       { hook_event_name: "PreToolUse", tool_name: "Edit", tool_input: { file_path: `${PROJECT}/src/a.ts` }, reason: "[기록 강제] src/a.ts 수정 차단" },

@@ -12,7 +12,7 @@ if (isMain(import.meta.url)) {
     const target = input.tool_input?.file_path ?? input.tool_input?.notebook_path;
     if (!target) process.exit(0);
 
-    const decision = decideEdit(projectDir, relative(projectDir, target));
+    const decision = decideEdit(projectDir, relative(projectDir, target), input.agent_type);
     if (decision.allow) process.exit(0);
     // 차단된 호출은 PostToolUse가 오지 않으므로 여기서 자동 기록에 남긴다
     try {

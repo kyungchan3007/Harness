@@ -1,0 +1,4 @@
+{"event":"PreToolUse","tool":"Agent","keys":["cwd","hook_event_name","permission_mode","prompt_id","session_id","tool_input","tool_name","tool_use_id","transcript_path"]}
+{"event":"PreToolUse","tool":"Read","keys":["agent_id","agent_type","cwd","hook_event_name","permission_mode","prompt_id","session_id","tool_input","tool_name","tool_use_id","transcript_path"],"agent_type":"probe-reader","agent_id":"af338820bebbceb94","file":"README.md"}
+{"event":"PreToolUse","tool":"Read","keys":["agent_type","cwd","hook_event_name","permission_mode","prompt_id","session_id","tool_input","tool_name","tool_use_id","transcript_path"],"agent_type":"probe-reader","file":"package.json"}
+{"event":"PreToolUse","tool":"Read","keys":["cwd","hook_event_name","permission_mode","prompt_id","session_id","tool_input","tool_name","tool_use_id","transcript_path"],"file":"tsconfig.json"}

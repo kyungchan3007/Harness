@@ -60,6 +60,7 @@ function describeTool(toolName, input = {}) {
 export function toEntry(input, projectDir, now = new Date()) {
   const event = input.hook_event_name;
   const entry = { ts: now.toISOString(), session: String(input.session_id ?? "").slice(0, 8), event };
+  if (input.agent_type) entry.role = input.agent_type; // 역할 분리 실험(0016)에서 역할별로 비교
 
   if (event === "UserPromptSubmit") {
     entry.detail = sanitize(input.prompt ?? "", projectDir);
