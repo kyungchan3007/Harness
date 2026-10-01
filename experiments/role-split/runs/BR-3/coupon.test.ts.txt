@@ -1,0 +1,595 @@
+import { describe, expect, it } from "vitest";
+import type { LineItem } from "../cart/cart.js";
+import type { ShippingPolicy } from "./price-cart.js";
+import { Coupon, CouponError, priceWithCoupons } from "./coupon.js";
+
+describe("Coupon", () => {
+  describe("priceWithCoupons", () => {
+    describe("R.1: Rate coupon calculation", () => {
+      it("should calculate rate coupon discount with floor", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 10_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "rate", value: 10 },
+        ];
+
+        const result = priceWithCoupons(items, coupons);
+
+        expect(result.discount).toBe(1_000); // floor(10,000 × 10 / 100)
+      });
+
+      it("should floor down when discount has fractional part", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 333, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "rate", value: 10 },
+        ];
+
+        const result = priceWithCoupons(items, coupons);
+
+        expect(result.discount).toBe(33); // floor(333 × 10 / 100) = floor(33.3)
+      });
+
+      it("should handle 100% rate coupon", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 10_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "rate", value: 100 },
+        ];
+
+        const result = priceWithCoupons(items, coupons);
+
+        expect(result.discount).toBe(10_000);
+      });
+    });
+
+    describe("R.2: Fixed coupon calculation", () => {
+      it("should calculate fixed coupon discount", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 10_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "fixed", value: 2_000 },
+        ];
+
+        const result = priceWithCoupons(items, coupons);
+
+        expect(result.discount).toBe(2_000);
+      });
+
+      it("should not exceed base amount for fixed coupon", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 10_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "fixed", value: 15_000 },
+        ];
+
+        const result = priceWithCoupons(items, coupons);
+
+        expect(result.discount).toBe(10_000); // min(15_000, 10_000)
+      });
+    });
+
+    describe("R.3: maxDiscount cap", () => {
+      it("should apply maxDiscount to rate coupon", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 100_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "rate", value: 50, maxDiscount: 30_000 },
+        ];
+
+        const result = priceWithCoupons(items, coupons);
+
+        expect(result.discount).toBe(30_000); // min(50_000, 30_000)
+      });
+
+      it("should apply maxDiscount to fixed coupon", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 100_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "fixed", value: 50_000, maxDiscount: 30_000 },
+        ];
+
+        const result = priceWithCoupons(items, coupons);
+
+        expect(result.discount).toBe(30_000);
+      });
+    });
+
+    describe("R.4: minOrder condition", () => {
+      it("should not apply coupon when minOrder is not met", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 10_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "fixed", value: 5_000, minOrder: 50_000 },
+        ];
+
+        const result = priceWithCoupons(items, coupons);
+
+        expect(result.discount).toBe(0);
+      });
+
+      it("should apply coupon when minOrder is met", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 60_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "fixed", value: 5_000, minOrder: 50_000 },
+        ];
+
+        const result = priceWithCoupons(items, coupons);
+
+        expect(result.discount).toBe(5_000);
+      });
+
+      it("should apply coupon when minOrder is exactly met", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 50_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "fixed", value: 5_000, minOrder: 50_000 },
+        ];
+
+        const result = priceWithCoupons(items, coupons);
+
+        expect(result.discount).toBe(5_000);
+      });
+    });
+
+    describe("R.5: Item coupon base amount", () => {
+      it("should calculate item coupon on line amount (unit × quantity)", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 10_000, quantity: 2 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "rate", value: 10 },
+        ];
+
+        const result = priceWithCoupons(items, coupons);
+
+        expect(result.discount).toBe(2_000); // floor(20_000 × 10 / 100)
+      });
+
+      it("should apply coupon once per line, not per item", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 1_000, quantity: 5 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "fixed", value: 2_000 },
+        ];
+
+        const result = priceWithCoupons(items, coupons);
+
+        expect(result.discount).toBe(2_000); // Not 5 × 2_000
+      });
+    });
+
+    describe("R.6: Order coupon base amount", () => {
+      it("should calculate order coupon after item coupon discounts", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 10_000, quantity: 2 },
+          { sku: "B", name: "Item B", unitPrice: 15_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "rate", value: 10 },
+          { scope: "order", type: "fixed", value: 5_000 },
+        ];
+
+        const result = priceWithCoupons(items, coupons);
+
+        const itemDiscount = 2_000; // floor(20_000 × 10 / 100)
+        const orderBase = 35_000 - itemDiscount; // 33_000
+        const orderDiscount = 5_000; // min(5_000, 33_000)
+        expect(result.discount).toBe(itemDiscount + orderDiscount);
+      });
+    });
+
+    describe("R.7: Coupon application order", () => {
+      it("should apply item coupons before order coupons regardless of list order", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 10_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "order", type: "fixed", value: 3_000 },
+          { scope: "item", sku: "A", type: "fixed", value: 2_000 },
+        ];
+
+        const result = priceWithCoupons(items, coupons);
+
+        const itemDiscount = 2_000;
+        const orderBase = 10_000 - itemDiscount; // 8_000
+        const orderDiscount = 3_000;
+        expect(result.discount).toBe(itemDiscount + orderDiscount);
+      });
+    });
+
+    describe("R.8: Duplicate coupon restrictions", () => {
+      it("should throw error for duplicate item coupons on same sku", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 10_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "rate", value: 10 },
+          { scope: "item", sku: "A", type: "fixed", value: 2_000 },
+        ];
+
+        expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+      });
+
+      it("should throw error for multiple order coupons", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 10_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "order", type: "fixed", value: 1_000 },
+          { scope: "order", type: "fixed", value: 2_000 },
+        ];
+
+        expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+      });
+
+      it("should throw error for coupon on non-existent product", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 10_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "B", type: "rate", value: 10 },
+        ];
+
+        expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+      });
+
+      it("should allow one item coupon per different sku", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 10_000, quantity: 1 },
+          { sku: "B", name: "Item B", unitPrice: 20_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "rate", value: 10 },
+          { scope: "item", sku: "B", type: "rate", value: 10 },
+        ];
+
+        const result = priceWithCoupons(items, coupons);
+
+        const discountA = 1_000;
+        const discountB = 2_000;
+        expect(result.discount).toBe(discountA + discountB);
+      });
+    });
+
+    describe("R.9: Coupon validation", () => {
+      it("should throw error for rate coupon with value < 1", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 10_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "rate", value: 0 },
+        ];
+
+        expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+      });
+
+      it("should throw error for rate coupon with value > 100", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 10_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "rate", value: 101 },
+        ];
+
+        expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+      });
+
+      it("should throw error for rate coupon with non-integer value", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 10_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "rate", value: 10.5 },
+        ];
+
+        expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+      });
+
+      it("should throw error for fixed coupon with value < 1", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 10_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "fixed", value: 0 },
+        ];
+
+        expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+      });
+
+      it("should throw error for fixed coupon with non-integer value", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 10_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "fixed", value: 1_000.5 },
+        ];
+
+        expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+      });
+
+      it("should throw error for invalid maxDiscount", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 10_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "rate", value: 10, maxDiscount: -1 },
+        ];
+
+        expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+      });
+
+      it("should throw error for invalid minOrder", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 10_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "rate", value: 10, minOrder: -1 },
+        ];
+
+        expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+      });
+
+      it("should throw error for item coupon without sku", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 10_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", type: "rate", value: 10 },
+        ];
+
+        expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+      });
+    });
+
+    describe("R.10: Result composition", () => {
+      it("should return correct discount sum", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 10_000, quantity: 1 },
+          { sku: "B", name: "Item B", unitPrice: 20_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "fixed", value: 2_000 },
+          { scope: "order", type: "fixed", value: 3_000 },
+        ];
+
+        const result = priceWithCoupons(items, coupons);
+
+        expect(result.discount).toBe(5_000);
+      });
+
+      it("should calculate shipping based on discounted amount", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 100_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "fixed", value: 60_000 },
+        ];
+
+        const result = priceWithCoupons(items, coupons);
+
+        expect(result.discount).toBe(60_000);
+        expect(result.shipping).toBe(3_000); // 100_000 - 60_000 = 40_000 < 50_000, so shipping = 3_000
+      });
+
+      it("should make shipping free when discounted subtotal >= 50000", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 60_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "fixed", value: 5_000 },
+        ];
+
+        const result = priceWithCoupons(items, coupons);
+
+        expect(result.discount).toBe(5_000);
+        expect(result.shipping).toBe(0); // 60_000 - 5_000 = 55_000 >= 50_000
+      });
+
+      it("should calculate total correctly", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 35_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "fixed", value: 5_000 },
+        ];
+
+        const result = priceWithCoupons(items, coupons);
+
+        const expectedDiscount = 5_000;
+        const expectedShipping = 3_000; // 35_000 - 5_000 = 30_000 < 50_000
+        const expectedTotal = 35_000 - expectedDiscount + expectedShipping;
+
+        expect(result.discount).toBe(expectedDiscount);
+        expect(result.shipping).toBe(expectedShipping);
+        expect(result.total).toBe(expectedTotal);
+      });
+    });
+
+    describe("R.11: Empty cart", () => {
+      it("should return all zeros for empty cart", () => {
+        const items: LineItem[] = [];
+        const coupons: Coupon[] = [
+          { scope: "order", type: "fixed", value: 1_000 },
+        ];
+
+        const result = priceWithCoupons(items, coupons);
+
+        expect(result).toEqual({ subtotal: 0, discount: 0, shipping: 0, total: 0 });
+      });
+
+      it("should not validate coupons for empty cart", () => {
+        const items: LineItem[] = [];
+        const coupons: Coupon[] = [
+          { scope: "order", type: "fixed", value: 10 },
+        ];
+
+        // Should not throw even with a coupon
+        const result = priceWithCoupons(items, coupons);
+
+        expect(result).toEqual({ subtotal: 0, discount: 0, shipping: 0, total: 0 });
+      });
+    });
+
+    describe("R.12: Input immutability", () => {
+      it("should not modify items array", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 10_000, quantity: 1 },
+        ];
+        const itemsCopy = JSON.parse(JSON.stringify(items));
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "fixed", value: 2_000 },
+        ];
+
+        priceWithCoupons(items, coupons);
+
+        expect(items).toEqual(itemsCopy);
+      });
+
+      it("should not modify coupons array", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 10_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "fixed", value: 2_000 },
+        ];
+        const couponsCopy = JSON.parse(JSON.stringify(coupons));
+
+        priceWithCoupons(items, coupons);
+
+        expect(coupons).toEqual(couponsCopy);
+      });
+    });
+
+    describe("Complex scenarios", () => {
+      it("should handle multiple item coupons and one order coupon", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 10_000, quantity: 2 },
+          { sku: "B", name: "Item B", unitPrice: 15_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "rate", value: 10 },
+          { scope: "item", sku: "B", type: "fixed", value: 3_000 },
+          { scope: "order", type: "fixed", value: 5_000 },
+        ];
+
+        const result = priceWithCoupons(items, coupons);
+
+        const itemDiscountA = 2_000; // floor(20_000 × 10 / 100)
+        const itemDiscountB = 3_000;
+        const itemDiscountSum = 5_000;
+        const orderBase = 35_000 - itemDiscountSum; // 30_000
+        const orderDiscount = 5_000;
+        const totalDiscount = itemDiscountSum + orderDiscount;
+
+        expect(result.discount).toBe(totalDiscount);
+        expect(result.subtotal).toBe(35_000);
+      });
+
+      it("should handle minOrder across multiple coupons", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 30_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "fixed", value: 5_000, minOrder: 50_000 },
+          { scope: "order", type: "fixed", value: 3_000, minOrder: 50_000 },
+        ];
+
+        const result = priceWithCoupons(items, coupons);
+
+        expect(result.discount).toBe(0); // Both coupons fail minOrder check
+      });
+
+      it("should apply custom shipping policy", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 10_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "fixed", value: 2_000 },
+        ];
+        const customPolicy: ShippingPolicy = { fee: 5_000, freeThreshold: 100_000 };
+
+        const result = priceWithCoupons(items, coupons, customPolicy);
+
+        expect(result.shipping).toBe(5_000); // 10_000 - 2_000 = 8_000 < 100_000
+      });
+
+      it("should work with no coupons", () => {
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 10_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [];
+
+        const result = priceWithCoupons(items, coupons);
+
+        expect(result.discount).toBe(0);
+        expect(result.subtotal).toBe(10_000);
+        expect(result.shipping).toBe(3_000); // 10_000 < 50_000
+        expect(result.total).toBe(13_000);
+      });
+
+      it("should match example 1 from SDD", () => {
+        // Example 1: 상품 쿠폰 + 주문 쿠폰
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 10_000, quantity: 2 },
+          { sku: "B", name: "Item B", unitPrice: 15_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "rate", value: 10 },
+          { scope: "order", type: "fixed", value: 5_000 },
+        ];
+
+        const result = priceWithCoupons(items, coupons);
+
+        expect(result.subtotal).toBe(35_000);
+        expect(result.discount).toBe(7_000); // 2_000 + 5_000
+        expect(result.shipping).toBe(3_000); // 35_000 - 7_000 = 28_000 < 50_000
+        expect(result.total).toBe(31_000);
+      });
+
+      it("should match example 2 from SDD", () => {
+        // Example 2: maxDiscount 상한
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 100_000, quantity: 1 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "item", sku: "A", type: "rate", value: 50, maxDiscount: 30_000 },
+        ];
+
+        const result = priceWithCoupons(items, coupons);
+
+        expect(result.discount).toBe(30_000);
+        expect(result.shipping).toBe(0); // 100_000 - 30_000 = 70_000 >= 50_000
+        expect(result.total).toBe(70_000);
+      });
+
+      it("should match example 3 from SDD", () => {
+        // Example 3: minOrder 미충족
+        const items: LineItem[] = [
+          { sku: "A", name: "Item A", unitPrice: 10_000, quantity: 2 },
+        ];
+        const coupons: Coupon[] = [
+          { scope: "order", type: "fixed", value: 5_000, minOrder: 50_000 },
+        ];
+
+        const result = priceWithCoupons(items, coupons);
+
+        expect(result.discount).toBe(0);
+        expect(result.shipping).toBe(3_000); // 20_000 - 0 = 20_000 < 50_000
+        expect(result.total).toBe(23_000);
+      });
+    });
+  });
+});
