@@ -4,7 +4,7 @@
 import { spawnSync } from "node:child_process";
 import { readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { IMPL_PATH, ORACLE_FILE, ORACLE_PATH, REFERENCE_FILE, prepareCopy, scoreCopy } from "./lib.mjs";
+import { IMPL_PATH, ORACLE_FILE, ORACLE_PATH, REFERENCE_FILE, WORKTREE, prepareCopy, scoreCopy } from "./lib.mjs";
 
 /** 틀린 구현 — find를 replace로 바꾼 정답 코드. expect의 함정 테스트가 모두 실패해야 한다 */
 export const MUTANTS = [
@@ -34,7 +34,8 @@ export const MUTANTS = [
 export function runSelfcheck({ log = console.log } = {}) {
   const reference = readFileSync(REFERENCE_FILE, "utf8");
   const problems = [];
-  const { dir, leaks } = prepareCopy();
+  // 게이트는 커밋 전에 돌기 때문에 HEAD가 아니라 지금 작업 폴더로 만든다 (HEAD로 하면 새로 쓴 파일의 누출을 못 봄 — fix/0015)
+  const { dir, leaks } = prepareCopy({ ref: WORKTREE });
   try {
     if (leaks.length > 0) problems.push(`복사본 누출 ${leaks.length}건: ${leaks.map((l) => l.where).join(", ")}`);
 
