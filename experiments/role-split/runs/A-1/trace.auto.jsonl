@@ -1,0 +1,31 @@
+{"ts":"2026-10-01T03:38:06.879Z","session":"9713f45a","event":"PostToolUse","tool":"Write","detail":"agents/intent/specs/0030-coupons/prd.md","ok":true}
+{"ts":"2026-10-01T03:38:17.249Z","session":"9713f45a","event":"PostToolUse","tool":"Write","detail":"agents/intent/specs/0030-coupons/sdd.md","ok":true}
+{"ts":"2026-10-01T03:38:22.996Z","session":"9713f45a","event":"PostToolUse","tool":"Write","detail":"agents/intent/specs/0030-coupons/trace.md","ok":true}
+{"ts":"2026-10-01T03:38:35.013Z","session":"9713f45a","event":"PreToolUse","tool":"Write","detail":"src/pricing/coupon.ts","ok":false,"blocked":true,"error":"[기록 강제] src/pricing/coupon.ts 수정 차단: 코드보다 PRD·SDD·TASKS가 먼저입니다."}
+{"ts":"2026-10-01T03:38:37.790Z","session":"9713f45a","event":"PostToolUse","tool":"Read","detail":"agents/orchestration/TASKS.md","ok":true}
+{"ts":"2026-10-01T03:38:40.707Z","session":"9713f45a","event":"PostToolUse","tool":"Read","detail":"agents/intent/specs/0002-cart-pricing/prd.md","ok":true}
+{"ts":"2026-10-01T03:38:42.691Z","session":"9713f45a","event":"PostToolUse","tool":"Read","detail":"agents/intent/specs/0002-cart-pricing/sdd.md","ok":true}
+{"ts":"2026-10-01T03:39:00.656Z","session":"9713f45a","event":"PostToolUse","tool":"Edit","detail":"agents/intent/specs/0030-coupons/prd.md","ok":true}
+{"ts":"2026-10-01T03:39:18.428Z","session":"9713f45a","event":"PostToolUse","tool":"Edit","detail":"agents/intent/specs/0030-coupons/sdd.md","ok":true}
+{"ts":"2026-10-01T03:39:22.329Z","session":"9713f45a","event":"PostToolUse","tool":"Edit","detail":"agents/orchestration/TASKS.md","ok":true}
+{"ts":"2026-10-01T03:39:33.842Z","session":"9713f45a","event":"PreToolUse","tool":"Write","detail":"src/pricing/coupon.ts","ok":false,"blocked":true,"error":"[기록 강제] src/pricing/coupon.ts 수정 차단: 코드보다 PRD·SDD·TASKS가 먼저입니다."}
+{"ts":"2026-10-01T03:39:36.529Z","session":"9713f45a","event":"PostToolUse","tool":"Read","detail":"agents/intent/specs/0030-coupons/prd.md","ok":true}
+{"ts":"2026-10-01T03:39:40.887Z","session":"9713f45a","event":"PostToolUse","tool":"Read","detail":"agents/intent/specs/0021-issue-branch-rule/prd.md","ok":true}
+{"ts":"2026-10-01T03:39:45.112Z","session":"9713f45a","event":"PostToolUse","tool":"Edit","detail":"agents/intent/specs/0030-coupons/prd.md","ok":true}
+{"ts":"2026-10-01T03:39:47.529Z","session":"9713f45a","event":"PostToolUse","tool":"Edit","detail":"agents/intent/specs/0030-coupons/prd.md","ok":true}
+{"ts":"2026-10-01T03:39:59.507Z","session":"9713f45a","event":"PostToolUse","tool":"Write","detail":"src/pricing/coupon.ts","ok":true}
+{"ts":"2026-10-01T03:40:38.600Z","session":"9713f45a","event":"PostToolUse","tool":"Write","detail":"src/pricing/coupon.test.ts","ok":true}
+{"ts":"2026-10-01T03:40:46.409Z","session":"9713f45a","event":"PostToolUseFailure","tool":"Bash","detail":"pnpm check 2>&1","ok":false,"error":"Exit code 1 $ bash agents/harness/evals/checks.sh ════════════════════════════════════════ harness-lab 완료 게이트 ════════════════════════════════════════ ▶ Typecheck $ pnpm exec tsc --noEmit src/pricing/…"}
+{"ts":"2026-10-01T03:40:53.350Z","session":"9713f45a","event":"PostToolUse","tool":"Edit","detail":"src/pricing/coupon.ts","ok":true}
+{"ts":"2026-10-01T03:40:58.309Z","session":"9713f45a","event":"PostToolUse","tool":"Edit","detail":"src/pricing/coupon.test.ts","ok":true}
+{"ts":"2026-10-01T03:41:17.383Z","session":"9713f45a","event":"PostToolUse","tool":"Edit","detail":"agents/intent/specs/0030-coupons/trace.md","ok":true}
+{"ts":"2026-10-01T03:41:22.754Z","session":"9713f45a","event":"PostToolUseFailure","tool":"Bash","detail":"pnpm check 2>&1","ok":false,"error":"Exit code 1 $ bash agents/harness/evals/checks.sh ════════════════════════════════════════ harness-lab 완료 게이트 ════════════════════════════════════════ ▶ Typecheck $ pnpm exec tsc --noEmit src/pricing/…"}
+{"ts":"2026-10-01T03:41:25.440Z","session":"9713f45a","event":"PostToolUse","tool":"Read","detail":"src/pricing/coupon.ts","ok":true}
+{"ts":"2026-10-01T03:41:35.316Z","session":"9713f45a","event":"PostToolUse","tool":"Edit","detail":"src/pricing/coupon.ts","ok":true}
+{"ts":"2026-10-01T03:41:40.471Z","session":"9713f45a","event":"PostToolUse","tool":"Bash","detail":"pnpm check 2>&1","ok":true}
+{"ts":"2026-10-01T03:41:48.090Z","session":"9713f45a","event":"PostToolUse","tool":"Edit","detail":"agents/intent/specs/0030-coupons/trace.md","ok":true}
+{"ts":"2026-10-01T03:41:51.168Z","session":"9713f45a","event":"PostToolUse","tool":"Edit","detail":"agents/orchestration/TASKS.md","ok":true}
+{"ts":"2026-10-01T03:41:52.895Z","session":"9713f45a","event":"PostToolUse","tool":"Read","detail":"agents/JOURNAL.md","ok":true}
+{"ts":"2026-10-01T03:41:57.883Z","session":"9713f45a","event":"PostToolUse","tool":"Edit","detail":"agents/JOURNAL.md","ok":true}
+{"ts":"2026-10-01T03:42:03.530Z","session":"9713f45a","event":"PostToolUse","tool":"Bash","detail":"pnpm check 2>&1 | tail -20","ok":true}
+{"ts":"2026-10-01T03:42:14.252Z","session":"9713f45a","event":"Stop"}

@@ -1,0 +1,367 @@
+import { describe, expect, it } from "vitest";
+import type { LineItem } from "../cart/cart.js";
+import { CouponError, type Coupon, priceWithCoupons } from "./coupon.js";
+
+const line = (sku: string, unitPrice: number, quantity = 1): LineItem => ({
+  sku,
+  name: `상품-${sku}`,
+  unitPrice,
+  quantity,
+});
+
+const item = (sku: string, scope: "item" | "order", type: "rate" | "fixed", value: number): Coupon => {
+  const coupon: Coupon = {
+    scope,
+    type,
+    value,
+  };
+  if (scope === "item") {
+    coupon.sku = sku;
+  }
+  return coupon;
+};
+
+const order = (type: "rate" | "fixed", value: number): Coupon => ({
+  scope: "order",
+  type,
+  value,
+});
+
+describe("priceWithCoupons (domain.md 쿠폰 규칙 1~12)", () => {
+  describe("규칙 1: scope과 type 필드 정의", () => {
+    it("scope과 type이 정의된 쿠폰을 처리한다", () => {
+      const items = [line("A", 10_000, 1)];
+      const coupons = [item("A", "item", "rate", 10)];
+      const result = priceWithCoupons(items, coupons);
+      expect(result.subtotal).toBe(10_000);
+      expect(result.discount).toBe(1_000); // 10% of 10,000
+    });
+
+    it("잘못된 scope은 거부한다", () => {
+      const items = [line("A", 10_000)];
+      const coupons = [{ scope: "invalid", type: "rate", value: 10 } as unknown as Coupon];
+      expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+    });
+
+    it("잘못된 type은 거부한다", () => {
+      const items = [line("A", 10_000)];
+      const coupons = [{ scope: "item", sku: "A", type: "invalid", value: 10 } as unknown as Coupon];
+      expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+    });
+  });
+
+  describe("규칙 2: scope=item일 때 sku는 필수", () => {
+    it("scope=item이면 sku가 필수다", () => {
+      const items = [line("A", 10_000)];
+      const coupons = [{ scope: "item", type: "rate", value: 10 } as unknown as Coupon];
+      expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+    });
+
+    it("scope=item이고 sku가 있으면 그 상품에만 적용된다", () => {
+      const items = [line("A", 10_000), line("B", 5_000)];
+      const coupons = [item("A", "item", "rate", 10)];
+      const result = priceWithCoupons(items, coupons);
+      expect(result.subtotal).toBe(15_000);
+      expect(result.discount).toBe(1_000); // 10% of 10,000 (only A)
+    });
+  });
+
+  describe("규칙 3: scope=order일 때 sku는 없음", () => {
+    it("scope=order이면 sku가 없어야 한다", () => {
+      const items = [line("A", 10_000)];
+      const coupons = [{ scope: "order", sku: "A", type: "rate", value: 10 } as unknown as Coupon];
+      expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+    });
+
+    it("scope=order이면 전체 주문에 적용된다", () => {
+      const items = [line("A", 10_000), line("B", 5_000)];
+      const coupons = [order("rate", 10)];
+      const result = priceWithCoupons(items, coupons);
+      expect(result.subtotal).toBe(15_000);
+      expect(result.discount).toBe(1_500); // 10% of 15,000
+    });
+  });
+
+  describe("규칙 4: type=rate, value는 1~100 정수, floor 계산", () => {
+    it("type=rate이면 value는 1 이상 100 이하여야 한다", () => {
+      const items = [line("A", 10_000)];
+      expect(() => priceWithCoupons(items, [item("A", "item", "rate", 0)])).toThrow(CouponError);
+      expect(() => priceWithCoupons(items, [item("A", "item", "rate", 101)])).toThrow(CouponError);
+    });
+
+    it("type=rate는 정수여야 한다", () => {
+      const items = [line("A", 10_000)];
+      expect(() => priceWithCoupons(items, [item("A", "item", "rate", 10.5)])).toThrow(CouponError);
+    });
+
+    it("type=rate는 floor 계산을 한다", () => {
+      const items = [line("A", 10_000)];
+      const coupons = [item("A", "item", "rate", 33)]; // 33% of 10,000 = 3,300
+      const result = priceWithCoupons(items, coupons);
+      expect(result.discount).toBe(3_300);
+    });
+
+    it("type=rate는 소수점을 버린다 (floor)", () => {
+      const items = [line("A", 10_001)];
+      const coupons = [item("A", "item", "rate", 33)]; // 33% of 10,001 = 3,300.33 -> floor 3,300
+      const result = priceWithCoupons(items, coupons);
+      expect(result.discount).toBe(3_300);
+    });
+
+    it("type=rate 경계값 100%는 허용", () => {
+      const items = [line("A", 10_000)];
+      const coupons = [item("A", "item", "rate", 100)];
+      const result = priceWithCoupons(items, coupons);
+      expect(result.discount).toBe(10_000);
+    });
+  });
+
+  describe("규칙 5: type=fixed, value >= 1 정수, 기준금액 초과 방지", () => {
+    it("type=fixed이면 value는 1 이상의 정수여야 한다", () => {
+      const items = [line("A", 10_000)];
+      expect(() => priceWithCoupons(items, [item("A", "item", "fixed", 0)])).toThrow(CouponError);
+      expect(() => priceWithCoupons(items, [item("A", "item", "fixed", -1)])).toThrow(CouponError);
+    });
+
+    it("type=fixed는 정수여야 한다", () => {
+      const items = [line("A", 10_000)];
+      expect(() => priceWithCoupons(items, [item("A", "item", "fixed", 1_000.5)])).toThrow(CouponError);
+    });
+
+    it("type=fixed는 기준금액을 초과하지 않는다", () => {
+      const items = [line("A", 10_000)];
+      const coupons = [item("A", "item", "fixed", 15_000)];
+      const result = priceWithCoupons(items, coupons);
+      expect(result.discount).toBe(10_000); // min(15,000, 10,000)
+    });
+
+    it("type=fixed는 기준금액과 같으면 전액 할인", () => {
+      const items = [line("A", 10_000)];
+      const coupons = [item("A", "item", "fixed", 10_000)];
+      const result = priceWithCoupons(items, coupons);
+      expect(result.discount).toBe(10_000);
+    });
+  });
+
+  describe("규칙 6: maxDiscount 상한 적용", () => {
+    it("maxDiscount가 있으면 할인을 그 이상으로 올리지 않는다 (정률)", () => {
+      const items = [line("A", 10_000)];
+      const coupons = [{ ...item("A", "item", "rate", 50), maxDiscount: 3_000 }];
+      const result = priceWithCoupons(items, coupons);
+      expect(result.discount).toBe(3_000); // min(5_000, 3_000)
+    });
+
+    it("maxDiscount가 있으면 할인을 그 이상으로 올리지 않는다 (정액)", () => {
+      const items = [line("A", 10_000)];
+      const coupons = [{ ...item("A", "item", "fixed", 5_000), maxDiscount: 3_000 }];
+      const result = priceWithCoupons(items, coupons);
+      expect(result.discount).toBe(3_000); // min(5_000, 3_000)
+    });
+
+    it("maxDiscount는 정수여야 한다", () => {
+      const items = [line("A", 10_000)];
+      const coupons = [{ ...item("A", "item", "rate", 50), maxDiscount: 3_000.5 }];
+      expect(() => priceWithCoupons(items, coupons)).toThrow(RangeError);
+    });
+
+    it("maxDiscount는 음수가 아니어야 한다", () => {
+      const items = [line("A", 10_000)];
+      const coupons = [{ ...item("A", "item", "rate", 50), maxDiscount: -1 }];
+      expect(() => priceWithCoupons(items, coupons)).toThrow(RangeError);
+    });
+  });
+
+  describe("규칙 7: minOrder 미충족은 할인 0원 (오류 아님)", () => {
+    it("minOrder가 충족되면 쿠폰이 적용된다", () => {
+      const items = [line("A", 10_000)];
+      const coupons = [{ ...item("A", "item", "rate", 10), minOrder: 10_000 }];
+      const result = priceWithCoupons(items, coupons);
+      expect(result.discount).toBe(1_000);
+    });
+
+    it("minOrder가 미충족되면 할인 0원 (오류 아님)", () => {
+      const items = [line("A", 10_000)];
+      const coupons = [{ ...item("A", "item", "rate", 10), minOrder: 10_001 }];
+      const result = priceWithCoupons(items, coupons);
+      expect(result.discount).toBe(0); // 오류 없음, 그냥 적용 안 됨
+    });
+
+    it("minOrder는 할인 전 상품 합계 기준이다", () => {
+      const items = [line("A", 10_000), line("B", 5_000)];
+      const coupons = [
+        { ...item("A", "item", "rate", 50), minOrder: 15_000 }, // A: 5,000 -> 적용
+        { ...item("B", "item", "rate", 50), minOrder: 15_001 }, // B: 안 적용
+      ];
+      const result = priceWithCoupons(items, coupons);
+      expect(result.discount).toBe(5_000); // 오직 A만 적용
+    });
+
+    it("minOrder는 정수여야 한다", () => {
+      const items = [line("A", 10_000)];
+      const coupons = [{ ...item("A", "item", "rate", 10), minOrder: 10_000.5 }];
+      expect(() => priceWithCoupons(items, coupons)).toThrow(RangeError);
+    });
+
+    it("minOrder는 음수가 아니어야 한다", () => {
+      const items = [line("A", 10_000)];
+      const coupons = [{ ...item("A", "item", "rate", 10), minOrder: -1 }];
+      expect(() => priceWithCoupons(items, coupons)).toThrow(RangeError);
+    });
+  });
+
+  describe("규칙 8: 상품 쿠폰은 SKU당 최대 1장", () => {
+    it("같은 SKU의 상품 쿠폰이 2개 이상이면 CouponError", () => {
+      const items = [line("A", 10_000)];
+      const coupons = [item("A", "item", "rate", 10), item("A", "item", "fixed", 1_000)];
+      expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+    });
+
+    it("다른 SKU의 상품 쿠폰은 각각 1장씩 적용 가능", () => {
+      const items = [line("A", 10_000), line("B", 5_000)];
+      const coupons = [item("A", "item", "rate", 10), item("B", "item", "rate", 10)];
+      const result = priceWithCoupons(items, coupons);
+      expect(result.discount).toBe(1_000 + 500); // 10% of 10,000 + 10% of 5,000
+    });
+  });
+
+  describe("규칙 9: 주문 쿠폰은 최대 1장", () => {
+    it("주문 쿠폰이 2개 이상이면 CouponError", () => {
+      const items = [line("A", 10_000)];
+      const coupons = [order("rate", 10), order("rate", 5)];
+      expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+    });
+
+    it("주문 쿠폰 1개는 허용", () => {
+      const items = [line("A", 10_000), line("B", 5_000)];
+      const coupons = [order("rate", 10)];
+      const result = priceWithCoupons(items, coupons);
+      expect(result.discount).toBe(1_500); // 10% of 15,000
+    });
+  });
+
+  describe("규칙 10: 상품 쿠폰 적용 후 주문 쿠폰 적용", () => {
+    it("상품 쿠폰이 먼저 적용되고 주문 쿠폰이 나머지에 적용된다", () => {
+      const items = [line("A", 10_000), line("B", 5_000)];
+      const coupons = [
+        item("A", "item", "rate", 50), // 5,000 할인
+        order("rate", 50), // 나머지 (10,000) 에 50% = 5,000 할인
+      ];
+      const result = priceWithCoupons(items, coupons);
+      expect(result.subtotal).toBe(15_000);
+      expect(result.discount).toBe(10_000); // 5,000 + 5,000
+    });
+
+    it("상품 쿠폰 적용 후 금액이 주문 쿠폰의 기준금액이다", () => {
+      const items = [line("A", 20_000)];
+      const coupons = [
+        item("A", "item", "fixed", 5_000), // 5,000 할인
+        order("rate", 25), // (20,000 - 5,000) * 25% = 3,750
+      ];
+      const result = priceWithCoupons(items, coupons);
+      expect(result.discount).toBe(5_000 + 3_750);
+    });
+  });
+
+  describe("규칙 11: 유효성 검증", () => {
+    it("범위를 벗어난 value는 거부한다 (rate)", () => {
+      const items = [line("A", 10_000)];
+      expect(() => priceWithCoupons(items, [item("A", "item", "rate", 0)])).toThrow(CouponError);
+      expect(() => priceWithCoupons(items, [item("A", "item", "rate", 101)])).toThrow(CouponError);
+    });
+
+    it("장바구니에 없는 SKU의 상품 쿠폰은 거부한다", () => {
+      const items = [line("A", 10_000)];
+      const coupons = [item("B", "item", "rate", 10)];
+      expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+    });
+
+    it("maxDiscount가 음수면 거부한다", () => {
+      const items = [line("A", 10_000)];
+      const coupons = [{ ...item("A", "item", "rate", 10), maxDiscount: -1 }];
+      expect(() => priceWithCoupons(items, coupons)).toThrow(RangeError);
+    });
+
+    it("minOrder가 음수면 거부한다", () => {
+      const items = [line("A", 10_000)];
+      const coupons = [{ ...item("A", "item", "rate", 10), minOrder: -1 }];
+      expect(() => priceWithCoupons(items, coupons)).toThrow(RangeError);
+    });
+  });
+
+  describe("규칙 12: discount 합산, 배송비는 최종 할인 후 기준", () => {
+    it("discount는 상품 쿠폰 + 주문 쿠폰 합산", () => {
+      const items = [line("A", 10_000), line("B", 10_000)];
+      const coupons = [item("A", "item", "fixed", 2_000), order("fixed", 3_000)];
+      const result = priceWithCoupons(items, coupons);
+      expect(result.subtotal).toBe(20_000);
+      expect(result.discount).toBe(5_000); // 2,000 + 3,000
+    });
+
+    it("배송비는 최종 할인 후 금액 기준", () => {
+      const items = [line("A", 60_000)];
+      // 할인 없음: 60,000 >= 50,000 -> 무료배송
+      let result = priceWithCoupons(items, []);
+      expect(result.shipping).toBe(0);
+
+      // 할인 10,500: 60,000 - 10,500 = 49,500 < 50,000 -> 배송비 3,000
+      result = priceWithCoupons(items, [item("A", "item", "rate", 17)]); // 10,200
+      expect(result.shipping).toBe(3_000);
+
+      // 할인 10,000: 60,000 - 10,000 = 50,000 >= 50,000 -> 무료배송 (경계값)
+      result = priceWithCoupons(items, [item("A", "item", "fixed", 10_000)]);
+      expect(result.shipping).toBe(0);
+    });
+
+    it("결제 금액은 상품합계 - 할인 + 배송비", () => {
+      const items = [line("A", 30_000)];
+      const coupons = [item("A", "item", "rate", 50)];
+      const result = priceWithCoupons(items, coupons);
+      expect(result.subtotal).toBe(30_000);
+      expect(result.discount).toBe(15_000);
+      expect(result.shipping).toBe(3_000); // (30,000 - 15,000) < 50,000 -> 3,000
+      expect(result.total).toBe(18_000); // 30,000 - 15,000 + 3,000
+    });
+  });
+
+  describe("특별 케이스", () => {
+    it("빈 장바구니는 할인 없음", () => {
+      const result = priceWithCoupons([], [
+        item("A", "item", "rate", 10),
+        order("rate", 10),
+      ]);
+      expect(result).toEqual({ subtotal: 0, discount: 0, shipping: 0, total: 0 });
+    });
+
+    it("쿠폰 없는 정상 주문", () => {
+      const items = [line("A", 10_000)];
+      const result = priceWithCoupons(items, []);
+      expect(result.subtotal).toBe(10_000);
+      expect(result.discount).toBe(0);
+      expect(result.shipping).toBe(3_000);
+      expect(result.total).toBe(13_000);
+    });
+
+    it("여러 상품과 쿠폰 조합", () => {
+      const items = [line("A", 10_000), line("B", 5_000), line("C", 3_000)];
+      const coupons = [
+        item("A", "item", "rate", 10), // 1,000
+        item("B", "item", "fixed", 1_000), // 1,000
+        order("rate", 20), // (18,000 - 2,000) * 20% = 3,200
+      ];
+      const result = priceWithCoupons(items, coupons);
+      expect(result.subtotal).toBe(18_000);
+      expect(result.discount).toBe(5_200);
+      expect(result.shipping).toBe(3_000); // (18,000 - 5,200) < 50,000
+    });
+
+    it("배열은 원본을 수정하지 않는다 (readonly)", () => {
+      const items = [line("A", 10_000)];
+      const coupons = [item("A", "item", "rate", 10)];
+      const itemsBefore = JSON.stringify(items);
+      const couponsBefore = JSON.stringify(coupons);
+      priceWithCoupons(items, coupons);
+      expect(JSON.stringify(items)).toBe(itemsBefore);
+      expect(JSON.stringify(coupons)).toBe(couponsBefore);
+    });
+  });
+});

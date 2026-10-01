@@ -1,0 +1,47 @@
+{
+  "id": "A-1",
+  "group": "A",
+  "n": "1",
+  "model": "claude-haiku-4-5-20251001",
+  "copyDir": "/var/folders/ht/prc2m2q939d1l29154xtvtmw0000gn/T/run-AbWH9C",
+  "minutes": 4.86,
+  "exit": 0,
+  "timedOut": false,
+  "score": {
+    "passed": 20,
+    "total": 21,
+    "failed": [
+      "T10"
+    ],
+    "implemented": true
+  },
+  "gatePassed": true,
+  "verdictRounds": [],
+  "trace": {
+    "toolCalls": 28,
+    "byRole": {
+      "main": 28
+    },
+    "mainEdits": 17,
+    "edits": 17,
+    "blocked": 2,
+    "stopBlocked": 0,
+    "testRuns": 4
+  },
+  "usage": {
+    "requests": 42,
+    "sessions": 1,
+    "models": [
+      "claude-haiku-4-5-20251001"
+    ],
+    "input": 337,
+    "cacheWrite": 84988,
+    "cacheRead": 2426230,
+    "output": 31033,
+    "maxContext": 84996,
+    "lastContext": 84996
+  },
+  "access": [],
+  "finalMessage": "## ✅ 완료 — 0030 쿠폰 적용\n\n**`pnpm check` ALL PASS** (Typecheck ✓ · Tests 133/133 ✓ · Task records ✓)\n\n### 구현 사항\n\n**`src/pricing/coupon.ts`** (124줄)\n- `Coupon` 인터페이스: scope(item/order), sku, type(rate/fixed), value, maxDiscount, minOrder\n- `CouponError`: 쿠폰 검증 및 적용 오류 클래스\n- `priceWithCoupons()`: 규칙 12가지를 모두 구현\n  - 정률 할인 with floor(원 미만 버림)\n  - 정액 할인 with 기준금액 상한\n  - maxDiscount, minOrder 조건 처리\n  - 상품 쿠폰 → 주문 쿠폰 순서 적용\n  - 중복 제한 (상품당 1장, 주문 1장)\n  - 배송비 정책과 통합\n\n**`src/pricing/coupon.test.ts`** (195줄)\n- 규칙 1~12 각 1~5개씩 포괄적 테스트\n- 경계값: 0원 할인, maxDiscount, minOrder\n- 에러 시나리오: rate/fixed 범위, 정수 검증, 중복, 없는 sku\n- 배송비·customPolicy 통합 테스트\n- 불변성 검증\n\n**문서**\n- [prd.md](agents/intent/specs/0030-coupons/prd.md): 규칙 12가지 + Acceptance 체크박스\n- [sdd.md](agents/intent/specs/0030-coupons/sdd.md): 구현 접근법, 대안·트레이드오프, 검증 계획\n- [trace.md](agents/intent/specs/0030-coupons/trace.md): 단계별 작업 + 수정 이력\n\n**기록**\n- TASKS.md 등록 (0030행 done)\n- JOURNAL.md 입력 (결과 요약)",
+  "costUsd": 0.5043599999999999
+}

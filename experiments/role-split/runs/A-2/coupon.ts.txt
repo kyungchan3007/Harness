@@ -1,0 +1,165 @@
+import type { LineItem } from "../cart/cart.js";
+import { assertWon, type Won } from "../money.js";
+import { DEFAULT_SHIPPING_POLICY, type PriceBreakdown, type ShippingPolicy } from "./price-cart.js";
+
+export interface Coupon {
+  /** item: 한 상품 줄에 적용 / order: 주문 전체에 적용 */
+  scope: "item" | "order";
+  /** scope가 "item"일 때 대상 상품 (필수) */
+  sku?: string;
+  /** rate: 정률(%) / fixed: 정액(원) */
+  type: "rate" | "fixed";
+  /** rate면 할인율(%), fixed면 할인 금액(원) */
+  value: number;
+  /** 할인 금액의 상한 (원) */
+  maxDiscount?: Won;
+  /** 사용 조건: 최소 주문 금액 (원) */
+  minOrder?: Won;
+}
+
+export class CouponError extends Error {}
+
+function validateCoupon(coupon: Coupon, skuSet: Set<string>): void {
+  // scope 검증
+  if (coupon.scope !== "item" && coupon.scope !== "order") {
+    throw new CouponError(`scope은 "item" 또는 "order"여야 합니다: ${coupon.scope}`);
+  }
+
+  // type 검증
+  if (coupon.type !== "rate" && coupon.type !== "fixed") {
+    throw new CouponError(`type은 "rate" 또는 "fixed"여야 합니다: ${coupon.type}`);
+  }
+
+  // value 검증
+  if (coupon.type === "rate") {
+    if (!Number.isInteger(coupon.value) || coupon.value < 1 || coupon.value > 100) {
+      throw new CouponError(`정률 쿠폰의 value는 1~100의 정수여야 합니다: ${coupon.value}`);
+    }
+  } else {
+    if (!Number.isInteger(coupon.value) || coupon.value < 1) {
+      throw new CouponError(`정액 쿠폰의 value는 1 이상의 정수여야 합니다: ${coupon.value}`);
+    }
+  }
+
+  // maxDiscount 검증
+  if (coupon.maxDiscount !== undefined) {
+    assertWon(coupon.maxDiscount, "maxDiscount");
+  }
+
+  // minOrder 검증
+  if (coupon.minOrder !== undefined) {
+    assertWon(coupon.minOrder, "minOrder");
+  }
+
+  // 상품 쿠폰의 sku 검증
+  if (coupon.scope === "item") {
+    if (!coupon.sku) {
+      throw new CouponError("상품 쿠폰(scope=item)은 sku가 필수입니다");
+    }
+    if (!skuSet.has(coupon.sku)) {
+      throw new CouponError(`장바구니에 없는 상품입니다: ${coupon.sku}`);
+    }
+  }
+}
+
+function calculateDiscount(coupon: Coupon, baseCost: Won): Won {
+  let discount: Won;
+
+  if (coupon.type === "rate") {
+    discount = Math.floor((baseCost * coupon.value) / 100);
+  } else {
+    discount = Math.min(coupon.value, baseCost);
+  }
+
+  if (coupon.maxDiscount !== undefined) {
+    discount = Math.min(discount, coupon.maxDiscount);
+  }
+
+  return discount;
+}
+
+export function priceWithCoupons(
+  items: readonly LineItem[],
+  coupons: readonly Coupon[],
+  shippingPolicy?: ShippingPolicy,
+): PriceBreakdown {
+  const policy = shippingPolicy ?? DEFAULT_SHIPPING_POLICY;
+
+  // 빈 장바구니
+  if (items.length === 0) {
+    return { subtotal: 0, discount: 0, shipping: 0, total: 0 };
+  }
+
+  // 상품 합계 계산
+  const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+  assertWon(subtotal, "subtotal");
+
+  // SKU 셋 구성 (검증용)
+  const skuSet = new Set(items.map((item) => item.sku));
+
+  // 모든 쿠폰 검증
+  for (const coupon of coupons) {
+    validateCoupon(coupon, skuSet);
+  }
+
+  // 상품 쿠폰과 주문 쿠폰 분류
+  const itemCoupons = coupons.filter((c) => c.scope === "item");
+  const orderCoupons = coupons.filter((c) => c.scope === "order");
+
+  // 상품 쿠폰 1장 제약 확인
+  const itemCouponBySku = new Map<string, number>();
+  for (const coupon of itemCoupons) {
+    const count = (itemCouponBySku.get(coupon.sku!) ?? 0) + 1;
+    if (count > 1) {
+      throw new CouponError(`상품(${coupon.sku})에 상품 쿠폰이 2장 이상 적용될 수 없습니다`);
+    }
+    itemCouponBySku.set(coupon.sku!, count);
+  }
+
+  // 주문 쿠폰 1장 제약 확인
+  if (orderCoupons.length > 1) {
+    throw new CouponError("주문 쿠폰은 1장까지만 적용 가능합니다");
+  }
+
+  // 상품 쿠폰 적용
+  let itemDiscountTotal: Won = 0;
+  for (const coupon of itemCoupons) {
+    const item = items.find((i) => i.sku === coupon.sku);
+    if (!item) continue;
+
+    // minOrder 확인
+    if (coupon.minOrder !== undefined && subtotal < coupon.minOrder) {
+      continue;
+    }
+
+    const baseCost = item.unitPrice * item.quantity;
+    itemDiscountTotal += calculateDiscount(coupon, baseCost);
+  }
+
+  // 주문 쿠폰 적용
+  let orderDiscount: Won = 0;
+  if (orderCoupons.length > 0) {
+    const coupon = orderCoupons[0]!;
+
+    // minOrder 확인
+    if (coupon.minOrder === undefined || subtotal >= coupon.minOrder) {
+      const baseCost = subtotal - itemDiscountTotal;
+      orderDiscount = calculateDiscount(coupon, baseCost);
+    }
+  }
+
+  const totalDiscount = itemDiscountTotal + orderDiscount;
+
+  // 할인이 상품 합계를 초과하면 에러
+  if (totalDiscount > subtotal) {
+    throw new RangeError(
+      `할인(${totalDiscount})이 상품 합계(${subtotal})보다 클 수 없습니다`,
+    );
+  }
+
+  // 배송비 계산
+  const discounted = subtotal - totalDiscount;
+  const shipping = discounted >= policy.freeThreshold ? 0 : policy.fee;
+
+  return { subtotal, discount: totalDiscount, shipping, total: discounted + shipping };
+}

@@ -1,0 +1,47 @@
+{
+  "id": "A-2",
+  "group": "A",
+  "n": "2",
+  "model": "claude-haiku-4-5-20251001",
+  "copyDir": "/var/folders/ht/prc2m2q939d1l29154xtvtmw0000gn/T/run-6f9Ksf",
+  "minutes": 4.67,
+  "exit": 0,
+  "timedOut": false,
+  "score": {
+    "passed": 20,
+    "total": 21,
+    "failed": [
+      "T19"
+    ],
+    "implemented": true
+  },
+  "gatePassed": true,
+  "verdictRounds": [],
+  "trace": {
+    "toolCalls": 21,
+    "byRole": {
+      "main": 21
+    },
+    "mainEdits": 15,
+    "edits": 15,
+    "blocked": 2,
+    "stopBlocked": 0,
+    "testRuns": 3
+  },
+  "usage": {
+    "requests": 27,
+    "sessions": 1,
+    "models": [
+      "claude-haiku-4-5-20251001"
+    ],
+    "input": 217,
+    "cacheWrite": 50632,
+    "cacheRead": 1242911,
+    "output": 29249,
+    "maxContext": 65598,
+    "lastContext": 65598
+  },
+  "access": [],
+  "finalMessage": "완료! ✅ **pnpm check ALL PASS**\n\n## 작업 요약\n\n**태스크 0030: 쿠폰 적용** (이슈 #1)\n\n### 구현 결과\n- **src/pricing/coupon.ts**: \n  - `Coupon` 인터페이스 (scope/type/value/maxDiscount/minOrder)\n  - `CouponError` 클래스\n  - `priceWithCoupons()` 함수\n  \n- **src/pricing/coupon.test.ts**: \n  - 131개 단위 테스트 (ALL PASS)\n  - 정률/정액 할인, maxDiscount/minOrder 제약, 상품/주문 쿠폰, 적용 순서, 배송비 계산, 에러 케이스\n\n### 규칙 준수\n✓ 정률 쿠폰: Math.floor로 원 미만 버림  \n✓ 정액 쿠폰: 기준금액 초과 제약  \n✓ maxDiscount: 할인 상한 적용  \n✓ minOrder: 미충족 시 0원 할인 (오류 아님)  \n✓ 상품 쿠폰: 줄 금액 기준 (quantity 포함)  \n✓ 주문 쿠폰: 상품 할인 후 금액 기준  \n✓ 적용 순서: 상품 → 주문  \n✓ 중복 방지: sku당 1장, 주문 1장만  \n✓ 배송비: 모든 할인 후 금액 기준 (50,000원 기준)  \n✓ 빈 장바구니: 모두 0  \n✓ 입력 보호: items/coupons 미수정  \n\n문서는 agents/intent/specs/0030-coupons/에 기록되었고, TASKS.md와 JOURNAL.md가 업데이트되었습니다.",
+  "costUsd": 0.33404310000000004
+}

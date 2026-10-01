@@ -1,0 +1,271 @@
+import type { LineItem } from "../cart/cart.js";
+import { assertWon, type Won } from "../money.js";
+import { DEFAULT_SHIPPING_POLICY, type PriceBreakdown, type ShippingPolicy } from "./price-cart.js";
+
+/** 쿠폰 타입: 정률(PERCENTAGE) 또는 정액(FIXED) */
+export type CouponType = "PERCENTAGE" | "FIXED";
+
+/** 쿠폰 적용 범위: 상품 또는 주문 */
+export type CouponScope = "PRODUCT" | "ORDER";
+
+/** 쿠폰 인터페이스 */
+export interface Coupon {
+  id: string;
+  scope: CouponScope;
+  sku?: string | undefined;
+  type: CouponType;
+  value: Won;
+  maxDiscount: Won;
+  minOrder: Won;
+}
+
+/** 쿠폰 처리 중 발생하는 예외 */
+export class CouponError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "CouponError";
+  }
+}
+
+/**
+ * 쿠폰을 적용한 장바구니 가격 계산
+ *
+ * 처리 순서:
+ * 1. 유효성 검사 (type, scope, value, maxDiscount, minOrder, sku)
+ * 2. 중복 검사 (같은 sku의 상품쿠폰, 주문쿠폰, 쿠폰 id)
+ * 3. 상품쿠폰 적용 (items 순서대로)
+ * 4. 주문쿠폰 적용
+ * 5. 배송비 계산 (할인 후 상품합계 기준)
+ *
+ * @param items 장바구니 상품 목록
+ * @param coupons 적용할 쿠폰 목록
+ * @param shippingPolicy 배송비 정책 (기본값: DEFAULT_SHIPPING_POLICY)
+ * @returns 할인 적용 후 최종 가격 정보
+ * @throws CouponError 쿠폰 유효성 또는 중복 검사 실패 시
+ */
+export function priceWithCoupons(
+  items: readonly LineItem[],
+  coupons: readonly Coupon[],
+  shippingPolicy: ShippingPolicy = DEFAULT_SHIPPING_POLICY
+): PriceBreakdown {
+  // 빈 장바구니 처리
+  if (items.length === 0) {
+    return { subtotal: 0, discount: 0, shipping: 0, total: 0 };
+  }
+
+  // 상품 합계 계산
+  const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+  assertWon(subtotal, "subtotal");
+
+  // 쿠폰이 없으면 기본 가격 계산
+  if (coupons.length === 0) {
+    const shipping = subtotal >= shippingPolicy.freeThreshold ? 0 : shippingPolicy.fee;
+    return { subtotal, discount: 0, shipping, total: subtotal + shipping };
+  }
+
+  // 단계 1: 쿠폰 유효성 검사
+  validateCoupons(coupons);
+
+  // 단계 2: 중복 검사
+  checkCouponDuplicates(coupons);
+
+  // 단계 3: 상품쿠폰 적용
+  const productCouponDiscount = applyProductCoupons(items, coupons, subtotal);
+  const totalProductDiscount = Array.from(productCouponDiscount.values()).reduce((sum, d) => sum + d, 0);
+
+  // 단계 4: 주문쿠폰 적용
+  const baseForOrderCoupon = subtotal - totalProductDiscount;
+  const orderCouponDiscount = applyOrderCoupon(coupons, baseForOrderCoupon);
+
+  // 총 할인액
+  const totalDiscount = totalProductDiscount + orderCouponDiscount;
+
+  // 단계 5: 배송비 계산 (할인 후 상품합계 기준)
+  const discountedSubtotal = subtotal - totalDiscount;
+  const shipping = discountedSubtotal >= shippingPolicy.freeThreshold ? 0 : shippingPolicy.fee;
+
+  return {
+    subtotal,
+    discount: totalDiscount,
+    shipping,
+    total: discountedSubtotal + shipping
+  };
+}
+
+/**
+ * 단계 1: 쿠폰 유효성 검사
+ * - type: "PERCENTAGE" | "FIXED"
+ * - scope: "PRODUCT" | "ORDER"
+ * - value: 0 이상, 정률이면 0~100
+ * - maxDiscount: 0 이상
+ * - minOrder: 0 이상
+ * - sku: PRODUCT이면 필수, ORDER이면 금지
+ */
+function validateCoupons(coupons: readonly Coupon[]): void {
+  for (const coupon of coupons) {
+    // E1: type 검사
+    if (coupon.type !== "PERCENTAGE" && coupon.type !== "FIXED") {
+      throw new CouponError("쿠폰 타입이 유효하지 않습니다");
+    }
+
+    // E2: scope 검사
+    if (coupon.scope !== "PRODUCT" && coupon.scope !== "ORDER") {
+      throw new CouponError("쿠폰 범위가 유효하지 않습니다");
+    }
+
+    // E3: value 검사
+    if (!Number.isInteger(coupon.value) || coupon.value < 0) {
+      throw new CouponError("쿠폰 할인값이 유효하지 않습니다");
+    }
+    if (coupon.type === "PERCENTAGE" && coupon.value > 100) {
+      throw new CouponError("쿠폰 할인값이 유효하지 않습니다");
+    }
+
+    // E4: maxDiscount 검사
+    if (!Number.isInteger(coupon.maxDiscount) || coupon.maxDiscount < 0) {
+      throw new CouponError("최대 할인액이 음수일 수 없습니다");
+    }
+
+    // E5: minOrder 검사
+    if (!Number.isInteger(coupon.minOrder) || coupon.minOrder < 0) {
+      throw new CouponError("최소 주문액이 음수일 수 없습니다");
+    }
+
+    // E6: PRODUCT 쿠폰은 sku 필수
+    if (coupon.scope === "PRODUCT" && !coupon.sku) {
+      throw new CouponError("상품쿠폰은 sku가 필수입니다");
+    }
+
+    // E7: ORDER 쿠폰은 sku 금지
+    if (coupon.scope === "ORDER" && coupon.sku) {
+      throw new CouponError("주문쿠폰은 sku를 가질 수 없습니다");
+    }
+  }
+}
+
+/**
+ * 단계 2: 중복 검사
+ * - E8: 같은 sku에 상품쿠폰 2장 이상
+ * - E9: 주문쿠폰 2장 이상
+ * - E10: 같은 coupon.id 중복
+ */
+function checkCouponDuplicates(coupons: readonly Coupon[]): void {
+  const productCouponBySku = new Map<string, number>();
+  let orderCouponCount = 0;
+  const seenIds = new Set<string>();
+
+  for (const coupon of coupons) {
+    // E10: 같은 id 중복 검사
+    if (seenIds.has(coupon.id)) {
+      throw new CouponError("같은 쿠폰을 중복으로 사용할 수 없습니다");
+    }
+    seenIds.add(coupon.id);
+
+    if (coupon.scope === "PRODUCT") {
+      // E8: 같은 sku에 상품쿠폰 2장 이상 검사
+      const sku = coupon.sku!;
+      const count = (productCouponBySku.get(sku) ?? 0) + 1;
+      if (count > 1) {
+        throw new CouponError("같은 상품에 상품쿠폰은 1장만 사용 가능합니다");
+      }
+      productCouponBySku.set(sku, count);
+    } else {
+      // E9: 주문쿠폰 2장 이상 검사
+      orderCouponCount++;
+      if (orderCouponCount > 1) {
+        throw new CouponError("주문쿠폰은 1장만 사용 가능합니다");
+      }
+    }
+  }
+}
+
+/**
+ * 단계 3: 상품쿠폰 적용
+ * 각 상품별로 scope=PRODUCT 쿠폰 1장씩 적용
+ *
+ * @returns sku별 할인액 맵
+ */
+function applyProductCoupons(
+  items: readonly LineItem[],
+  coupons: readonly Coupon[],
+  subtotal: Won
+): Map<string, Won> {
+  const productCouponDiscount = new Map<string, Won>();
+
+  const productCoupons = coupons.filter((c) => c.scope === "PRODUCT");
+
+  for (const coupon of productCoupons) {
+    const sku = coupon.sku!;
+    const lineItem = items.find((item) => item.sku === sku);
+
+    // 대상 상품이 없으면 미적용
+    if (!lineItem) {
+      continue;
+    }
+
+    const basePriceForSku = lineItem.unitPrice * lineItem.quantity;
+
+    // minOrder 미달이면 미적용
+    if (basePriceForSku < coupon.minOrder) {
+      continue;
+    }
+
+    // 할인액 계산
+    let discount: Won;
+    if (coupon.type === "PERCENTAGE") {
+      // 규칙 1: 원 미만 버림
+      discount = Math.floor((basePriceForSku * coupon.value) / 100);
+    } else {
+      // 규칙 2: 정액 쿠폰, maxDiscount 제한
+      discount = Math.min(coupon.value, coupon.maxDiscount);
+    }
+
+    // E11: 할인액이 기준액을 초과하지 않음
+    if (discount > basePriceForSku) {
+      throw new CouponError("할인액이 기준액을 초과할 수 없습니다");
+    }
+
+    productCouponDiscount.set(sku, discount);
+  }
+
+  return productCouponDiscount;
+}
+
+/**
+ * 단계 4: 주문쿠폰 적용
+ * scope=ORDER 쿠폰 최대 1장 (중복 검사에서 이미 확인됨)
+ *
+ * @returns 주문쿠폰 할인액
+ */
+function applyOrderCoupon(coupons: readonly Coupon[], baseForOrderCoupon: Won): Won {
+  for (const coupon of coupons) {
+    if (coupon.scope !== "ORDER") {
+      continue;
+    }
+
+    // minOrder 미달이면 미적용
+    if (baseForOrderCoupon < coupon.minOrder) {
+      continue;
+    }
+
+    // 할인액 계산
+    let discount: Won;
+    if (coupon.type === "PERCENTAGE") {
+      // 규칙 1: 원 미만 버림
+      discount = Math.floor((baseForOrderCoupon * coupon.value) / 100);
+    } else {
+      // 규칙 2: 정액 쿠폰, maxDiscount 제한
+      discount = Math.min(coupon.value, coupon.maxDiscount);
+    }
+
+    // E11: 할인액이 기준액을 초과하지 않음
+    if (discount > baseForOrderCoupon) {
+      throw new CouponError("할인액이 기준액을 초과할 수 없습니다");
+    }
+
+    // 주문쿠폰은 1장만 적용
+    return discount;
+  }
+
+  return 0;
+}

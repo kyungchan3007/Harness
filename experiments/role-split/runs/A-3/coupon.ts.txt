@@ -1,0 +1,149 @@
+import type { LineItem } from "../cart/cart.js";
+import { assertWon, type Won } from "../money.js";
+import { DEFAULT_SHIPPING_POLICY, type PriceBreakdown, priceCart, type ShippingPolicy } from "./price-cart.js";
+
+export interface Coupon {
+  /** item: 한 상품 줄에 적용 / order: 주문 전체에 적용 */
+  scope: "item" | "order";
+  /** scope가 "item"일 때 대상 상품 (필수) */
+  sku?: string;
+  /** rate: 정률(%) / fixed: 정액(원) */
+  type: "rate" | "fixed";
+  /** rate면 할인율(%), fixed면 할인 금액(원) */
+  value: number;
+  /** 할인 금액의 상한 (원) */
+  maxDiscount?: Won;
+  /** 사용 조건: 최소 주문 금액 (원) */
+  minOrder?: Won;
+}
+
+export class CouponError extends Error {}
+
+function validateCoupon(coupon: Coupon): void {
+  if (coupon.type === "rate") {
+    if (!Number.isInteger(coupon.value) || coupon.value < 1 || coupon.value > 100) {
+      throw new CouponError(`정률 쿠폰의 rate는 1~100의 정수여야 합니다: ${coupon.value}`);
+    }
+  } else if (coupon.type === "fixed") {
+    if (!Number.isInteger(coupon.value) || coupon.value < 1) {
+      throw new CouponError(`정액 쿠폰의 value는 1 이상의 정수여야 합니다: ${coupon.value}`);
+    }
+  }
+
+  if (coupon.maxDiscount !== undefined) {
+    if (!Number.isSafeInteger(coupon.maxDiscount) || coupon.maxDiscount < 0) {
+      throw new CouponError(`maxDiscount는 0 이상의 정수여야 합니다: ${coupon.maxDiscount}`);
+    }
+  }
+
+  if (coupon.minOrder !== undefined) {
+    if (!Number.isSafeInteger(coupon.minOrder) || coupon.minOrder < 0) {
+      throw new CouponError(`minOrder는 0 이상의 정수여야 합니다: ${coupon.minOrder}`);
+    }
+  }
+
+  if (coupon.scope === "item" && !coupon.sku) {
+    throw new CouponError("상품 쿠폰(scope: 'item')은 sku가 필수입니다");
+  }
+}
+
+function calculateDiscount(coupon: Coupon, baseAmount: Won): Won {
+  let discount: Won;
+
+  if (coupon.type === "rate") {
+    discount = Math.floor((baseAmount * coupon.value) / 100);
+  } else {
+    discount = Math.min(coupon.value, baseAmount);
+  }
+
+  if (coupon.maxDiscount !== undefined) {
+    discount = Math.min(discount, coupon.maxDiscount);
+  }
+
+  return discount;
+}
+
+export function priceWithCoupons(
+  items: readonly LineItem[],
+  coupons: readonly Coupon[],
+  shippingPolicy?: ShippingPolicy,
+): PriceBreakdown {
+  const policy = shippingPolicy ?? DEFAULT_SHIPPING_POLICY;
+
+  if (items.length === 0) {
+    return { subtotal: 0, discount: 0, shipping: 0, total: 0 };
+  }
+
+  // Validate all coupons
+  for (const coupon of coupons) {
+    validateCoupon(coupon);
+  }
+
+  // Separate item and order coupons
+  const itemCoupons = coupons.filter((c) => c.scope === "item");
+  const orderCoupons = coupons.filter((c) => c.scope === "order");
+
+  // Check for duplicate item coupons (per sku)
+  const itemCouponBySku = new Map<string, Coupon>();
+  for (const coupon of itemCoupons) {
+    const sku = coupon.sku!;
+    if (itemCouponBySku.has(sku)) {
+      throw new CouponError(`상품 '${sku}'에 여러 개의 쿠폰이 적용되었습니다`);
+    }
+    itemCouponBySku.set(sku, coupon);
+  }
+
+  // Check for multiple order coupons
+  if (orderCoupons.length > 1) {
+    throw new CouponError("주문 전체에 적용되는 쿠폰은 최대 1장까지만 사용 가능합니다");
+  }
+
+  // Build sku set from items
+  const skuSet = new Set(items.map((item) => item.sku));
+
+  // Check if all item coupons target items in cart
+  for (const [sku] of itemCouponBySku) {
+    if (!skuSet.has(sku)) {
+      throw new CouponError(`장바구니에 없는 상품 '${sku}'에 대한 쿠폰입니다`);
+    }
+  }
+
+  // Calculate subtotal
+  const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+  assertWon(subtotal, "subtotal");
+
+  // Apply item coupons
+  let itemCouponDiscount = 0;
+  for (const item of items) {
+    const coupon = itemCouponBySku.get(item.sku);
+    if (!coupon) continue;
+
+    const baseAmount = item.unitPrice * item.quantity;
+
+    // Check minOrder condition
+    if (coupon.minOrder !== undefined && subtotal < coupon.minOrder) {
+      continue;
+    }
+
+    const discount = calculateDiscount(coupon, baseAmount);
+    itemCouponDiscount += discount;
+  }
+
+  // Apply order coupon
+  let orderCouponDiscount = 0;
+  if (orderCoupons.length === 1) {
+    const coupon = orderCoupons[0]!;
+    const baseAmount = subtotal - itemCouponDiscount;
+
+    // Check minOrder condition
+    if (coupon.minOrder === undefined || subtotal >= coupon.minOrder) {
+      const discount = calculateDiscount(coupon, baseAmount);
+      orderCouponDiscount = discount;
+    }
+  }
+
+  const totalDiscount = itemCouponDiscount + orderCouponDiscount;
+
+  // Calculate final price
+  return priceCart(items, { discount: totalDiscount, shippingPolicy: policy });
+}

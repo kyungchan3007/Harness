@@ -1,0 +1,386 @@
+import { describe, expect, it } from "vitest";
+import type { LineItem } from "../cart/cart.js";
+import { Coupon, CouponError, priceWithCoupons } from "./coupon.js";
+
+const line = (sku: string, unitPrice: number, quantity = 1): LineItem => ({
+  sku,
+  name: "상품",
+  unitPrice,
+  quantity,
+});
+
+describe("priceWithCoupons (규칙 1~12)", () => {
+  // 규칙 1: 정률 할인 — floor(기준금액 × value / 100)
+  describe("규칙 1: 정률 할인 (floor 적용)", () => {
+    it("정률 할인: 10% 할인", () => {
+      const items = [line("SKU-1", 1_000, 1)];
+      const coupons: Coupon[] = [{ scope: "order", type: "rate", value: 10 }];
+      expect(priceWithCoupons(items, coupons)).toMatchObject({ subtotal: 1_000, discount: 100 });
+    });
+
+    it("정률 할인: 정수 아래 버림 (999 × 1%)", () => {
+      const items = [line("SKU-1", 999, 1)];
+      const coupons: Coupon[] = [{ scope: "order", type: "rate", value: 1 }];
+      expect(priceWithCoupons(items, coupons)).toMatchObject({ subtotal: 999, discount: 9 });
+    });
+
+    it("정률 할인: 1% 할인이 0원이 되는 경우 (99 × 1%)", () => {
+      const items = [line("SKU-1", 99, 1)];
+      const coupons: Coupon[] = [{ scope: "order", type: "rate", value: 1 }];
+      expect(priceWithCoupons(items, coupons)).toMatchObject({ subtotal: 99, discount: 0 });
+    });
+  });
+
+  // 규칙 2: 정액 할인 — min(value, 기준금액)
+  describe("규칙 2: 정액 할인 (기준금액 초과 불가)", () => {
+    it("정액 할인: 기준금액보다 작음", () => {
+      const items = [line("SKU-1", 1_000, 1)];
+      const coupons: Coupon[] = [{ scope: "order", type: "fixed", value: 100 }];
+      expect(priceWithCoupons(items, coupons)).toMatchObject({ subtotal: 1_000, discount: 100 });
+    });
+
+    it("정액 할인: 기준금액과 같음", () => {
+      const items = [line("SKU-1", 1_000, 1)];
+      const coupons: Coupon[] = [{ scope: "order", type: "fixed", value: 1_000 }];
+      expect(priceWithCoupons(items, coupons)).toMatchObject({ subtotal: 1_000, discount: 1_000 });
+    });
+
+    it("정액 할인: 기준금액을 초과할 수 없음", () => {
+      const items = [line("SKU-1", 1_000, 1)];
+      const coupons: Coupon[] = [{ scope: "order", type: "fixed", value: 2_000 }];
+      expect(priceWithCoupons(items, coupons)).toMatchObject({ subtotal: 1_000, discount: 1_000 });
+    });
+  });
+
+  // 규칙 3: 상한 제한
+  describe("규칙 3: maxDiscount 적용", () => {
+    it("정률 할인에 maxDiscount 적용", () => {
+      const items = [line("SKU-1", 10_000, 1)];
+      const coupons: Coupon[] = [{ scope: "order", type: "rate", value: 50, maxDiscount: 3_000 }];
+      expect(priceWithCoupons(items, coupons)).toMatchObject({ subtotal: 10_000, discount: 3_000 });
+    });
+
+    it("정액 할인에 maxDiscount 적용", () => {
+      const items = [line("SKU-1", 10_000, 1)];
+      const coupons: Coupon[] = [{ scope: "order", type: "fixed", value: 5_000, maxDiscount: 3_000 }];
+      expect(priceWithCoupons(items, coupons)).toMatchObject({ subtotal: 10_000, discount: 3_000 });
+    });
+
+    it("할인이 maxDiscount 이하면 maxDiscount 미적용", () => {
+      const items = [line("SKU-1", 10_000, 1)];
+      const coupons: Coupon[] = [{ scope: "order", type: "rate", value: 10, maxDiscount: 3_000 }];
+      expect(priceWithCoupons(items, coupons)).toMatchObject({ subtotal: 10_000, discount: 1_000 });
+    });
+  });
+
+  // 규칙 4: 최소주문 조건
+  describe("규칙 4: minOrder 조건 (미충족 시 쿠폰 미적용, 오류 아님)", () => {
+    it("minOrder 충족 시 쿠폰 적용", () => {
+      const items = [line("SKU-1", 50_000, 1)];
+      const coupons: Coupon[] = [{ scope: "order", type: "fixed", value: 5_000, minOrder: 50_000 }];
+      expect(priceWithCoupons(items, coupons)).toMatchObject({ discount: 5_000 });
+    });
+
+    it("minOrder 미충족 시 쿠폰 미적용 (오류 아님)", () => {
+      const items = [line("SKU-1", 49_999, 1)];
+      const coupons: Coupon[] = [{ scope: "order", type: "fixed", value: 5_000, minOrder: 50_000 }];
+      expect(priceWithCoupons(items, coupons)).toMatchObject({ discount: 0 });
+    });
+
+    it("상품 쿠폰 후 주문 쿠폰이 minOrder 조건 판정", () => {
+      const items = [line("SKU-1", 30_000, 1), line("SKU-2", 25_000, 1)];
+      const coupons: Coupon[] = [
+        { scope: "item", sku: "SKU-1", type: "fixed", value: 10_000 },
+        { scope: "order", type: "fixed", value: 5_000, minOrder: 45_000 },
+      ];
+      const result = priceWithCoupons(items, coupons);
+      expect(result.subtotal).toBe(55_000);
+      expect(result.discount).toBe(15_000); // 10_000 (item) + 5_000 (order, 기준금액 45_000 충족)
+    });
+
+    it("상품 쿠폰 후 기준금액이 minOrder 미충족", () => {
+      const items = [line("SKU-1", 30_000, 1), line("SKU-2", 25_000, 1)];
+      const coupons: Coupon[] = [
+        { scope: "item", sku: "SKU-1", type: "fixed", value: 10_000 },
+        { scope: "order", type: "fixed", value: 5_000, minOrder: 50_000 },
+      ];
+      const result = priceWithCoupons(items, coupons);
+      expect(result.subtotal).toBe(55_000);
+      expect(result.discount).toBe(10_000); // 10_000 (item), order 쿠폰은 미적용 (기준금액 45_000 < minOrder 50_000)
+    });
+  });
+
+  // 규칙 5: 상품 쿠폰 기준 금액
+  describe("규칙 5: 상품 쿠폰 기준 = 줄 금액 (unitPrice × quantity)", () => {
+    it("상품 쿠폰: 단가 × 수량 기준", () => {
+      const items = [line("SKU-1", 1_000, 3)];
+      const coupons: Coupon[] = [{ scope: "item", sku: "SKU-1", type: "fixed", value: 500 }];
+      expect(priceWithCoupons(items, coupons)).toMatchObject({ discount: 500 });
+    });
+
+    it("상품 쿠폰: 정률 할인도 줄 금액 기준", () => {
+      const items = [line("SKU-1", 1_000, 3)];
+      const coupons: Coupon[] = [{ scope: "item", sku: "SKU-1", type: "rate", value: 10 }];
+      expect(priceWithCoupons(items, coupons)).toMatchObject({ discount: 300 }); // floor(3000 × 10 / 100)
+    });
+  });
+
+  // 규칙 6: 주문 쿠폰 기준 금액
+  describe("규칙 6: 주문 쿠폰 기준 = subtotal - 상품쿠폰할인합계", () => {
+    it("상품 쿠폰 없이 주문 쿠폰만", () => {
+      const items = [line("SKU-1", 10_000, 1)];
+      const coupons: Coupon[] = [{ scope: "order", type: "fixed", value: 1_000 }];
+      expect(priceWithCoupons(items, coupons)).toMatchObject({ discount: 1_000 });
+    });
+
+    it("상품 쿠폰 후 주문 쿠폰의 기준 = subtotal - 상품할인", () => {
+      const items = [line("SKU-1", 10_000, 1)];
+      const coupons: Coupon[] = [
+        { scope: "item", sku: "SKU-1", type: "fixed", value: 2_000 },
+        { scope: "order", type: "rate", value: 10 },
+      ];
+      // subtotal: 10_000, item 할인: 2_000, 주문 쿠폰 기준: 8_000, 10%: 800
+      expect(priceWithCoupons(items, coupons)).toMatchObject({
+        subtotal: 10_000,
+        discount: 2_800, // 2_000 + 800
+      });
+    });
+
+    it("여러 상품 쿠폰 후 주문 쿠폰", () => {
+      const items = [line("SKU-1", 10_000, 1), line("SKU-2", 20_000, 1)];
+      const coupons: Coupon[] = [
+        { scope: "item", sku: "SKU-1", type: "fixed", value: 1_000 },
+        { scope: "item", sku: "SKU-2", type: "fixed", value: 2_000 },
+        { scope: "order", type: "fixed", value: 5_000 },
+      ];
+      // subtotal: 30_000, item 할인: 3_000, 주문 기준: 27_000, 고정: 5_000
+      expect(priceWithCoupons(items, coupons)).toMatchObject({
+        subtotal: 30_000,
+        discount: 8_000, // 3_000 + 5_000
+      });
+    });
+  });
+
+  // 규칙 7: 적용 순서 (상품 먼저, 주문 나중)
+  describe("규칙 7: 적용 순서는 목록 순서 무관, 상품 → 주문 고정", () => {
+    it("목록 순서가 주문 → 상품이어도 상품이 먼저 적용", () => {
+      const items = [line("SKU-1", 10_000, 1)];
+      const coupons: Coupon[] = [
+        { scope: "order", type: "fixed", value: 2_000 },
+        { scope: "item", sku: "SKU-1", type: "fixed", value: 1_000 },
+      ];
+      // 순서 무관, 상품(1_000) 먼저 적용 후 주문(기준 9_000, 2_000)
+      expect(priceWithCoupons(items, coupons)).toMatchObject({
+        subtotal: 10_000,
+        discount: 3_000, // 1_000 (item) + 2_000 (order, 기준 9_000 >= 2_000)
+      });
+    });
+  });
+
+  // 규칙 8: 중복 제한
+  describe("규칙 8: 중복 제한 (상품당 1장, 주문 1장)", () => {
+    it("상품 쿠폰 중복 — 같은 sku에 2개 쿠폰", () => {
+      const items = [line("SKU-1", 10_000, 1)];
+      const coupons: Coupon[] = [
+        { scope: "item", sku: "SKU-1", type: "fixed", value: 1_000 },
+        { scope: "item", sku: "SKU-1", type: "fixed", value: 500 },
+      ];
+      expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+    });
+
+    it("주문 쿠폰 중복 — 2개 이상", () => {
+      const items = [line("SKU-1", 10_000, 1)];
+      const coupons: Coupon[] = [
+        { scope: "order", type: "fixed", value: 1_000 },
+        { scope: "order", type: "fixed", value: 500 },
+      ];
+      expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+    });
+
+    it("다른 sku 상품 쿠폰은 각각 1장씩 가능", () => {
+      const items = [line("SKU-1", 10_000, 1), line("SKU-2", 5_000, 1)];
+      const coupons: Coupon[] = [
+        { scope: "item", sku: "SKU-1", type: "fixed", value: 1_000 },
+        { scope: "item", sku: "SKU-2", type: "fixed", value: 500 },
+      ];
+      expect(priceWithCoupons(items, coupons)).toMatchObject({ discount: 1_500 });
+    });
+
+    it("없는 sku 대상 상품 쿠폰 — CouponError", () => {
+      const items = [line("SKU-1", 10_000, 1)];
+      const coupons: Coupon[] = [{ scope: "item", sku: "SKU-2", type: "fixed", value: 1_000 }];
+      expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+    });
+  });
+
+  // 규칙 9: 입력 검증
+  describe("규칙 9: 쿠폰 검증 (잘못된 쿠폰은 CouponError)", () => {
+    it("정률 value < 1 — CouponError", () => {
+      const items = [line("SKU-1", 10_000, 1)];
+      const coupons: Coupon[] = [{ scope: "order", type: "rate", value: 0 }];
+      expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+    });
+
+    it("정률 value > 100 — CouponError", () => {
+      const items = [line("SKU-1", 10_000, 1)];
+      const coupons: Coupon[] = [{ scope: "order", type: "rate", value: 101 }];
+      expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+    });
+
+    it("정률 value가 정수가 아님 — CouponError", () => {
+      const items = [line("SKU-1", 10_000, 1)];
+      const coupons: Coupon[] = [{ scope: "order", type: "rate", value: 10.5 }];
+      expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+    });
+
+    it("정액 value < 1 — CouponError", () => {
+      const items = [line("SKU-1", 10_000, 1)];
+      const coupons: Coupon[] = [{ scope: "order", type: "fixed", value: 0 }];
+      expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+    });
+
+    it("정액 value가 정수가 아님 — CouponError", () => {
+      const items = [line("SKU-1", 10_000, 1)];
+      const coupons: Coupon[] = [{ scope: "order", type: "fixed", value: 100.5 }];
+      expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+    });
+
+    it("maxDiscount < 0 — CouponError", () => {
+      const items = [line("SKU-1", 10_000, 1)];
+      const coupons: Coupon[] = [{ scope: "order", type: "rate", value: 10, maxDiscount: -1 }];
+      expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+    });
+
+    it("minOrder < 0 — CouponError", () => {
+      const items = [line("SKU-1", 10_000, 1)];
+      const coupons: Coupon[] = [{ scope: "order", type: "rate", value: 10, minOrder: -1 }];
+      expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+    });
+
+    it("상품 쿠폰에 sku 없음 — CouponError", () => {
+      const items = [line("SKU-1", 10_000, 1)];
+      const coupons: Coupon[] = [{ scope: "item", type: "fixed", value: 1_000 }];
+      expect(() => priceWithCoupons(items, coupons)).toThrow(CouponError);
+    });
+  });
+
+  // 규칙 10: discount 필드
+  describe("규칙 10: discount = 상품쿠폰 + 주문쿠폰 합계", () => {
+    it("discount는 총 할인액", () => {
+      const items = [line("SKU-1", 10_000, 1)];
+      const coupons: Coupon[] = [
+        { scope: "item", sku: "SKU-1", type: "fixed", value: 2_000 },
+        { scope: "order", type: "fixed", value: 3_000 },
+      ];
+      expect(priceWithCoupons(items, coupons)).toMatchObject({
+        subtotal: 10_000,
+        discount: 5_000,
+      });
+    });
+  });
+
+  // 규칙 11: 빈 장바구니
+  describe("규칙 11: 빈 장바구니는 모든 금액 0", () => {
+    it("빈 장바구니는 쿠폰 무시", () => {
+      const items: LineItem[] = [];
+      const coupons: Coupon[] = [{ scope: "order", type: "fixed", value: 1_000 }];
+      expect(priceWithCoupons(items, coupons)).toEqual({
+        subtotal: 0,
+        discount: 0,
+        shipping: 0,
+        total: 0,
+      });
+    });
+  });
+
+  // 규칙 12: 불변성
+  describe("규칙 12: 불변성 (입력 수정 금지)", () => {
+    it("items 배열 수정 금지", () => {
+      const items = [line("SKU-1", 10_000, 1)];
+      const originalItems = JSON.stringify(items);
+      const coupons: Coupon[] = [{ scope: "order", type: "fixed", value: 1_000 }];
+
+      priceWithCoupons(items, coupons);
+
+      expect(JSON.stringify(items)).toBe(originalItems);
+    });
+
+    it("coupons 배열 수정 금지", () => {
+      const items = [line("SKU-1", 10_000, 1)];
+      const coupons: Coupon[] = [{ scope: "order", type: "fixed", value: 1_000 }];
+      const originalCoupons = JSON.stringify(coupons);
+
+      priceWithCoupons(items, coupons);
+
+      expect(JSON.stringify(coupons)).toBe(originalCoupons);
+    });
+  });
+
+  // 배송비 규칙 통합
+  describe("배송비 규칙과 통합 (priceCart 호출)", () => {
+    it("할인 후 금액으로 무료배송 판정", () => {
+      const items = [line("SKU-1", 52_000, 1)];
+      const coupons: Coupon[] = [{ scope: "order", type: "fixed", value: 2_001 }];
+      // 할인 후: 52_000 - 2_001 = 49_999 → 유료 배송
+      expect(priceWithCoupons(items, coupons)).toMatchObject({
+        subtotal: 52_000,
+        discount: 2_001,
+        shipping: 3_000,
+      });
+    });
+
+    it("할인으로 무료배송 도달", () => {
+      const items = [line("SKU-1", 52_000, 1)];
+      const coupons: Coupon[] = [{ scope: "order", type: "fixed", value: 2_000 }];
+      // 할인 후: 52_000 - 2_000 = 50_000 → 무료 배송
+      expect(priceWithCoupons(items, coupons)).toMatchObject({
+        subtotal: 52_000,
+        discount: 2_000,
+        shipping: 0,
+      });
+    });
+
+    it("결제 금액 = subtotal - discount + shipping", () => {
+      const items = [line("SKU-1", 10_000, 1)];
+      const coupons: Coupon[] = [{ scope: "order", type: "fixed", value: 2_000 }];
+      // subtotal: 10_000, discount: 2_000, shipping: 3_000
+      // total: 10_000 - 2_000 + 3_000 = 11_000
+      expect(priceWithCoupons(items, coupons)).toMatchObject({
+        total: 11_000,
+      });
+    });
+  });
+
+  // 복잡한 시나리오
+  describe("복잡한 시나리오", () => {
+    it("3개 상품 + 2개 상품쿠폰 + 1개 주문쿠폰", () => {
+      const items = [line("A", 10_000, 2), line("B", 5_000, 1), line("C", 3_000, 1)];
+      const coupons: Coupon[] = [
+        { scope: "item", sku: "A", type: "rate", value: 20 },
+        { scope: "item", sku: "B", type: "fixed", value: 1_000 },
+        { scope: "order", type: "fixed", value: 5_000, minOrder: 30_000 },
+      ];
+      // subtotal: 20_000 + 5_000 + 3_000 = 28_000
+      // A 할인: floor(20_000 × 20 / 100) = 4_000
+      // B 할인: min(1_000, 5_000) = 1_000
+      // 상품 할인 합: 5_000
+      // 주문 기준: 28_000 - 5_000 = 23_000 < 30_000 → minOrder 미충족, order 쿠폰 미적용
+      expect(priceWithCoupons(items, coupons)).toMatchObject({
+        subtotal: 28_000,
+        discount: 5_000,
+      });
+    });
+
+    it("shipping policy 커스텀 적용", () => {
+      const items = [line("SKU-1", 5_000, 1)];
+      const coupons: Coupon[] = [{ scope: "order", type: "fixed", value: 1_000 }];
+      const customPolicy = { fee: 2_500, freeThreshold: 10_000 };
+      // 할인 후: 5_000 - 1_000 = 4_000 < 10_000 → 배송비 2_500
+      const result = priceWithCoupons(items, coupons, customPolicy);
+      expect(result).toMatchObject({
+        shipping: 2_500,
+        total: 5_000 - 1_000 + 2_500, // 6_500
+      });
+    });
+  });
+});
