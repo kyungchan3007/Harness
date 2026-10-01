@@ -327,7 +327,7 @@ pnpm trace 0009   # 태스크의 hooks 자동 기록 요약
 pnpm usage        # 현재 태스크 브랜치의 토큰·컨텍스트 사용량 (transcript 실측)
 pnpm metrics --project <경로> --repo <owner/name>   # 복기 참조율·체크박스 방치율 측정
 pnpm issue-link   # 현재 브랜치가 prd의 이슈에 연결됐는지 확인 (PR 전)
-pnpm issue-sync   # 이슈 체크박스를 prd.md Acceptance에 맞춤 (--check 검사 · --close 머지 후 닫기)
+pnpm issue-sync   # 이슈 체크박스를 prd.md Acceptance에 맞춤 (--check 검사 · --close <이슈번호> 머지 후 닫기)
 ```
 
 hooks는 **이 폴더에서 Claude Code 세션을 열면** 자동으로 동작합니다 ([.claude/settings.json](.claude/settings.json)).
