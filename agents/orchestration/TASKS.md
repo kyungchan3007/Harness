@@ -17,7 +17,7 @@
 | 0013 | 역할 식별 e2e 확인 + 역할별 권한 강제 | claude | done | [0013](../intent/specs/0013-role-permissions/prd.md) · #14 |
 | 0014 | 검사자 판정 흐름(verdict) + 게이트 | claude | done | [0014](../intent/specs/0014-verdict-flow/prd.md) · #16 |
 | 0015 | 역할 분리 실험 과제(쿠폰) + 숨겨진 oracle 테스트 | claude | done | [0015](../intent/specs/0015-oracle-task/prd.md) · #18 |
-| 0016 | 역할 분리 실험 실행·비교·결론 (A·B 각 3회) | - | todo (← 0014·0015) | - |
+| 0016 | 역할 분리 실험 실행·비교·결론 (A·B·B′ 각 3회) | claude | done | [0016](../intent/specs/0016-role-split-run/prd.md) · #21 |
 | 0017 | 커밋·이슈 지침서: 허점·보완점·컨텍스트·토큰 기록 + 자동 집계·검사 | claude | done | [0017](../intent/specs/0017-commit-issue-guide/prd.md) |
 | 0018 | README 작업 루프 다이어그램 가독성 개선 | claude | done | [0018](../intent/specs/0018-readme-diagram/prd.md) |
 | 0019 | 복기 참조·체크박스 측정 도구 + 기준선 | claude | done | [0019](../intent/specs/0019-recall-metrics/prd.md) |

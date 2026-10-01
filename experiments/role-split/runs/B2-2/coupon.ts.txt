@@ -1,0 +1,217 @@
+import type { LineItem } from "../cart/cart.js";
+import { assertWon, type Won } from "../money.js";
+import type { PriceBreakdown, ShippingPolicy } from "./price-cart.js";
+import { DEFAULT_SHIPPING_POLICY, priceCart } from "./price-cart.js";
+
+export interface Coupon {
+  /** item: 한 상품 줄에 적용 / order: 주문 전체에 적용 */
+  scope: "item" | "order";
+  /** scope가 "item"일 때 대상 상품 (필수) */
+  sku?: string;
+  /** rate: 정률(%) / fixed: 정액(원) */
+  type: "rate" | "fixed";
+  /** rate면 할인율(%), fixed면 할인 금액(원) */
+  value: number;
+  /** 할인 금액의 상한 (원) */
+  maxDiscount?: Won;
+  /** 사용 조건: 최소 주문 금액 (원) */
+  minOrder?: Won;
+}
+
+export class CouponError extends Error {}
+
+/**
+ * 개별 쿠폰의 유효성을 검증합니다.
+ * @throws CouponError
+ */
+function validateCoupon(coupon: Coupon, itemSkus: Set<string>): void {
+  // scope가 "item"일 때 sku 필수
+  if (coupon.scope === "item" && !coupon.sku) {
+    throw new CouponError("상품 쿠폰은 sku 필수");
+  }
+
+  // scope가 "item"일 때 sku가 items에 있어야 함
+  if (coupon.scope === "item" && coupon.sku && !itemSkus.has(coupon.sku)) {
+    throw new CouponError("장바구니에 없는 상품입니다");
+  }
+
+  // type="rate"일 때 value 검증 (1~100 정수)
+  if (coupon.type === "rate") {
+    if (!Number.isInteger(coupon.value) || coupon.value < 1 || coupon.value > 100) {
+      throw new CouponError("정률 쿠폰의 할인율은 1~100의 정수");
+    }
+  }
+
+  // type="fixed"일 때 value 검증 (1 이상 정수)
+  if (coupon.type === "fixed") {
+    if (!Number.isInteger(coupon.value) || coupon.value < 1) {
+      throw new CouponError("정액 쿠폰의 할인 금액은 1 이상의 정수");
+    }
+  }
+
+  // maxDiscount 검증 (0 이상 정수 또는 undefined)
+  if (coupon.maxDiscount !== undefined) {
+    if (!Number.isInteger(coupon.maxDiscount) || coupon.maxDiscount < 0) {
+      throw new CouponError("0 이상의 정수여야 합니다");
+    }
+  }
+
+  // minOrder 검증 (0 이상 정수 또는 undefined)
+  if (coupon.minOrder !== undefined) {
+    if (!Number.isInteger(coupon.minOrder) || coupon.minOrder < 0) {
+      throw new CouponError("0 이상의 정수여야 합니다");
+    }
+  }
+}
+
+/**
+ * 전체 쿠폰 목록의 중복을 검증합니다.
+ * @throws CouponError
+ */
+function validateCouponDuplicates(coupons: readonly Coupon[]): void {
+  const itemCouponSkus = new Set<string>();
+  let orderCouponCount = 0;
+
+  for (const coupon of coupons) {
+    if (coupon.scope === "item" && coupon.sku) {
+      if (itemCouponSkus.has(coupon.sku)) {
+        throw new CouponError("상품에 여러 쿠폰을 적용할 수 없습니다");
+      }
+      itemCouponSkus.add(coupon.sku);
+    } else if (coupon.scope === "order") {
+      orderCouponCount++;
+      if (orderCouponCount > 1) {
+        throw new CouponError("주문 쿠폰은 1장까지만 사용 가능합니다");
+      }
+    }
+  }
+}
+
+/**
+ * 할인 금액을 계산합니다.
+ */
+function calculateDiscount(coupon: Coupon, baseAmount: Won, subtotal: Won): Won {
+  // minOrder 조건 확인: subtotal 기준
+  if (coupon.minOrder !== undefined && subtotal < coupon.minOrder) {
+    return 0;
+  }
+
+  let discount: Won;
+
+  if (coupon.type === "rate") {
+    // 정률: floor 적용
+    discount = Math.floor((baseAmount * coupon.value) / 100);
+  } else {
+    // 정액: 기준 금액을 초과할 수 없음
+    discount = Math.min(coupon.value, baseAmount);
+  }
+
+  // maxDiscount 상한 적용
+  if (coupon.maxDiscount !== undefined) {
+    discount = Math.min(discount, coupon.maxDiscount);
+  }
+
+  return discount;
+}
+
+/**
+ * 상품 쿠폰을 적용하고 각 상품별 할인을 반환합니다.
+ */
+function applyItemCoupons(
+  items: readonly LineItem[],
+  itemCoupons: Coupon[],
+  subtotal: Won,
+): Map<string, Won> {
+  const itemDiscounts = new Map<string, Won>();
+
+  for (const coupon of itemCoupons) {
+    if (coupon.scope === "item" && coupon.sku) {
+      const item = items.find((i) => i.sku === coupon.sku);
+      if (item) {
+        const baseAmount = item.unitPrice * item.quantity;
+        const discount = calculateDiscount(coupon, baseAmount, subtotal);
+        itemDiscounts.set(coupon.sku, discount);
+      }
+    }
+  }
+
+  return itemDiscounts;
+}
+
+/**
+ * 상품 쿠폰 할인 합계를 계산합니다.
+ */
+function getItemDiscountTotal(itemDiscounts: Map<string, Won>): Won {
+  let total = 0;
+  for (const discount of itemDiscounts.values()) {
+    total += discount;
+  }
+  return total;
+}
+
+/**
+ * 주문 쿠폰을 적용하고 할인을 반환합니다.
+ */
+function applyOrderCoupon(
+  coupon: Coupon,
+  baseAmount: Won,
+  subtotal: Won,
+): Won {
+  if (coupon.scope !== "order") {
+    return 0;
+  }
+
+  return calculateDiscount(coupon, baseAmount, subtotal);
+}
+
+export function priceWithCoupons(
+  items: readonly LineItem[],
+  coupons: readonly Coupon[],
+  shippingPolicy?: ShippingPolicy,
+): PriceBreakdown {
+  // 기본 shippingPolicy 설정
+  const policy = shippingPolicy || DEFAULT_SHIPPING_POLICY;
+
+  // 빈 장바구니 체크 → 모든 금액 0 반환
+  if (items.length === 0) {
+    return { subtotal: 0, discount: 0, shipping: 0, total: 0 };
+  }
+
+  // 빈 쿠폰 목록일 때 할인 없이 반환
+  if (coupons.length === 0) {
+    return priceCart(items, { shippingPolicy: policy });
+  }
+
+  // subtotal 계산
+  const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+  assertWon(subtotal, "subtotal");
+
+  // 쿠폰 검증
+  const itemSkus = new Set(items.map((i) => i.sku));
+  for (const coupon of coupons) {
+    validateCoupon(coupon, itemSkus);
+  }
+  validateCouponDuplicates(coupons);
+
+  // 상품 쿠폰과 주문 쿠폰 분리
+  const itemCoupons = coupons.filter((c) => c.scope === "item");
+  const orderCoupons = coupons.filter((c) => c.scope === "order");
+
+  // 상품 쿠폰 적용
+  const itemDiscounts = applyItemCoupons(items, itemCoupons, subtotal);
+  const itemDiscountTotal = getItemDiscountTotal(itemDiscounts);
+
+  // 주문 쿠폰 적용
+  let orderDiscount = 0;
+  if (orderCoupons.length > 0) {
+    const orderCoupon = orderCoupons[0]!;
+    const orderBaseAmount = subtotal - itemDiscountTotal;
+    orderDiscount = applyOrderCoupon(orderCoupon, orderBaseAmount, subtotal);
+  }
+
+  // 최종 할인
+  const totalDiscount = itemDiscountTotal + orderDiscount;
+
+  // priceCart() 호출
+  return priceCart(items, { discount: totalDiscount, shippingPolicy: policy });
+}

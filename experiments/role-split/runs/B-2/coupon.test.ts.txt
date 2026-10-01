@@ -1,0 +1,651 @@
+import { describe, test, expect } from "vitest";
+import type { Coupon } from "./coupon.js";
+import { CouponError, priceWithCoupons } from "./coupon.js";
+import type { LineItem } from "../cart/cart.js";
+import type { ShippingPolicy } from "./price-cart.js";
+
+// 테스트 헬퍼
+const testItem = (sku: string, unitPrice: number, quantity: number = 1): LineItem => ({
+  sku,
+  name: `Product ${sku}`,
+  unitPrice: unitPrice as any,
+  quantity
+});
+
+const testCoupon = (overrides: Partial<Coupon> = {}): Coupon => ({
+  id: "coupon-1",
+  scope: "PRODUCT",
+  sku: "test-sku",
+  type: "PERCENTAGE",
+  value: 10,
+  maxDiscount: 999_999_999,
+  minOrder: 0,
+  ...overrides
+});
+
+const testOrderCoupon = (overrides: Partial<Coupon> = {}): Coupon => ({
+  id: "order-coupon-1",
+  scope: "ORDER",
+  type: "PERCENTAGE",
+  value: 10,
+  maxDiscount: 999_999_999,
+  minOrder: 0,
+  ...overrides
+});
+
+describe("coupon", () => {
+  describe("규칙 1: 정률 쿠폰 기본", () => {
+    test("test_percentage_coupon_basic: 10,000원 × 10% = 1,000원", () => {
+      const items = [testItem("A", 10_000)];
+      const coupons = [testCoupon({ id: "p1", sku: "A", type: "PERCENTAGE", value: 10 })];
+
+      const result = priceWithCoupons(items, coupons);
+      expect(result.discount).toBe(1_000);
+      expect(result.subtotal).toBe(10_000);
+      expect(result.total).toBe(10_000 - 1_000 + 3_000); // 배송비 포함
+    });
+
+    test("test_percentage_coupon_floor: 9,999원 × 10% = 999원 (버림)", () => {
+      const items = [testItem("A", 9_999)];
+      const coupons = [testCoupon({ id: "p1", sku: "A", type: "PERCENTAGE", value: 10 })];
+
+      const result = priceWithCoupons(items, coupons);
+      expect(result.discount).toBe(999); // floor(9999 * 10 / 100) = 999
+    });
+  });
+
+  describe("규칙 2: 정액 쿠폰", () => {
+    test("test_fixed_coupon_basic: 5,000원 할인", () => {
+      const items = [testItem("A", 20_000)];
+      const coupons = [testCoupon({ id: "f1", sku: "A", type: "FIXED", value: 5_000, maxDiscount: 10_000 })];
+
+      const result = priceWithCoupons(items, coupons);
+      expect(result.discount).toBe(5_000);
+    });
+
+    test("test_fixed_coupon_with_max_discount: 5,000원이지만 maxDiscount=3,000이면 3,000원", () => {
+      const items = [testItem("A", 20_000)];
+      const coupons = [testCoupon({ id: "f2", sku: "A", type: "FIXED", value: 5_000, maxDiscount: 3_000 })];
+
+      const result = priceWithCoupons(items, coupons);
+      expect(result.discount).toBe(3_000);
+    });
+  });
+
+  describe("규칙 3: 상품 쿠폰 기준액", () => {
+    test("test_product_coupon_base_calculation: unitPrice × quantity 맞는지 확인", () => {
+      const items = [testItem("A", 5_000, 2)]; // 5,000 * 2 = 10,000
+      const coupons = [testCoupon({ id: "p1", sku: "A", type: "PERCENTAGE", value: 20 })];
+
+      const result = priceWithCoupons(items, coupons);
+      expect(result.discount).toBe(2_000); // 10,000 * 20% = 2,000
+      expect(result.subtotal).toBe(10_000);
+    });
+  });
+
+  describe("규칙 4: 주문 쿠폰 기준액", () => {
+    test("test_order_coupon_base_calculation: subtotal - 상품쿠폰할인액 맞는지 확인", () => {
+      const items = [
+        testItem("A", 10_000),
+        testItem("B", 10_000)
+      ];
+      const coupons = [
+        testCoupon({ id: "product-1", sku: "A", type: "FIXED", value: 2_000, maxDiscount: 5_000 }),
+        testOrderCoupon({ id: "order-1", type: "PERCENTAGE", value: 10 })
+      ];
+
+      const result = priceWithCoupons(items, coupons);
+      // subtotal = 20,000
+      // 상품쿠폰: 2,000 (A에)
+      // 주문쿠폰 기준: 20,000 - 2,000 = 18,000
+      // 주문쿠폰: 18,000 * 10% = 1,800
+      expect(result.subtotal).toBe(20_000);
+      expect(result.discount).toBe(3_800);
+    });
+  });
+
+  describe("규칙 5, 6: 적용 순서", () => {
+    test("test_product_before_order_coupon: 상품쿠폰 먼저, 주문쿠폰 나중", () => {
+      const items = [testItem("A", 10_000)];
+      const coupons = [
+        testCoupon({ id: "p1", sku: "A", type: "FIXED", value: 3_000, maxDiscount: 5_000 }),
+        testOrderCoupon({ id: "o1", type: "PERCENTAGE", value: 10 })
+      ];
+
+      const result = priceWithCoupons(items, coupons);
+      // 상품쿠폰: 3,000
+      // 주문쿠폰 기준: 10,000 - 3,000 = 7,000
+      // 주문쿠폰: 7,000 * 10% = 700
+      expect(result.discount).toBe(3_700);
+    });
+  });
+
+  describe("규칙 7, 8, 9: 중복 제한", () => {
+    test("test_product_coupon_duplicate_sku: 같은 sku에 상품쿠폰 2장 → E8 에러", () => {
+      const items = [testItem("A", 10_000)];
+      const coupons = [
+        testCoupon({ id: "p1", sku: "A", type: "PERCENTAGE", value: 10 }),
+        testCoupon({ id: "p2", sku: "A", type: "PERCENTAGE", value: 20 })
+      ];
+
+      expect(() => priceWithCoupons(items, coupons)).toThrow(
+        "같은 상품에 상품쿠폰은 1장만 사용 가능합니다"
+      );
+    });
+
+    test("test_order_coupon_duplicate: 주문쿠폰 2장 → E9 에러", () => {
+      const items = [testItem("A", 10_000)];
+      const coupons = [
+        testOrderCoupon({ id: "o1", type: "PERCENTAGE", value: 10 }),
+        testOrderCoupon({ id: "o2", type: "PERCENTAGE", value: 20 })
+      ];
+
+      expect(() => priceWithCoupons(items, coupons)).toThrow("주문쿠폰은 1장만 사용 가능합니다");
+    });
+
+    test("test_coupon_duplicate_id: 같은 id 2번 → E10 에러", () => {
+      const items = [
+        testItem("A", 10_000),
+        testItem("B", 10_000)
+      ];
+      const coupons = [
+        testCoupon({ id: "same-id", sku: "A", type: "PERCENTAGE", value: 10 }),
+        testCoupon({ id: "same-id", sku: "B", type: "PERCENTAGE", value: 20 })
+      ];
+
+      expect(() => priceWithCoupons(items, coupons)).toThrow(
+        "같은 쿠폰을 중복으로 사용할 수 없습니다"
+      );
+    });
+  });
+
+  describe("규칙 10: minOrder 조건", () => {
+    test("test_min_order_met_product: 상품 쿠폰의 minOrder 충족, 적용됨", () => {
+      const items = [testItem("A", 10_000)];
+      const coupons = [
+        testCoupon({ id: "p1", sku: "A", type: "PERCENTAGE", value: 20, minOrder: 5_000 })
+      ];
+
+      const result = priceWithCoupons(items, coupons);
+      expect(result.discount).toBe(2_000); // 10,000 * 20%
+    });
+
+    test("test_min_order_not_met_product: 상품 쿠폰의 minOrder 미충족, 미적용", () => {
+      const items = [testItem("A", 3_000)];
+      const coupons = [
+        testCoupon({ id: "p1", sku: "A", type: "PERCENTAGE", value: 20, minOrder: 5_000 })
+      ];
+
+      const result = priceWithCoupons(items, coupons);
+      expect(result.discount).toBe(0); // minOrder 미충족
+    });
+
+    test("test_min_order_met_order: 주문 쿠폰의 minOrder 충족, 적용됨", () => {
+      const items = [testItem("A", 10_000)];
+      const coupons = [
+        testOrderCoupon({ id: "o1", type: "PERCENTAGE", value: 10, minOrder: 5_000 })
+      ];
+
+      const result = priceWithCoupons(items, coupons);
+      expect(result.discount).toBe(1_000); // 10,000 * 10%
+    });
+
+    test("test_min_order_not_met_order: 주문 쿠폰의 minOrder 미충족, 미적용", () => {
+      const items = [testItem("A", 3_000)];
+      const coupons = [
+        testOrderCoupon({ id: "o1", type: "PERCENTAGE", value: 10, minOrder: 5_000 })
+      ];
+
+      const result = priceWithCoupons(items, coupons);
+      expect(result.discount).toBe(0); // minOrder 미충족
+    });
+  });
+
+  describe("규칙 11, 12: value 유효성 및 할인액 상한", () => {
+    test("test_percentage_value_range: 정률 value 0~100 범위", () => {
+      const items = [testItem("A", 10_000)];
+
+      // 유효한 경우: 0
+      expect(() => priceWithCoupons(items, [
+        testCoupon({ id: "p0", sku: "A", type: "PERCENTAGE", value: 0 })
+      ])).not.toThrow();
+
+      // 유효한 경우: 100
+      expect(() => priceWithCoupons(items, [
+        testCoupon({ id: "p100", sku: "A", type: "PERCENTAGE", value: 100 })
+      ])).not.toThrow();
+
+      // 무효한 경우: 101
+      expect(() => priceWithCoupons(items, [
+        testCoupon({ id: "p101", sku: "A", type: "PERCENTAGE", value: 101 })
+      ])).toThrow("쿠폰 할인값이 유효하지 않습니다");
+    });
+
+    test("test_fixed_value_range: 정액 value 0 이상", () => {
+      const items = [testItem("A", 10_000)];
+
+      // 유효한 경우: 0
+      expect(() => priceWithCoupons(items, [
+        testCoupon({ id: "f0", sku: "A", type: "FIXED", value: 0, maxDiscount: 5_000 })
+      ])).not.toThrow();
+
+      // 무효한 경우: 음수
+      expect(() => priceWithCoupons(items, [
+        testCoupon({ id: "f-1", sku: "A", type: "FIXED", value: -1, maxDiscount: 5_000 })
+      ])).toThrow("쿠폰 할인값이 유효하지 않습니다");
+    });
+
+    test("test_discount_exceeds_base_product: 상품쿠폰 할인액 > 기준액 → E11 에러", () => {
+      const items = [testItem("A", 5_000)];
+      const coupons = [
+        testCoupon({ id: "p1", sku: "A", type: "FIXED", value: 10_000, maxDiscount: 15_000 })
+      ];
+
+      expect(() => priceWithCoupons(items, coupons)).toThrow(
+        "할인액이 기준액을 초과할 수 없습니다"
+      );
+    });
+
+    test("test_discount_exceeds_base_order: 주문쿠폰 할인액 > 기준액 → E11 에러", () => {
+      const items = [testItem("A", 5_000)];
+      const coupons = [
+        testOrderCoupon({ id: "o1", type: "FIXED", value: 10_000, maxDiscount: 15_000 })
+      ];
+
+      expect(() => priceWithCoupons(items, coupons)).toThrow(
+        "할인액이 기준액을 초과할 수 없습니다"
+      );
+    });
+  });
+
+  describe("유효성 검사 (E1~E7)", () => {
+    test("test_invalid_type: E1 - type 유효하지 않음", () => {
+      const items = [testItem("A", 10_000)];
+      const coupons = [
+        testCoupon({ id: "invalid-type", type: "INVALID" as any })
+      ];
+
+      expect(() => priceWithCoupons(items, coupons)).toThrow("쿠폰 타입이 유효하지 않습니다");
+    });
+
+    test("test_invalid_scope: E2 - scope 유효하지 않음", () => {
+      const items = [testItem("A", 10_000)];
+      const coupons = [
+        testCoupon({ id: "invalid-scope", scope: "INVALID" as any })
+      ];
+
+      expect(() => priceWithCoupons(items, coupons)).toThrow("쿠폰 범위가 유효하지 않습니다");
+    });
+
+    test("test_invalid_value_negative: E3 - value 음수", () => {
+      const items = [testItem("A", 10_000)];
+      const coupons = [
+        testCoupon({ id: "neg-value", value: -100 as any })
+      ];
+
+      expect(() => priceWithCoupons(items, coupons)).toThrow("쿠폰 할인값이 유효하지 않습니다");
+    });
+
+    test("test_invalid_max_discount_negative: E4 - maxDiscount 음수", () => {
+      const items = [testItem("A", 10_000)];
+      const coupons = [
+        testCoupon({ id: "neg-max", maxDiscount: -1_000 as any })
+      ];
+
+      expect(() => priceWithCoupons(items, coupons)).toThrow(
+        "최대 할인액이 음수일 수 없습니다"
+      );
+    });
+
+    test("test_invalid_min_order_negative: E5 - minOrder 음수", () => {
+      const items = [testItem("A", 10_000)];
+      const coupons = [
+        testCoupon({ id: "neg-min", minOrder: -5_000 as any })
+      ];
+
+      expect(() => priceWithCoupons(items, coupons)).toThrow(
+        "최소 주문액이 음수일 수 없습니다"
+      );
+    });
+
+    test("test_missing_sku_product: E6 - PRODUCT 쿠폰인데 sku 없음", () => {
+      const items = [testItem("A", 10_000)];
+      const coupons = [
+        testCoupon({ id: "no-sku", scope: "PRODUCT", sku: undefined })
+      ];
+
+      expect(() => priceWithCoupons(items, coupons)).toThrow("상품쿠폰은 sku가 필수입니다");
+    });
+
+    test("test_sku_provided_order: E7 - ORDER 쿠폰인데 sku 제시", () => {
+      const items = [testItem("A", 10_000)];
+      const coupons = [
+        testCoupon({ id: "with-sku", scope: "ORDER", sku: "A" })
+      ];
+
+      expect(() => priceWithCoupons(items, coupons)).toThrow(
+        "주문쿠폰은 sku를 가질 수 없습니다"
+      );
+    });
+  });
+
+  describe("정수값 검증", () => {
+    test("test_value_not_integer: value가 정수 아님", () => {
+      const items = [testItem("A", 10_000)];
+      const coupons = [
+        testCoupon({ id: "float-value", value: 10.5 as any })
+      ];
+
+      expect(() => priceWithCoupons(items, coupons)).toThrow("쿠폰 할인값이 유효하지 않습니다");
+    });
+
+    test("test_max_discount_not_integer: maxDiscount가 정수 아님", () => {
+      const items = [testItem("A", 10_000)];
+      const coupons = [
+        testCoupon({ id: "float-max", maxDiscount: 5_000.5 as any })
+      ];
+
+      expect(() => priceWithCoupons(items, coupons)).toThrow(
+        "최대 할인액이 음수일 수 없습니다"
+      );
+    });
+
+    test("test_min_order_not_integer: minOrder가 정수 아님", () => {
+      const items = [testItem("A", 10_000)];
+      const coupons = [
+        testCoupon({ id: "float-min", minOrder: 5_000.5 as any })
+      ];
+
+      expect(() => priceWithCoupons(items, coupons)).toThrow(
+        "최소 주문액이 음수일 수 없습니다"
+      );
+    });
+  });
+
+  describe("통합 테스트", () => {
+    test("test_complex_scenario: 상품 3개 + 상품쿠폰 2개 + 주문쿠폰 1개", () => {
+      const items = [
+        testItem("A", 5_000, 2),   // 10,000
+        testItem("B", 7_000),      // 7,000
+        testItem("C", 8_000, 1)    // 8,000
+        // subtotal = 25,000
+      ];
+      const coupons = [
+        testCoupon({ id: "p1", sku: "A", type: "PERCENTAGE", value: 20 }),  // 10,000 * 20% = 2,000
+        testCoupon({ id: "p2", sku: "B", type: "FIXED", value: 2_000, maxDiscount: 5_000 }), // 2,000
+        testOrderCoupon({ id: "o1", type: "PERCENTAGE", value: 10 }) // (25,000 - 4,000) * 10% = 2,100
+      ];
+
+      const result = priceWithCoupons(items, coupons);
+      expect(result.subtotal).toBe(25_000);
+      expect(result.discount).toBe(2_000 + 2_000 + 2_100); // 6,100
+    });
+
+    test("test_with_shipping_fee: 배송비가 할인 후 상품합계 기준", () => {
+      const items = [testItem("A", 45_000)]; // 45,000
+      const coupons = [
+        testCoupon({ id: "p1", sku: "A", type: "PERCENTAGE", value: 20 }) // 9,000
+      ];
+
+      const result = priceWithCoupons(items, coupons);
+      const discountedSubtotal = 45_000 - 9_000; // 36,000
+      const shipping = discountedSubtotal >= 50_000 ? 0 : 3_000;
+      expect(result.discount).toBe(9_000);
+      expect(result.shipping).toBe(3_000);
+      expect(result.total).toBe(discountedSubtotal + 3_000); // 39,000
+    });
+
+    test("test_with_free_shipping: 할인 후 50,000 이상이면 무료배송", () => {
+      const items = [testItem("A", 55_000)]; // 55,000
+      const coupons = [
+        testCoupon({ id: "p1", sku: "A", type: "PERCENTAGE", value: 10 }) // 5,500
+      ];
+
+      const result = priceWithCoupons(items, coupons);
+      const discountedSubtotal = 55_000 - 5_500; // 49,500
+      // 49,500은 50,000 미만이므로 배송비 부과
+      expect(result.shipping).toBe(3_000);
+      expect(result.total).toBe(discountedSubtotal + 3_000);
+    });
+
+    test("test_with_free_shipping_exact: 할인 후 정확히 50,000이면 무료배송", () => {
+      const items = [testItem("A", 55_000)]; // 55,000
+      const coupons = [
+        testCoupon({ id: "p1", sku: "A", type: "PERCENTAGE", value: 10 }) // 5,500
+      ];
+
+      const customPolicy: ShippingPolicy = { fee: 3_000, freeThreshold: 50_000 };
+      const result = priceWithCoupons(items, coupons, customPolicy);
+      // 문제: 49,500 < 50,000이므로 배송비 부과
+      // 다시 설정: 55,000 - 10% = 49,500 (배송비 3,000)
+      // 아니면 다른 할인으로...
+      // 55,000에서 10%는 5,500 할인 = 49,500
+      // 이건 50,000 미만이므로 배송비 부과
+
+      // 올바른 테스트로 변경
+      const items2 = [testItem("A", 55_556)];
+      const coupons2 = [
+        testCoupon({ id: "p1", sku: "A", type: "PERCENTAGE", value: 10 })
+      ];
+      // 55,556 * 10% = 5,555.6 -> floor -> 5,555
+      // discountedSubtotal = 55,556 - 5,555 = 50,001
+      // 50,001 >= 50,000이므로 무료배송
+      const result2 = priceWithCoupons(items2, coupons2, customPolicy);
+      expect(result2.shipping).toBe(0);
+    });
+  });
+
+  describe("엣지 케이스", () => {
+    test("test_empty_cart_with_coupons: 빈 장바구니 + 쿠폰 → 할인액 0", () => {
+      const items: LineItem[] = [];
+      const coupons = [
+        testCoupon({ id: "p1", sku: "A", type: "PERCENTAGE", value: 20 }),
+        testOrderCoupon({ id: "o1", type: "PERCENTAGE", value: 10 })
+      ];
+
+      const result = priceWithCoupons(items, coupons);
+      expect(result.subtotal).toBe(0);
+      expect(result.discount).toBe(0);
+      expect(result.shipping).toBe(0);
+      expect(result.total).toBe(0);
+    });
+
+    test("test_coupon_for_nonexistent_sku: 쿠폰 대상 상품 없음 → 미적용", () => {
+      const items = [testItem("A", 10_000)];
+      const coupons = [
+        testCoupon({ id: "p1", sku: "B", type: "PERCENTAGE", value: 20 }) // B는 없음
+      ];
+
+      const result = priceWithCoupons(items, coupons);
+      expect(result.discount).toBe(0); // 미적용
+      expect(result.subtotal).toBe(10_000);
+    });
+
+    test("test_min_order_exact_boundary: minOrder와 정확히 같은 금액", () => {
+      const items = [testItem("A", 10_000)];
+      const coupons = [
+        testCoupon({ id: "p1", sku: "A", type: "PERCENTAGE", value: 20, minOrder: 10_000 })
+      ];
+
+      const result = priceWithCoupons(items, coupons);
+      expect(result.discount).toBe(2_000); // 정확히 같으므로 충족
+    });
+
+    test("test_zero_coupon_value: value=0 (유효, 할인 없음)", () => {
+      const items = [testItem("A", 10_000)];
+      const coupons = [
+        testCoupon({ id: "p1", sku: "A", type: "PERCENTAGE", value: 0 })
+      ];
+
+      const result = priceWithCoupons(items, coupons);
+      expect(result.discount).toBe(0); // 0% 할인
+    });
+
+    test("test_multiple_products_one_coupon: 상품 3개 중 2개에만 쿠폰 적용", () => {
+      const items = [
+        testItem("A", 5_000),
+        testItem("B", 5_000),
+        testItem("C", 5_000)
+      ];
+      const coupons = [
+        testCoupon({ id: "p1", sku: "A", type: "PERCENTAGE", value: 10 }) // A만 할인
+      ];
+
+      const result = priceWithCoupons(items, coupons);
+      expect(result.subtotal).toBe(15_000);
+      expect(result.discount).toBe(500); // A에만 10% = 500
+    });
+
+    test("test_quantity_with_coupon: 수량이 2개 이상인 상품에 쿠폰 적용", () => {
+      const items = [testItem("A", 3_000, 4)]; // 3,000 * 4 = 12,000
+      const coupons = [
+        testCoupon({ id: "p1", sku: "A", type: "PERCENTAGE", value: 25 })
+      ];
+
+      const result = priceWithCoupons(items, coupons);
+      expect(result.subtotal).toBe(12_000);
+      expect(result.discount).toBe(3_000); // 12,000 * 25% = 3,000
+    });
+  });
+
+  describe("불변성 검증", () => {
+    test("test_items_not_mutated: priceWithCoupons 호출 전후 items 변경 없음", () => {
+      const items = [
+        testItem("A", 10_000),
+        testItem("B", 20_000)
+      ];
+      const itemsCopy = JSON.parse(JSON.stringify(items));
+      const coupons = [
+        testCoupon({ id: "p1", sku: "A", type: "PERCENTAGE", value: 20 })
+      ];
+
+      priceWithCoupons(items, coupons);
+
+      expect(items).toEqual(itemsCopy);
+    });
+
+    test("test_coupons_not_mutated: priceWithCoupons 호출 전후 coupons 변경 없음", () => {
+      const items = [testItem("A", 10_000)];
+      const coupons = [
+        testCoupon({ id: "p1", sku: "A", type: "PERCENTAGE", value: 20 })
+      ];
+      const couponsCopy = JSON.parse(JSON.stringify(coupons));
+
+      priceWithCoupons(items, coupons);
+
+      expect(coupons).toEqual(couponsCopy);
+    });
+
+    test("test_pure_function_deterministic: 같은 입력으로 여러 번 호출해도 동일", () => {
+      const items = [testItem("A", 10_000)];
+      const coupons = [
+        testCoupon({ id: "p1", sku: "A", type: "PERCENTAGE", value: 20 })
+      ];
+
+      const result1 = priceWithCoupons(items, coupons);
+      const result2 = priceWithCoupons(items, coupons);
+      const result3 = priceWithCoupons(items, coupons);
+
+      expect(result1).toEqual(result2);
+      expect(result2).toEqual(result3);
+    });
+  });
+
+  describe("배송비 정책", () => {
+    test("test_custom_shipping_policy: 커스텀 배송비 정책 적용", () => {
+      const items = [testItem("A", 20_000)];
+      const coupons: Coupon[] = [];
+      const customPolicy: ShippingPolicy = { fee: 5_000, freeThreshold: 100_000 };
+
+      const result = priceWithCoupons(items, coupons, customPolicy);
+      expect(result.shipping).toBe(5_000); // 20,000 < 100,000
+      expect(result.total).toBe(20_000 + 5_000);
+    });
+  });
+
+  describe("상품과 주문 쿠폰 조합", () => {
+    test("test_product_and_order_coupon_both_apply: 상품쿠폰과 주문쿠폰 모두 적용", () => {
+      const items = [
+        testItem("A", 10_000),
+        testItem("B", 10_000)
+      ];
+      const coupons = [
+        testCoupon({ id: "p1", sku: "A", type: "FIXED", value: 2_000, maxDiscount: 5_000 }),
+        testOrderCoupon({ id: "o1", type: "FIXED", value: 3_000, maxDiscount: 5_000 })
+      ];
+
+      const result = priceWithCoupons(items, coupons);
+      // 상품쿠폰: 2,000
+      // 주문쿠폰 기준: 20,000 - 2,000 = 18,000
+      // 주문쿠폰: min(3,000, 5,000) = 3,000
+      expect(result.discount).toBe(5_000);
+    });
+
+    test("test_only_order_coupon: 주문쿠폰만 적용", () => {
+      const items = [testItem("A", 10_000)];
+      const coupons = [
+        testOrderCoupon({ id: "o1", type: "PERCENTAGE", value: 20 })
+      ];
+
+      const result = priceWithCoupons(items, coupons);
+      expect(result.discount).toBe(2_000); // 10,000 * 20%
+    });
+
+    test("test_only_product_coupon: 상품쿠폰만 적용", () => {
+      const items = [testItem("A", 10_000)];
+      const coupons = [
+        testCoupon({ id: "p1", sku: "A", type: "PERCENTAGE", value: 20 })
+      ];
+
+      const result = priceWithCoupons(items, coupons);
+      expect(result.discount).toBe(2_000); // 10,000 * 20%
+    });
+  });
+
+  describe("여러 상품에 다양한 쿠폰", () => {
+    test("test_multiple_skus_multiple_product_coupons: 여러 sku에 여러 상품쿠폰", () => {
+      const items = [
+        testItem("A", 5_000),
+        testItem("B", 7_000),
+        testItem("C", 3_000)
+      ];
+      const coupons = [
+        testCoupon({ id: "p1", sku: "A", type: "PERCENTAGE", value: 10 }), // 500
+        testCoupon({ id: "p2", sku: "B", type: "PERCENTAGE", value: 20 }),  // 1,400
+        testCoupon({ id: "p3", sku: "C", type: "PERCENTAGE", value: 50 })   // 1,500
+      ];
+
+      const result = priceWithCoupons(items, coupons);
+      expect(result.subtotal).toBe(15_000);
+      expect(result.discount).toBe(3_400); // 500 + 1,400 + 1,500
+    });
+  });
+
+  describe("배송비와 할인 최종 계산", () => {
+    test("test_final_total_calculation: 최종 가격 = subtotal - discount + shipping", () => {
+      const items = [testItem("A", 30_000)];
+      const coupons = [
+        testCoupon({ id: "p1", sku: "A", type: "PERCENTAGE", value: 20 }) // 6,000
+      ];
+
+      const result = priceWithCoupons(items, coupons);
+      const expected = 30_000 - 6_000 + 3_000; // subtotal - discount + shipping
+      expect(result.total).toBe(expected);
+      expect(result.total).toBe(27_000);
+    });
+
+    test("test_no_shipping_when_discounted_total_high: 할인 후 고액 구매는 배송비 없음", () => {
+      const items = [testItem("A", 60_000)];
+      const coupons = [
+        testCoupon({ id: "p1", sku: "A", type: "PERCENTAGE", value: 10 }) // 6,000
+      ];
+
+      const result = priceWithCoupons(items, coupons);
+      expect(result.discount).toBe(6_000);
+      const discountedSubtotal = 60_000 - 6_000; // 54,000
+      expect(discountedSubtotal).toBeGreaterThanOrEqual(50_000);
+      expect(result.shipping).toBe(0);
+      expect(result.total).toBe(54_000); // 배송비 없음
+    });
+  });
+});

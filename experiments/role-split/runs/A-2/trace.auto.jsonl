@@ -1,0 +1,24 @@
+{"ts":"2026-10-01T03:54:49.061Z","session":"eb207930","event":"PostToolUse","tool":"Write","detail":"agents/intent/specs/0030-coupons/prd.md","ok":true}
+{"ts":"2026-10-01T03:54:57.124Z","session":"eb207930","event":"PostToolUse","tool":"Write","detail":"agents/intent/specs/0030-coupons/sdd.md","ok":true}
+{"ts":"2026-10-01T03:55:18.924Z","session":"eb207930","event":"PreToolUse","tool":"Write","detail":"src/pricing/coupon.ts","ok":false,"blocked":true,"error":"[기록 강제] src/pricing/coupon.ts 수정 차단: 코드보다 PRD·SDD·TASKS가 먼저입니다."}
+{"ts":"2026-10-01T03:55:25.890Z","session":"eb207930","event":"PostToolUse","tool":"Edit","detail":"agents/intent/specs/0030-coupons/prd.md","ok":true}
+{"ts":"2026-10-01T03:55:33.662Z","session":"eb207930","event":"PostToolUse","tool":"Edit","detail":"agents/intent/specs/0030-coupons/sdd.md","ok":true}
+{"ts":"2026-10-01T03:55:38.065Z","session":"eb207930","event":"PostToolUse","tool":"Edit","detail":"agents/orchestration/TASKS.md","ok":true}
+{"ts":"2026-10-01T03:55:55.708Z","session":"eb207930","event":"PreToolUse","tool":"Write","detail":"src/pricing/coupon.ts","ok":false,"blocked":true,"error":"[기록 강제] src/pricing/coupon.ts 수정 차단: 코드보다 PRD·SDD·TASKS가 먼저입니다."}
+{"ts":"2026-10-01T03:55:58.761Z","session":"eb207930","event":"PostToolUse","tool":"Read","detail":"agents/intent/specs/0002-cart-pricing/sdd.md","ok":true}
+{"ts":"2026-10-01T03:56:23.691Z","session":"eb207930","event":"PostToolUse","tool":"Edit","detail":"agents/intent/specs/0030-coupons/sdd.md","ok":true}
+{"ts":"2026-10-01T03:56:41.094Z","session":"eb207930","event":"PostToolUse","tool":"Write","detail":"src/pricing/coupon.ts","ok":true}
+{"ts":"2026-10-01T03:57:31.325Z","session":"eb207930","event":"PostToolUse","tool":"Write","detail":"src/pricing/coupon.test.ts","ok":true}
+{"ts":"2026-10-01T03:57:39.672Z","session":"eb207930","event":"PostToolUseFailure","tool":"Bash","detail":"pnpm check","ok":false,"error":"Exit code 1 $ bash agents/harness/evals/checks.sh ════════════════════════════════════════ harness-lab 완료 게이트 ════════════════════════════════════════ ▶ Typecheck $ pnpm exec tsc --noEmit src/pricing/…"}
+{"ts":"2026-10-01T03:57:47.444Z","session":"eb207930","event":"PostToolUse","tool":"Edit","detail":"src/pricing/coupon.ts","ok":true}
+{"ts":"2026-10-01T03:57:56.620Z","session":"eb207930","event":"PostToolUse","tool":"Edit","detail":"src/pricing/coupon.test.ts","ok":true}
+{"ts":"2026-10-01T03:58:02.417Z","session":"eb207930","event":"PostToolUse","tool":"Edit","detail":"src/pricing/coupon.test.ts","ok":true}
+{"ts":"2026-10-01T03:58:04.397Z","session":"eb207930","event":"PostToolUse","tool":"Read","detail":"agents/intent/templates/trace.md","ok":true}
+{"ts":"2026-10-01T03:58:14.860Z","session":"eb207930","event":"PostToolUse","tool":"Write","detail":"agents/intent/specs/0030-coupons/trace.md","ok":true}
+{"ts":"2026-10-01T03:58:20.239Z","session":"eb207930","event":"PostToolUse","tool":"Bash","detail":"pnpm check","ok":true}
+{"ts":"2026-10-01T03:58:23.246Z","session":"eb207930","event":"PostToolUse","tool":"Read","detail":"agents/JOURNAL.md","ok":true}
+{"ts":"2026-10-01T03:58:28.620Z","session":"eb207930","event":"PostToolUse","tool":"Edit","detail":"agents/JOURNAL.md","ok":true}
+{"ts":"2026-10-01T03:58:31.586Z","session":"eb207930","event":"PostToolUse","tool":"Edit","detail":"agents/orchestration/TASKS.md","ok":true}
+{"ts":"2026-10-01T03:58:38.488Z","session":"eb207930","event":"PostToolUse","tool":"Edit","detail":"agents/intent/specs/0030-coupons/sdd.md","ok":true}
+{"ts":"2026-10-01T03:58:43.963Z","session":"eb207930","event":"PostToolUse","tool":"Bash","detail":"pnpm check","ok":true}
+{"ts":"2026-10-01T03:58:55.800Z","session":"eb207930","event":"Stop"}

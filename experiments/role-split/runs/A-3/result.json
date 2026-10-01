@@ -1,0 +1,45 @@
+{
+  "id": "A-3",
+  "group": "A",
+  "n": "3",
+  "model": "claude-haiku-4-5-20251001",
+  "copyDir": "/var/folders/ht/prc2m2q939d1l29154xtvtmw0000gn/T/run-GQXKiy",
+  "minutes": 4.42,
+  "exit": 0,
+  "timedOut": false,
+  "score": {
+    "passed": 21,
+    "total": 21,
+    "failed": [],
+    "implemented": true
+  },
+  "gatePassed": true,
+  "verdictRounds": [],
+  "trace": {
+    "toolCalls": 27,
+    "byRole": {
+      "main": 27
+    },
+    "mainEdits": 14,
+    "edits": 14,
+    "blocked": 3,
+    "stopBlocked": 0,
+    "testRuns": 3
+  },
+  "usage": {
+    "requests": 32,
+    "sessions": 1,
+    "models": [
+      "claude-haiku-4-5-20251001"
+    ],
+    "input": 257,
+    "cacheWrite": 63898,
+    "cacheRead": 1719077,
+    "output": 33353,
+    "maxContext": 78864,
+    "lastContext": 78864
+  },
+  "access": [],
+  "finalMessage": "완료되었습니다! 🎉\n\n## 작업 요약\n\n**task/0030-coupons** 작업을 모두 완료했습니다. `pnpm check`에서 **ALL PASS**를 달성했습니다.\n\n### 구현 내용\n\n**src/pricing/coupon.ts** (150줄)\n- `Coupon` 인터페이스: scope, sku, type, value, maxDiscount, minOrder\n- `CouponError` 클래스: 쿠폰 관련 오류\n- `priceWithCoupons()` 함수: 모든 규칙을 구현\n\n### 핵심 규칙 구현\n\n1. **정률/정액 할인**: 정률은 `Math.floor`로 원 미만 버림, 정액은 기준 금액 제한\n2. **maxDiscount**: 할인 금액 상한 적용\n3. **minOrder**: 조건 미충족 시 오류 아닌 무적용\n4. **적용 순서**: 상품 쿠폰 먼저 → 주문 쿠폰\n5. **기준 금액**: 상품 쿠폰은 줄 금액(unitPrice × quantity), 주문 쿠폰은 (subtotal - 상품쿠폰합)\n6. **중복 제한**: 상품당 1장, 주문 전체 1장\n7. **검증**: 모든 쿠폰 값, 존재 여부 검증\n8. **배송비**: 할인 후 금액 기준으로 계산\n\n### 테스트\n\n**src/pricing/coupon.test.ts** (31개 테스트)\n- 정률/정액 쿠폰 기본 동작\n- maxDiscount, minOrder 조건\n- 상품 쿠폰 + 주문 쿠폰 조합\n- 배송비 상호작용\n- 모든 검증 오류 케이스\n- 입력 불변성\n\n### 기록\n- ✅ PRD·SDD 작성 (agents/intent/specs/0030-coupons/)\n- ✅ Trace 기록 (과정·판단·이유)\n- ✅ JOURNAL.md 등록\n- ✅ TASKS.md status = done",
+  "costUsd": 0.41880219999999996
+}
