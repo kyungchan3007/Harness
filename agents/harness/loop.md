@@ -6,7 +6,7 @@
 3. PLAN     같은 폴더 sdd.md → 접근·대안·트레이드오프·파일 계획·검증 계획
 4. BUILD    Guardrails를 지키며 작게 구현 + 단위 테스트
 5. GATE     pnpm check → PASS까지 반복
-6. RECORD   sdd.md에 "계획과 달라진 점"·검증 결과, JOURNAL.md 한 줄, prd Acceptance 갱신 → pnpm issue-sync(이슈 동기화), TASKS.md status=done → 머지 후 pnpm issue-sync --close
+6. RECORD   sdd.md에 "계획과 달라진 점"·검증 결과, JOURNAL.md 한 줄, prd Acceptance 갱신 → pnpm issue-sync(이슈 동기화), TASKS.md status=done → 머지 후 pnpm issue-sync --close <이슈번호>
 7. REFLECT  드러난 규칙·문서 공백을 Intent/Context에 반영, 실험이면 LEARNINGS.md 기록
 ```
 
