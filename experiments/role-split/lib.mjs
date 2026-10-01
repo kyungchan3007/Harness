@@ -87,8 +87,11 @@ function git(cwd, args) {
   return execFileSync("git", args, { cwd, encoding: "utf8" });
 }
 
+/** prepareCopy의 ref로 주면 커밋이 아니라 지금 작업 폴더 상태로 복사본을 만든다 */
+export const WORKTREE = "WORKTREE";
+
 /**
- * 원본 저장소의 한 시점(ref)에서 실행용 복사본을 만든다.
+ * 원본 저장소의 한 시점(ref, 기본 HEAD — 실험 실행용으로 재현 가능)에서 실행용 복사본을 만든다.
  * 이력 없는 새 저장소 + 중립 커밋 하나. 제외 경로는 아예 들어가지 않는다.
  */
 export function prepareCopy({ ref = "HEAD", dest, install = true } = {}) {
@@ -97,8 +100,19 @@ export function prepareCopy({ ref = "HEAD", dest, install = true } = {}) {
   if (readdirSync(target).length > 0) throw new Error(`빈 폴더여야 합니다: ${target}`);
 
   const excludes = EXCLUDED_PATHS.map((p) => `:(exclude,glob)${p}`);
-  const tar = execFileSync("git", ["archive", "--format=tar", ref, "--", ".", ...excludes], { cwd: REPO_ROOT, maxBuffer: 1 << 30 });
-  execFileSync("tar", ["-x", "-C", target], { input: tar });
+  if (ref === WORKTREE) {
+    // 커밋 전 상태 그대로(수정·새 파일 포함, .gitignore 제외) — 게이트가 "지금 상태"를 검사하도록
+    const files = execFileSync("git", ["ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", ".", ...excludes], { cwd: REPO_ROOT, encoding: "utf8" })
+      .split("\0")
+      .filter((f) => f && existsSync(join(REPO_ROOT, f)));
+    for (const f of files) {
+      mkdirSync(dirname(join(target, f)), { recursive: true });
+      cpSync(join(REPO_ROOT, f), join(target, f));
+    }
+  } else {
+    const tar = execFileSync("git", ["archive", "--format=tar", ref, "--", ".", ...excludes], { cwd: REPO_ROOT, maxBuffer: 1 << 30 });
+    execFileSync("tar", ["-x", "-C", target], { input: tar });
+  }
 
   stripExperimentHooks(target);
   for (const rel of ROW_FILTERED_FILES) {
