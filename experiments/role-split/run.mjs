@@ -1,4 +1,4 @@
-// 역할 분리 실험 한 번 실행 — node experiments/role-split/run.mjs --group A|B|B2 --n 1 [--model 모델] [--timeout 분]
+// 역할 분리 실험 한 번 실행 — node experiments/role-split/run.mjs --group A|B|B2|BR --n 1 [--model 모델] [--timeout 분]
 // 복사본 준비 → AI 실행 → 채점 → 지표 수집 → runs/<group>-<n>/ 에 저장
 import { spawnSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -7,6 +7,7 @@ import { join } from "node:path";
 import { EXPERIMENT_DIR, REPO_ROOT, prepareCopy, scoreCopy } from "./lib.mjs";
 import { analyzeTrace, findAccess, verdictRounds } from "./metrics.mjs";
 import { extractRequests, listJsonl, summarize } from "../../agents/harness/usage/usage.mjs";
+import { renderRequest } from "../../agents/harness/evals/request.mjs";
 
 const TASK_ID = "0030";
 const BRANCH = `task/${TASK_ID}-coupons`;
@@ -40,8 +41,14 @@ ${task}`,
 당신은 조율자입니다.`,
   ),
 };
+/** BR — 0022 원문 고정 장치 효과: 프롬프트는 B 그대로(원문 전달 지시 없음), 원문 파일만 pnpm request 결과처럼 미리 둔다 */
+PROMPTS.BR = PROMPTS.B;
+
 /** 실험군별로 복사본에 미리 넣는 파일 */
-const SETUP_FILES = { B2: (task) => ({ [`${SPEC}/request.md`]: task }) };
+const SETUP_FILES = {
+  B2: (task) => ({ [`${SPEC}/request.md`]: task }),
+  BR: (task) => ({ [`${SPEC}/request.md`]: renderRequest("1", task) }),
+};
 
 /** Claude Code가 이 복사본의 대화 기록을 두는 폴더 (실제 경로가 /private로 바뀌는 경우까지) */
 function transcriptDirs(copyDir) {
@@ -126,7 +133,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const group = arg("group");
   const n = arg("n");
   if (!PROMPTS[group] || !n) {
-    console.error("사용법: node experiments/role-split/run.mjs --group A|B|B2 --n 1 [--model 모델] [--timeout 분]");
+    console.error("사용법: node experiments/role-split/run.mjs --group A|B|B2|BR --n 1 [--model 모델] [--timeout 분]");
     process.exit(2);
   }
   const r = runOnce({ group, n, model: arg("model"), timeoutMin: Number(arg("timeout", 45)) });

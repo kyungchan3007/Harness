@@ -19,6 +19,7 @@
     "issue-link": "node agents/harness/evals/issue-link.mjs",
     "issue-sync": "node agents/harness/evals/issue-sync.mjs",
     "verdict": "node agents/harness/evals/verdict.mjs",
+    "request": "node agents/harness/evals/request.mjs",
     "exp:prepare": "node experiments/role-split/prepare.mjs",
     "exp:score": "node experiments/role-split/score.mjs",
     "exp:selfcheck": "node experiments/role-split/selfcheck.mjs"

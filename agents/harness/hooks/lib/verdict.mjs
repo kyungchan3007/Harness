@@ -14,21 +14,24 @@ function listUnder(block, heading) {
 }
 
 /** 판정서 → 회차 목록 [{ round, verdict, reasons, checked, problems }] */
-export function parseVerdict(text = "") {
+export function parseVerdict(text = "", { requireSourceCheck = false } = {}) {
   const blocks = text.split(/^## (?=\d+차)/m).slice(1);
   return blocks.map((block) => {
     const round = Number(/^(\d+)차/.exec(block)?.[1]);
     const verdict = /^판정:\s*(approved|rejected)\s*$/m.exec(block)?.[1];
     const reasons = listUnder(block, "근거");
     const checked = listUnder(block, "확인한 것");
+    const sourceChecks = listUnder(block, "원문 대조");
     const problems = [];
+    // 원문이 있는 작업(0022): 통과·반려 모두 원문 기준으로 판단했는지 — 0016에서 실패는 "틀린 기준으로 통과"였다
+    if (requireSourceCheck && sourceChecks.length === 0) problems.push(`${round}차: ### 원문 대조 항목이 없습니다 (request.md의 규칙별로 무엇을 대조했는지)`);
     if (!verdict) problems.push(`${round}차: "판정: approved" 또는 "판정: rejected" 줄이 없습니다`);
     if (verdict === "rejected") {
       if (reasons.length === 0) problems.push(`${round}차: 반려인데 ### 근거 항목이 없습니다`);
       for (const r of reasons) if (!/기대/.test(r) || !/실제/.test(r)) problems.push(`${round}차: 근거에 "기대"와 "실제"가 모두 있어야 합니다 — "${r.slice(0, 50)}"`);
     }
     if (verdict === "approved" && checked.length === 0) problems.push(`${round}차: 통과인데 ### 확인한 것 항목이 없습니다 (무엇을 확인하고 통과시켰는지)`);
-    return { round, verdict, reasons, checked, problems };
+    return { round, verdict, reasons, checked, sourceChecks, problems };
   });
 }
 

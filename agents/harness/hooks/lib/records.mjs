@@ -160,9 +160,15 @@ export function inspectTask(projectDir, folder, { requireTrace = true } = {}) {
   const tasks = existsSync(tasksPath) ? readFileSync(tasksPath, "utf8") : "";
   if (!hasTasksRow(tasks, id)) problems.push(`${TASKS_FILE}에 ${id} 행이 없습니다 (owner·status=in-progress로 추가)`);
 
+  // 원문(0022): 역할 분리 작업은 request.md 필수, 원문이 있으면 판정서 회차마다 원문 대조 필수
+  const hasRequest = read(REQUEST_FILE) !== undefined;
+  if (prd !== undefined && ROLE_SPLIT_LINE.test(prd) && !hasRequest) {
+    problems.push(`역할 분리 작업에 원문 ${SPECS_DIR}/${folder}/${REQUEST_FILE}이 없습니다 (pnpm request <이슈>)`);
+  }
+
   // 판정서(0014): 있으면 형식 검사, 역할 분리 작업이 done이면 최신 판정이 통과여야 한다
   const verdictText = read("verdict.md");
-  const vs = verdictStatus(verdictText === undefined ? [] : parseVerdict(verdictText));
+  const vs = verdictStatus(verdictText === undefined ? [] : parseVerdict(verdictText, { requireSourceCheck: hasRequest }));
   problems.push(...vs.problems.map((p) => `verdict.md: ${p}`));
   if (prd !== undefined && ROLE_SPLIT_LINE.test(prd) && taskStatus(tasks, id) === "done" && vs.next !== "done") {
     problems.push(`역할 분리 작업이 done인데 판정이 통과가 아닙니다 (${NEXT_LABEL[vs.next]})`);
@@ -208,11 +214,61 @@ function roleReason(role, relPath) {
   return `[역할 권한] ${ROLE_LABEL[role]}는 ${relPath}를 고칠 수 없습니다. 이 파일은 ${who}의 일입니다. 우회하지 말고 과정 기록(trace.md)에 필요한 변경을 적어 넘기세요.`;
 }
 
+// ── 원문 고정 (0022) ─────────────────────────────────────────
+// 태스크 폴더의 request.md = 이슈 본문 그대로(pnpm request). 역할 에이전트는 그 실행에서 원문을 읽어야 수정할 수 있다.
+
+export const REQUEST_FILE = "request.md";
+const REQUEST_PATH = /^agents\/intent\/specs\/[^/]+\/request\.md$/;
+
+/** 자동 기록 항목들 — 없거나 깨진 줄은 건너뛴다 */
+export function readTraceEntries(projectDir, folder) {
+  const file = join(projectDir, SPECS_DIR, folder, "trace.auto.jsonl");
+  if (!existsSync(file)) return [];
+  return readFileSync(file, "utf8")
+    .split("\n")
+    .flatMap((l) => {
+      try {
+        return l ? [JSON.parse(l)] : [];
+      } catch {
+        return [];
+      }
+    });
+}
+
+/** 이 실행(보조 에이전트 번호, 없으면 세션 번호)이 이 태스크의 원문을 읽었는지 */
+export function hasReadRequest(entries, folder, executor) {
+  return entries.some(
+    (e) => e.event === "PostToolUse" && e.tool === "Read" && e.ok && (e.agent ?? e.session) === executor && (e.detail ?? "").endsWith(`${folder}/${REQUEST_FILE}`),
+  );
+}
+
+/** 원문 규칙 판정. 해당 없으면 undefined(다음 규칙으로) */
+export function decideRequest(projectDir, relPath, role, { executor, entries } = {}) {
+  if (REQUEST_PATH.test(relPath)) {
+    if (existsSync(join(projectDir, relPath))) {
+      return { allow: false, reason: `[원문 고정] ${relPath}는 이슈 본문 그대로인 원문이라 고칠 수 없습니다. 요구사항이 바뀌었다면 이슈를 고친 뒤 사람이 원문을 다시 복사합니다(pnpm request).` };
+    }
+    if (role) return { allow: false, reason: `[원문 고정] 원문(${relPath})은 역할 에이전트가 만들 수 없습니다. 조율자가 pnpm request <이슈>로 이슈 본문을 그대로 복사합니다.` };
+    return { allow: true };
+  }
+  if (!role || !ROLE_PATHS[role]) return undefined;
+  const folder = findTaskFolder(projectDir, parseTaskId(currentBranch(projectDir)));
+  if (!folder || !existsSync(join(projectDir, SPECS_DIR, folder, REQUEST_FILE))) return undefined;
+  if (hasReadRequest(entries ?? readTraceEntries(projectDir, folder), folder, executor)) return undefined;
+  return {
+    allow: false,
+    reason: `[원문 먼저] ${ROLE_LABEL[role]}는 이번 실행에서 원문(${SPECS_DIR}/${folder}/${REQUEST_FILE})을 아직 읽지 않았습니다. 먼저 Read로 원문을 읽으세요. 넘겨받은 요약·prd보다 원문이 기준입니다.`,
+  };
+}
+
 // ── PreToolUse 판정 ─────────────────────────────────────────
 
 /** 코드 수정 허용 여부. 차단이면 에이전트에게 보여줄 이유를 돌려준다 */
-export function decideEdit(projectDir, relPath, role) {
+export function decideEdit(projectDir, relPath, role, ctx = {}) {
   if (relPath.startsWith("..") || relPath.startsWith("/")) return { allow: true };
+  // 원문 고정·원문 먼저(0022)를 역할 권한보다 먼저 — 요약으로 일하지 않게
+  const byRequest = decideRequest(projectDir, relPath, role, ctx);
+  if (byRequest) return byRequest;
   // 역할 규칙을 기록 경로 허용보다 먼저 — 구현자가 prd·sdd를 코드에 맞춰 고치지 못하게
   const byRole = decideRole(role, relPath);
   if (byRole && !byRole.allow) return byRole;

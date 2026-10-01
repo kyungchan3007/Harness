@@ -61,6 +61,7 @@ export function toEntry(input, projectDir, now = new Date()) {
   const event = input.hook_event_name;
   const entry = { ts: now.toISOString(), session: String(input.session_id ?? "").slice(0, 8), event };
   if (input.agent_type) entry.role = input.agent_type; // 역할 분리 실험(0016)에서 역할별로 비교
+  if (input.agent_id) entry.agent = String(input.agent_id); // 보조 에이전트 실행 번호 — "이번 실행에서 원문을 읽었나"(0022)
 
   if (event === "UserPromptSubmit") {
     entry.detail = sanitize(input.prompt ?? "", projectDir);
