@@ -74,3 +74,12 @@ describe("trace hook", () => {
     expect(toEntry({ hook_event_name: "Stop" }, PROJECT, NOW)).toEqual({ ts: "2026-09-29T08:00:00.000Z", session: "", event: "Stop" });
   });
 });
+
+describe("실행 번호 (0022)", async () => {
+  const { toEntry } = await import("./trace.mjs");
+  it("보조 에이전트 실행 번호를 agent로 남긴다", () => {
+    const e = toEntry({ hook_event_name: "PostToolUse", tool_name: "Read", tool_input: { file_path: "a" }, agent_type: "builder", agent_id: "af338820" }, "/p", new Date(0));
+    expect(e.agent).toBe("af338820");
+    expect(toEntry({ hook_event_name: "PostToolUse", tool_name: "Read", tool_input: { file_path: "a" } }, "/p", new Date(0)).agent).toBeUndefined();
+  });
+});

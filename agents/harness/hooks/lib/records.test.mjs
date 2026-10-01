@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { beforeEach, describe, expect, it } from "vitest";
 import { describeSession } from "../session-context.mjs";
-import { checkBeforeStop, checkPrd, checkSdd, checkTrace, decideEdit, decideRole, inspectTask, isFixBranch, isRecordPath, issueNumberOf, ownersOf, parseTaskId } from "./records.mjs";
+import { checkBeforeStop, checkPrd, checkSdd, checkTrace, decideEdit, decideRequest, decideRole, hasReadRequest, inspectTask, isFixBranch, isRecordPath, issueNumberOf, ownersOf, parseTaskId } from "./records.mjs";
 
 const TEMPLATES = join(dirname(fileURLToPath(import.meta.url)), "../../../intent/templates");
 const template = (name) => readFileSync(join(TEMPLATES, name), "utf8");
@@ -146,20 +146,22 @@ describe("done 작업의 체크박스 방치 금지", () => {
 
 describe("역할 분리 작업의 판정서 (0014)", () => {
   const V_REJECT = "## 1차 · 2026-09-30\n판정: rejected\n### 근거\n- 규칙 2 — 입력: 50,000원 / 기대: 0원 / 실제: 3,000원\n";
-  const V_OK = V_REJECT + "## 2차 · 2026-09-30\n판정: approved\n### 확인한 것\n- pnpm check 통과\n";
+  const V_REJECT_SRC = V_REJECT + "### 원문 대조\n- 원문 \"도서산간 3,000원\" ↔ 구현\n";
+  const V_OK = V_REJECT_SRC + "## 2차 · 2026-09-30\n판정: approved\n### 확인한 것\n- pnpm check 통과\n### 원문 대조\n- 원문 규칙 전부 대조\n";
   const done = "| ID | 제목 | owner | status | spec |\n| --- | --- | --- | --- | --- |\n| 0042 | x | c | done | - |\n";
   const prep = (verdict) => {
     write(`${TASK}/prd.md`, FILLED_PRD.replace("- [ ]", "- [x]").replace("## Acceptance", "- **역할 분리:** on\n\n## Acceptance"));
     write(`${TASK}/sdd.md`, FILLED_SDD);
     write(`${TASK}/trace.md`, FILLED_TRACE);
     write("agents/orchestration/TASKS.md", done);
+    write(`${TASK}/request.md`, "# 원문 — 이슈 #12\n\n도서산간 3,000원 추가\n");
     if (verdict) write(`${TASK}/verdict.md`, verdict);
   };
 
   it("역할 분리 작업이 done인데 판정서가 없거나 반려 상태면 실패", () => {
     prep();
     expect(inspectTask(repo, "0042-extra-shipping").join("\n")).toContain("판정이 통과가 아닙니다");
-    prep(V_REJECT);
+    prep(V_REJECT_SRC);
     expect(inspectTask(repo, "0042-extra-shipping").join("\n")).toContain("구현자 차례");
   });
 
@@ -257,6 +259,62 @@ describe("SessionStart: describeSession", () => {
     git("checkout", "-qb", "task/0042-extra-shipping");
     fillTask();
     expect(describeSession(repo)).toContain("기록 상태: 정상");
+    expect(inspectTask(repo, "0042-extra-shipping")).toEqual([]);
+  });
+});
+
+describe("원문 고정 (0022)", () => {
+  const REQ = `${TASK}/request.md`;
+  const branchWithTask = () => {
+    fillTask();
+    git("checkout", "-q", "-b", "task/0042-extra-shipping");
+  };
+  const readBy = (agent) => ({ event: "PostToolUse", tool: "Read", ok: true, session: "s1", agent, detail: `<project>/${REQ}` });
+
+  it("원문은 없을 때 역할 없는 메인만 만들 수 있고, 있으면 아무도 못 고친다", () => {
+    branchWithTask();
+    expect(decideEdit(repo, REQ, undefined).allow).toBe(true);
+    expect(decideEdit(repo, REQ, "designer").reason).toContain("[원문 고정]");
+    write(REQ, "# 원문\n");
+    expect(decideEdit(repo, REQ, undefined).reason).toContain("[원문 고정]");
+    expect(decideEdit(repo, REQ, "designer", { executor: "a1", entries: [readBy("a1")] }).reason).toContain("[원문 고정]");
+  });
+
+  it("역할 에이전트는 이번 실행에서 원문을 읽어야 고칠 수 있다", () => {
+    branchWithTask();
+    write(REQ, "# 원문\n");
+    expect(decideEdit(repo, `${TASK}/prd.md`, "designer", { executor: "a1", entries: [] }).reason).toContain("[원문 먼저]");
+    expect(decideEdit(repo, "src/a.ts", "builder", { executor: "a2", entries: [readBy("a1")] }).reason).toContain("[원문 먼저]"); // 다른 실행이 읽은 건 안 됨
+    expect(decideEdit(repo, "src/a.ts", "builder", { executor: "a2", entries: [readBy("a2")] }).allow).toBe(true);
+    // 원문을 읽었어도 역할 권한은 그대로
+    expect(decideEdit(repo, `${TASK}/prd.md`, "builder", { executor: "a2", entries: [readBy("a2")] }).reason).toContain("[역할 권한]");
+  });
+
+  it("역할 없는 메인, 원문 없는 작업은 기존 규칙만", () => {
+    branchWithTask();
+    expect(decideRequest(repo, "src/a.ts", "builder", { executor: "a1", entries: [] })).toBeUndefined();
+    write(REQ, "# 원문\n");
+    expect(decideRequest(repo, "src/a.ts", undefined, {})).toBeUndefined();
+  });
+
+  it("읽기 판단: 성공한 Read, 같은 실행 번호(없으면 세션), 이 태스크의 원문만", () => {
+    const folder = "0042-extra-shipping";
+    expect(hasReadRequest([readBy("a1")], folder, "a1")).toBe(true);
+    expect(hasReadRequest([{ ...readBy("a1"), ok: false }], folder, "a1")).toBe(false);
+    expect(hasReadRequest([{ ...readBy(undefined) }], folder, "s1")).toBe(true); // --agent 모드: 세션 번호
+    expect(hasReadRequest([{ ...readBy("a1"), detail: "<project>/agents/intent/specs/0041-y/request.md" }], folder, "a1")).toBe(false);
+  });
+
+  it("역할 분리 작업은 원문 필수, 원문이 있으면 판정서 회차마다 원문 대조 필수", () => {
+    write(`${TASK}/prd.md`, FILLED_PRD.replace("## Acceptance", "- **역할 분리:** on\n\n## Acceptance"));
+    write(`${TASK}/sdd.md`, FILLED_SDD);
+    write(`${TASK}/trace.md`, FILLED_TRACE);
+    write("agents/orchestration/TASKS.md", "| ID | 제목 | owner | status | spec |\n| --- | --- | --- | --- | --- |\n| 0042 | x | c | in-progress | - |\n");
+    expect(inspectTask(repo, "0042-extra-shipping").join("\n")).toContain("원문");
+    write(REQ, "# 원문\n");
+    write(`${TASK}/verdict.md`, "## 1차 · x\n판정: approved\n### 확인한 것\n- 테스트 통과\n");
+    expect(inspectTask(repo, "0042-extra-shipping").join("\n")).toContain("### 원문 대조 항목이 없습니다");
+    write(`${TASK}/verdict.md`, "## 1차 · x\n판정: approved\n### 확인한 것\n- 테스트 통과\n### 원문 대조\n- 규칙 1~3 ↔ 구현·테스트\n");
     expect(inspectTask(repo, "0042-extra-shipping")).toEqual([]);
   });
 });

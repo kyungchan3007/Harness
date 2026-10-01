@@ -77,3 +77,13 @@ describe("인자 해석 (fix/0020)", async () => {
     expect(parseArgs(["--clsoe"]).error).toContain("알 수 없는 인자");
   });
 });
+
+describe("원문 복사 (0022)", async () => {
+  const { renderRequest } = await import("./request.mjs");
+  it("닫을 때 채우는 칸(--- 아래)은 빼고 본문 그대로", () => {
+    const out = renderRequest("24", "## 왜\n원래 요청\n\n## Acceptance\n- [ ] A\n\n---\n<!-- 닫을 때 -->\n[허점]\n- \n");
+    expect(out).toContain("# 원문 — 이슈 #24");
+    expect(out).toContain("## 왜\n원래 요청\n\n## Acceptance\n- [ ] A");
+    expect(out).not.toContain("[허점]");
+  });
+});
