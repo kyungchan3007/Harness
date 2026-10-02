@@ -28,6 +28,8 @@ export const MUTANTS = [
   { name: "주문 쿠폰 여러 장 허용", find: "if (orderCoupons.length > 1) throw", replace: "if (false) throw", expect: ["T17"] },
   { name: "없는 상품 쿠폰 무시", find: "if (!items.some((i) => i.sku === sku)) throw new CouponError(`장바구니에 없는 상품입니다: ${sku}`);", replace: "if (!items.some((i) => i.sku === sku)) continue;", expect: ["T18"] },
   { name: "소수 할인율 허용", find: "Number.isInteger(value) && value >= 1", replace: "value >= 1", expect: ["T19"] },
+  { name: "배송비 정책 인자를 무시하고 항상 기본 정책", find: "return priceCart(items, { discount: itemDiscount + orderDiscount, shippingPolicy });", replace: "return priceCart(items, { discount: itemDiscount + orderDiscount });", expect: ["T22"] },
+  { name: "세 번째 입력을 옵션 객체로 받음 (0016 B′-3 1차 구현과 같은 모양)", find: "  shippingPolicy: ShippingPolicy = DEFAULT_SHIPPING_POLICY,\n): PriceBreakdown {", replace: "  options: { shippingPolicy?: ShippingPolicy } = {},\n): PriceBreakdown {\n  const shippingPolicy = options.shippingPolicy ?? DEFAULT_SHIPPING_POLICY;", expect: ["T22"] },
   { name: "입력 목록을 정렬해 바꿈", find: "coupons.forEach(validate);", replace: "(coupons as Coupon[]).sort((a, b) => (a.scope < b.scope ? -1 : 1)); coupons.forEach(validate);", expect: ["T21"] },
 ];
 
