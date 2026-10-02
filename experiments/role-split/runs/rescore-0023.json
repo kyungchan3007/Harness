@@ -1,0 +1,125 @@
+{
+  "date": "2026-10-02",
+  "traps": 22,
+  "results": {
+    "A-1": {
+      "before": "20/21",
+      "after": "21/22",
+      "failed": [
+        "T10"
+      ],
+      "newFailures": []
+    },
+    "A-2": {
+      "before": "20/21",
+      "after": "21/22",
+      "failed": [
+        "T19"
+      ],
+      "newFailures": []
+    },
+    "A-3": {
+      "before": "21/21",
+      "after": "22/22",
+      "failed": [],
+      "newFailures": []
+    },
+    "B-1": {
+      "before": "4/21",
+      "after": "4/22",
+      "failed": [
+        "T01",
+        "T02",
+        "T03",
+        "T04",
+        "T05",
+        "T06",
+        "T07",
+        "T08",
+        "T09",
+        "T10",
+        "T11",
+        "T12",
+        "T13",
+        "T14",
+        "T15",
+        "T20",
+        "T22",
+        "T21"
+      ],
+      "newFailures": [
+        "T22"
+      ]
+    },
+    "B-2": {
+      "before": "5/21",
+      "after": "5/22",
+      "failed": [
+        "T01",
+        "T02",
+        "T03",
+        "T04",
+        "T05",
+        "T06",
+        "T07",
+        "T08",
+        "T09",
+        "T10",
+        "T11",
+        "T12",
+        "T13",
+        "T14",
+        "T20",
+        "T22",
+        "T21"
+      ],
+      "newFailures": [
+        "T22"
+      ]
+    },
+    "B-3": {
+      "before": "20/21",
+      "after": "21/22",
+      "failed": [
+        "T19"
+      ],
+      "newFailures": []
+    },
+    "B2-1": {
+      "before": "21/21",
+      "after": "22/22",
+      "failed": [],
+      "newFailures": []
+    },
+    "B2-2": {
+      "before": "21/21",
+      "after": "22/22",
+      "failed": [],
+      "newFailures": []
+    },
+    "B2-3": {
+      "before": "21/21",
+      "after": "22/22",
+      "failed": [],
+      "newFailures": []
+    },
+    "BR-1": {
+      "before": "21/21",
+      "after": "22/22",
+      "failed": [],
+      "newFailures": []
+    },
+    "BR-2": {
+      "before": "21/21",
+      "after": "22/22",
+      "failed": [],
+      "newFailures": []
+    },
+    "BR-3": {
+      "before": "21/21",
+      "after": "22/22",
+      "failed": [],
+      "newFailures": []
+    }
+  }
+}

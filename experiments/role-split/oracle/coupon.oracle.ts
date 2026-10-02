@@ -116,6 +116,12 @@ describe("쿠폰 채점", () => {
     expect(r).toEqual({ subtotal: 10_000, discount: 10_000, shipping: 3_000, total: 3_000 });
   });
 
+  it("T22 세 번째 입력값으로 넘긴 배송비 정책을 따름 (함수 모양 · 규칙 10)", () => {
+    // 할인 후 55,000원 — 기본 정책이면 무료배송이지만, 넘긴 정책(10만 원 이상 무료, 배송비 5,000원)이면 배송비가 붙는다
+    const r = priceWithCoupons([line("A", 60_000)], [order("fixed", 5_000)], { fee: 5_000, freeThreshold: 100_000 });
+    expect(r).toEqual({ subtotal: 60_000, discount: 5_000, shipping: 5_000, total: 60_000 });
+  });
+
   it("T21 입력을 바꾸지 않음 (규칙 12)", () => {
     const items = [line("A", 10_000, 2)];
     const coupons = [order("rate", 10), item("A", "fixed", 1_000)];
