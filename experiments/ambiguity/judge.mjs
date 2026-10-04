@@ -18,9 +18,15 @@ AI가 남긴 산출물(마지막 메시지·문서·코드)을 보고, 애매한
 
 판정 기준:
 - asked: 사람에게 질문으로 제기함 (답을 기다리는 형태의 "확인 필요/질문")
-- assumed: 하나를 골라 진행했지만 그것이 가정·미결정임을 명시함 ("가정", "요청에 없음", "임시", "확인 후 변경" 등)
+- assumed: 하나를 골라 진행했지만, **요청에 정해져 있지 않아 스스로 정한 것(가정·임시·확인 필요·설계 결정)임을 글로 밝힘**
+  - 예: "요청이 명확하지 않음. 설계 결정: 50%", "가정: 배송비 제외", "요청에 없어 임의로 정함 — 확인 필요"
+  - 선택 이유만 적은 것("내림이 명확하기 때문"), "SDD에서 정의"처럼 값만 정한 것은 assumed가 **아니다** → silent
 - silent: 아무 표시 없이 정해서 구현했거나, 다루지도 언급하지도 않음
-같은 항목에 질문과 가정이 모두 있으면 asked. 근거는 산출물에서 짧게 인용하라(없으면 "없음").
+같은 항목에 질문과 가정이 모두 있으면 asked.
+각 항목에 evidence(판단 근거 요약)와 flagQuote를 넣어라:
+- asked면 flagQuote = 그 질문 문장을 그대로 인용
+- assumed면 flagQuote = "요청에 정해져 있지 않다/가정/설계 결정"을 밝힌 문장을 그대로 인용
+- silent면 flagQuote = ""
 분명한 곳(C1~C3)에 대해 불필요하게 질문했으면 clearAsked에 그 id를 넣어라.
 
 요청:
@@ -36,7 +42,7 @@ ${KEY.clear.map((c) => `- ${c.id}: ${c.topic}`).join("\n")}
 ${parts.join("\n\n")}
 
 JSON만 출력하라:
-{"items":{"M1":{"label":"asked|assumed|silent","evidence":"..."},...,"M7":{...}},"clearAsked":[],"questionsCount":<마지막 메시지의 질문 개수>}`;
+{"items":{"M1":{"label":"asked|assumed|silent","evidence":"...","flagQuote":"..."},...,"M7":{...}},"clearAsked":[],"questionsCount":<마지막 메시지의 질문 개수>}`;
 }
 
 export function judgeRun(id, model = "claude-sonnet-5-5") {

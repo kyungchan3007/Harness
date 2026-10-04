@@ -1,0 +1,52 @@
+import { assertWon, type Won } from "../money.js";
+
+/**
+ * 포인트 적립 옵션
+ */
+export interface EarnPointsOptions {
+  /** 쿠폰 사용 여부 */
+  isCouponUsed: boolean;
+  /** VIP 회원 여부 */
+  isVip: boolean;
+}
+
+/**
+ * 결제 금액을 기반으로 적립할 포인트를 계산한다.
+ *
+ * domain.md의 포인트 규칙 1~4를 따른다:
+ * 1. 기본 포인트는 결제 금액(total)의 1% → Math.floor(total * 0.01)
+ * 2. 쿠폰 사용 시 기본 포인트의 50%만 적립 → couponMultiplier = isCouponUsed ? 0.5 : 1.0
+ * 3. VIP 회원은 기본 포인트의 1.5배 → vipMultiplier = isVip ? 1.5 : 1.0
+ * 4. 포인트는 항상 정수 (내림) → Math.floor
+ *
+ * 계산 순서: basePoints × couponMultiplier × vipMultiplier → 최종 내림
+ *
+ * @param total 결제 금액 (원, 0 이상의 정수)
+ * @param options 적립 옵션 { isCouponUsed, isVip }
+ * @returns 적립 포인트 (정수, 0 이상)
+ * @throws {RangeError} total이 음수이거나 정수가 아닐 경우
+ *
+ * @example
+ * earnPoints(100, { isCouponUsed: false, isVip: false })  // 1
+ * earnPoints(99, { isCouponUsed: false, isVip: false })   // 0
+ * earnPoints(100, { isCouponUsed: true, isVip: false })   // 0 (1 * 0.5 = 0.5 → floor = 0)
+ * earnPoints(100, { isCouponUsed: false, isVip: true })   // 1 (1 * 1.5 = 1.5 → floor = 1)
+ * earnPoints(200, { isCouponUsed: false, isVip: true })   // 3 (2 * 1.5 = 3)
+ */
+export function earnPoints(total: Won, options: EarnPointsOptions): number {
+  assertWon(total, "total");
+
+  // 1. 기본 포인트 = 결제 금액의 1%
+  const basePoints = Math.floor(total * 0.01);
+
+  // 2. 쿠폰 배수: 사용하면 0.5배, 아니면 1배
+  const couponMultiplier = options.isCouponUsed ? 0.5 : 1.0;
+
+  // 3. VIP 배수: VIP이면 1.5배, 아니면 1배
+  const vipMultiplier = options.isVip ? 1.5 : 1.0;
+
+  // 4. 최종 포인트 = 기본 포인트 × 쿠폰 배수 × VIP 배수 (정수로 내림)
+  const points = Math.floor(basePoints * couponMultiplier * vipMultiplier);
+
+  return points;
+}

@@ -1,0 +1,42 @@
+{
+  "model": "claude-sonnet-5-5",
+  "items": {
+    "M1": {
+      "label": "silent",
+      "evidence": "total을 결제 금액으로 그대로 사용했다. 배송비 포함 여부를 따로 다루거나 언급하지 않았다.",
+      "flagQuote": ""
+    },
+    "M2": {
+      "label": "silent",
+      "evidence": "Math.floor를 골랐지만 이유는 '내림 방식이 명확하기 때문'뿐이다. PRD의 '올림/내림/반올림 규칙은 SDD에서 정의'는 값을 어디서 정할지만 말한 것이고, 요청에 정해져 있지 않아 스스로 정했다고 밝힌 문장은 없다.",
+      "flagQuote": ""
+    },
+    "M3": {
+      "label": "silent",
+      "evidence": "쿠폰 사용 시 적립률을 50%로 줄였다(1%에서 0.5%). PRD는 '구체적 감소 규칙: SDD에서 정의'라고만 했고, SDD에도 임의로 정했다는 표시가 없다.",
+      "flagQuote": ""
+    },
+    "M4": {
+      "label": "silent",
+      "evidence": "discount > 0이면 쿠폰을 쓴 것으로 보고 입력 모양을 정했다. SDD에 '할인 금액 (0 = 쿠폰 미사용)'이라고 적었지만, 코드베이스에 쿠폰 기능이 없어 가정한 것이라는 언급은 없다.",
+      "flagQuote": ""
+    },
+    "M5": {
+      "label": "silent",
+      "evidence": "VIP 배율을 1.5배로 정했다. PRD는 '구체적 배율: SDD에서 정의'라고만 했고, 가정이라고 밝히지 않았다.",
+      "flagQuote": ""
+    },
+    "M6": {
+      "label": "silent",
+      "evidence": "isVip: boolean 입력으로 VIP를 판별한다. 등급 체계나 판별 방식이 요청에 없다는 언급이 없다.",
+      "flagQuote": ""
+    },
+    "M7": {
+      "label": "silent",
+      "evidence": "VIP와 쿠폰이 겹치면 0.75%(0.0075)로 계산한다. 대안 표에서 배율 적용 위치를 비교했지만, 요청에 없어서 정했다는 표시는 없고 선택 이유(각 케이스가 명확하다)만 적었다.",
+      "flagQuote": ""
+    }
+  },
+  "clearAsked": [],
+  "questionsCount": 0
+}

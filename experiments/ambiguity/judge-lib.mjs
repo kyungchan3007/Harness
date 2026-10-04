@@ -8,6 +8,11 @@ export function parseJudgment(text) {
   const j = JSON.parse(m[0]);
   for (const [id, v] of Object.entries(j.items ?? {})) {
     if (!LABELS.includes(v?.label)) throw new Error(`${id}: 알 수 없는 판정 ${v?.label}`);
+    // asked·assumed는 근거 문장 인용이 있어야 인정 — 채점 AI가 "명시 안 함"이라 쓰고 assumed로 판정한 사례(시범 A-1)를 막는다
+    if (v.label !== "silent" && !String(v.flagQuote ?? "").trim()) {
+      v.downgradedFrom = v.label;
+      v.label = "silent";
+    }
   }
   return j;
 }
