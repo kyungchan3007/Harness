@@ -4,7 +4,7 @@
 | --- | --- | --- | --- | --- |
 | 0001 | 뼈대 구성 | claude | done | [0001](../intent/specs/0001-bootstrap/prd.md) |
 | 0002 | 도메인 전환: 장바구니 금액 계산 | claude | done | [0002](../intent/specs/0002-cart-pricing/prd.md) |
-| 0003 | 쿠폰 규칙 (Intent 실험: 모호한 spec) | - | todo | - |
+| 0003 | 쿠폰 규칙 (Intent 실험: 모호한 spec) | - | 0024로 대체 | [0024](../intent/specs/0024-ambiguity/prd.md) |
 | 0004 | hooks로 "spec 없이 src 수정" 차단 (Guardrails 실험) | - | 0009로 대체 | [0009](../intent/specs/0009-record-enforcement/prd.md) |
 | 0005 | 주문 상태 흐름 + 속성 기반 테스트 게이트 (Eval 실험) | - | todo | - |
 | 0006 | 할인·배송 모듈 서브에이전트 병렬 작업 (Orchestration 실험) | - | todo | - |
@@ -25,3 +25,4 @@
 | 0020 | 복기 주입 + 체크박스 한 곳 관리·동기화 + 머지 후 이슈 확인 | claude | done | [0020](../intent/specs/0020-recall-and-checkbox-sync/prd.md) · #12 |
 | 0022 | 원문 고정 강제 (request.md, 읽기 전 수정 차단, 판정서 원문 대조) | claude | done | [0022](../intent/specs/0022-request-source/prd.md) · #24 |
 | 0023 | 채점표 세 번째 입력값(배송비 정책) 테스트 + 지난 실행 재채점 | claude | done | [0023](../intent/specs/0023-oracle-shipping-policy/prd.md) · #26 |
+| 0024 | 모호한 요청에 되묻는가, 지어내는가 (포인트 적립 과제) | claude | in-progress | [0024](../intent/specs/0024-ambiguity/prd.md) · #28 |
