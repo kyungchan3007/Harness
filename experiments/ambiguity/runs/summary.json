@@ -1,32 +1,32 @@
 {
   "A": {
-    "runs": 1,
+    "runs": 3,
     "asked": 0,
-    "assumed": 0,
-    "silent": 7,
-    "majorSilent": 5,
+    "assumed": 1,
+    "silent": 20,
+    "majorSilent": 15,
     "clearAsked": 0,
-    "implemented": 1,
+    "implemented": 2,
     "stoppedToAsk": 0
   },
   "BR": {
-    "runs": 1,
+    "runs": 3,
     "asked": 0,
     "assumed": 3,
-    "silent": 4,
-    "majorSilent": 3,
+    "silent": 18,
+    "majorSilent": 13,
     "clearAsked": 0,
-    "implemented": 1,
+    "implemented": 3,
     "stoppedToAsk": 0
   },
   "Q": {
-    "runs": 1,
-    "asked": 6,
+    "runs": 3,
+    "asked": 18,
     "assumed": 0,
-    "silent": 1,
-    "majorSilent": 1,
+    "silent": 3,
+    "majorSilent": 3,
     "clearAsked": 0,
     "implemented": 0,
-    "stoppedToAsk": 1
+    "stoppedToAsk": 3
   }
 }

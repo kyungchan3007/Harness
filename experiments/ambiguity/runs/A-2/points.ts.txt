@@ -1,0 +1,33 @@
+import { assertWon, type Won } from "../money.js";
+
+const POINT_RATE_BASE = 0.01; // 1%
+const POINT_RATE_COUPON = 0.005; // 0.5%
+const VIP_MULTIPLIER = 1.5; // 50% increase
+
+export interface PointsOptions {
+  /** 쿠폰 사용 여부 */
+  hasCoupon?: boolean;
+  /** VIP 회원 여부 */
+  isVip?: boolean;
+}
+
+/**
+ * 결제 금액에 따른 포인트를 계산합니다.
+ * @param total 결제 금액 (원)
+ * @param options 할인·회원 정보
+ * @returns 적립 포인트 (정수)
+ */
+export function calculatePoints(total: Won, options: PointsOptions = {}): number {
+  const { hasCoupon = false, isVip = false } = options;
+
+  assertWon(total, "total");
+
+  // 기본 적립률 선택
+  const baseRate = hasCoupon ? POINT_RATE_COUPON : POINT_RATE_BASE;
+  // VIP 승수 적용
+  const rate = isVip ? baseRate * VIP_MULTIPLIER : baseRate;
+  // 포인트 계산 및 정수화
+  const points = Math.floor(total * rate);
+
+  return points;
+}

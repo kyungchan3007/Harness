@@ -1,0 +1,35 @@
+/**
+ * 주문의 결제 금액을 기반으로 적립 포인트를 계산합니다.
+ *
+ * @param paymentAmount 결제 금액(원)
+ * @param isVip VIP 회원 여부 (기본값: false)
+ * @param couponUsed 쿠폰 사용 여부 (기본값: false)
+ * @returns 적립 포인트(정수)
+ *
+ * 계산 순서:
+ * 1. 기본 포인트: paymentAmount × 0.01
+ * 2. 쿠폰 적용: couponUsed이면 × 0.5
+ * 3. VIP 적용: isVip이면 × 1.5
+ * 4. 정수 변환: Math.round()
+ */
+export function calculatePoints(
+  paymentAmount: number,
+  isVip: boolean = false,
+  couponUsed: boolean = false
+): number {
+  // 기본 포인트: 결제 금액의 1%
+  let points = paymentAmount * 0.01;
+
+  // 쿠폰 사용 시 50% 감소
+  if (couponUsed) {
+    points *= 0.5;
+  }
+
+  // VIP 회원 1.5배 증가
+  if (isVip) {
+    points *= 1.5;
+  }
+
+  // 정수로 변환
+  return Math.round(points);
+}

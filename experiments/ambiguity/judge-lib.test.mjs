@@ -6,6 +6,7 @@ describe("parseJudgment", () => {
     expect(parseJudgment('결과:\n```json\n{"items":{"M1":{"label":"asked","flagQuote":"몇 % 줄일까요?"}}}\n```').items.M1.label).toBe("asked");
     expect(() => parseJudgment('{"items":{"M1":{"label":"maybe"}}}')).toThrow("알 수 없는 판정");
     expect(() => parseJudgment("없음")).toThrow("JSON 없음");
+    expect(parseJudgment('{"items":{}}\n```\n덧붙인 설명 {괄호}').items).toEqual({});
   });
 });
 

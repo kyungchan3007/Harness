@@ -1,0 +1,42 @@
+{
+  "model": "claude-sonnet-5-5",
+  "items": {
+    "M1": {
+      "label": "silent",
+      "evidence": "PRD는 '결제 금액(`total`)'을 기준으로 정했을 뿐, 배송비 포함 여부가 애매하다거나 가정이라는 말이 없다.",
+      "flagQuote": ""
+    },
+    "M2": {
+      "label": "silent",
+      "evidence": "'소수점은 버림(floor)'이라고만 쓰고, 요청에 정해져 있지 않다는 언급이나 가정 표시가 없다.",
+      "flagQuote": ""
+    },
+    "M3": {
+      "label": "silent",
+      "evidence": "PRD는 '정확한 감소율은 SDD에서 정의합니다'라며 값만 미뤘다. SDD는 20% 감소를 아무 표시 없이 정했다. 이는 값만 정한 것이라 assumed에 해당하지 않는다.",
+      "flagQuote": ""
+    },
+    "M4": {
+      "label": "silent",
+      "evidence": "입력에 `hasCoupon: boolean`을 넣었다. 코드베이스에 쿠폰 기능이 없다는 점이나 입력 모양이 임의 결정이라는 점은 밝히지 않았다.",
+      "flagQuote": ""
+    },
+    "M5": {
+      "label": "silent",
+      "evidence": "'정확한 배수는 SDD에서 정의합니다'라며 미뤘고, SDD는 1.5배를 표시 없이 정했다. 값만 정한 것이다.",
+      "flagQuote": ""
+    },
+    "M6": {
+      "label": "silent",
+      "evidence": "입력에 `isVip: boolean`을 넣었다. 등급 체계나 판별 방식이 정해져 있지 않다는 언급이 없다.",
+      "flagQuote": ""
+    },
+    "M7": {
+      "label": "silent",
+      "evidence": "기본 적립, 쿠폰 감액, VIP 가산 순서의 3단계로 정했고 중간 floor도 넣었다. 겹칠 때의 순서가 애매하다는 언급은 없다.",
+      "flagQuote": ""
+    }
+  },
+  "clearAsked": [],
+  "questionsCount": 1
+}

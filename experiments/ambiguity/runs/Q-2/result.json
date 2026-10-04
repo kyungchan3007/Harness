@@ -1,0 +1,35 @@
+{
+  "id": "Q-2",
+  "group": "Q",
+  "n": "2",
+  "model": "claude-haiku-4-5-20251001",
+  "copyDir": "/var/folders/ht/prc2m2q939d1l29154xtvtmw0000gn/T/run-aafgda",
+  "minutes": 0.46,
+  "exit": 0,
+  "timedOut": false,
+  "implemented": false,
+  "gatePassed": false,
+  "trace": {
+    "toolCalls": 0,
+    "byRole": {},
+    "mainEdits": 0,
+    "edits": 0,
+    "blocked": 0,
+    "stopBlocked": 0,
+    "testRuns": 0
+  },
+  "usage": {
+    "requests": 3,
+    "sessions": 1,
+    "models": [
+      "claude-haiku-4-5-20251001"
+    ],
+    "input": 25,
+    "cacheWrite": 26999,
+    "cacheRead": 49954,
+    "output": 2374,
+    "maxContext": 27007,
+    "lastContext": 27007
+  },
+  "costUsd": 0.05063915
+}
