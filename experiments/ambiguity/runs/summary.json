@@ -1,0 +1,32 @@
+{
+  "A": {
+    "runs": 3,
+    "asked": 0,
+    "assumed": 1,
+    "silent": 20,
+    "majorSilent": 15,
+    "clearAsked": 0,
+    "implemented": 2,
+    "stoppedToAsk": 0
+  },
+  "BR": {
+    "runs": 3,
+    "asked": 0,
+    "assumed": 3,
+    "silent": 18,
+    "majorSilent": 13,
+    "clearAsked": 0,
+    "implemented": 3,
+    "stoppedToAsk": 0
+  },
+  "Q": {
+    "runs": 3,
+    "asked": 18,
+    "assumed": 0,
+    "silent": 3,
+    "majorSilent": 3,
+    "clearAsked": 0,
+    "implemented": 0,
+    "stoppedToAsk": 3
+  }
+}

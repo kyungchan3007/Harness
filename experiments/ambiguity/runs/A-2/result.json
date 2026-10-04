@@ -1,0 +1,37 @@
+{
+  "id": "A-2",
+  "group": "A",
+  "n": "2",
+  "model": "claude-haiku-4-5-20251001",
+  "copyDir": "/var/folders/ht/prc2m2q939d1l29154xtvtmw0000gn/T/run-TineHz",
+  "minutes": 2.32,
+  "exit": 0,
+  "timedOut": false,
+  "implemented": true,
+  "gatePassed": true,
+  "trace": {
+    "toolCalls": 19,
+    "byRole": {
+      "main": 19
+    },
+    "mainEdits": 10,
+    "edits": 10,
+    "blocked": 1,
+    "stopBlocked": 0,
+    "testRuns": 2
+  },
+  "usage": {
+    "requests": 30,
+    "sessions": 1,
+    "models": [
+      "claude-haiku-4-5-20251001"
+    ],
+    "input": 241,
+    "cacheWrite": 51559,
+    "cacheRead": 1117070,
+    "output": 14516,
+    "maxContext": 51567,
+    "lastContext": 51567
+  },
+  "costUsd": 0.24897675
+}

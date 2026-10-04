@@ -1,0 +1,40 @@
+{
+  "id": "BR-2",
+  "group": "BR",
+  "n": "2",
+  "model": "claude-haiku-4-5-20251001",
+  "copyDir": "/var/folders/ht/prc2m2q939d1l29154xtvtmw0000gn/T/run-3vQH22",
+  "minutes": 9.41,
+  "exit": 0,
+  "timedOut": false,
+  "implemented": true,
+  "gatePassed": true,
+  "trace": {
+    "toolCalls": 77,
+    "byRole": {
+      "main": 16,
+      "designer": 26,
+      "builder": 19,
+      "verifier": 16
+    },
+    "mainEdits": 1,
+    "edits": 25,
+    "blocked": 4,
+    "stopBlocked": 1,
+    "testRuns": 5
+  },
+  "usage": {
+    "requests": 84,
+    "sessions": 1,
+    "models": [
+      "claude-haiku-4-5-20251001"
+    ],
+    "input": 693,
+    "cacheWrite": 137529,
+    "cacheRead": 2051965,
+    "output": 11978,
+    "maxContext": 47032,
+    "lastContext": 47032
+  },
+  "costUsd": 0.65689075
+}

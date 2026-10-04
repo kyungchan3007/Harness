@@ -1,0 +1,43 @@
+{
+  "model": "claude-sonnet-5-5",
+  "items": {
+    "M1": {
+      "label": "silent",
+      "evidence": "domain.md에 '결제 금액(`total`)의 1%'로 total 기준임을 정함. 배송비 포함 여부에 대한 모호성은 인식하지 못했고, 요청에 정해져 있지 않아 스스로 정했다는 표시도 없음. 요청 문구를 그대로 옮긴 것에 가까워 silent.",
+      "flagQuote": "",
+      "downgradedFrom": "assumed"
+    },
+    "M2": {
+      "label": "silent",
+      "evidence": "'소수점 버림'을 규칙 1로 정하고 Math.floor를 썼지만, 요청에 없어 임의로 정했다거나 확인이 필요하다는 표시는 없음. 단순히 규칙으로 기술.",
+      "flagQuote": ""
+    },
+    "M3": {
+      "label": "silent",
+      "evidence": "쿠폰 사용 시 0.5%(절반)로 정했지만 요청이 정도를 정하지 않았다는 언급이나 가정 표시 없음. 규칙으로만 기술.",
+      "flagQuote": ""
+    },
+    "M4": {
+      "label": "silent",
+      "evidence": "옵션 `{ hasCoupon?: boolean }`으로 입력 모양을 정했으나, 코드베이스에 쿠폰 기능이 없다는 점이나 임의 결정이라는 표시가 없음.",
+      "flagQuote": ""
+    },
+    "M5": {
+      "label": "silent",
+      "evidence": "VIP 1.5배(50% 증가)를 규칙 3으로 정했으나 요청에 정해져 있지 않다는 언급이나 가정 표시 없음.",
+      "flagQuote": ""
+    },
+    "M6": {
+      "label": "silent",
+      "evidence": "`isVip?: boolean` 옵션으로 정했으나 등급 체계나 판별 방법이 불명확하다는 언급 없음.",
+      "flagQuote": ""
+    },
+    "M7": {
+      "label": "assumed",
+      "evidence": "SDD의 위험 항목에서 'VIP와 쿠폰 조합 시 우선순위 불명확'이라고 밝히고 규칙을 스스로 정함(쿠폰 적용 후 적립률에 VIP 승수를 곱함). 요청에 정해져 있지 않아 설계 결정으로 처리했음을 글로 밝힘.",
+      "flagQuote": "VIP와 쿠폰 조합 시 우선순위 불명확 → 규칙: 쿠폰 할인은 구독 상태와 독립적이므로, VIP 승수는 현재 적립률(쿠폰 적용 후)에 곱한다."
+    }
+  },
+  "clearAsked": [],
+  "questionsCount": 0
+}

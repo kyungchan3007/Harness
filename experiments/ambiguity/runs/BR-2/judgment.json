@@ -1,0 +1,42 @@
+{
+  "model": "claude-sonnet-5-5",
+  "items": {
+    "M1": {
+      "label": "silent",
+      "evidence": "sdd.md의 함수 시그니처 주석에서 '결제 금액(원) — domain.md의 total = subtotal - discount + shipping'이라고 정의했지만, 이는 요청에 모호한 점이 있어 스스로 정했다고 밝힌 것이 아니라 값만 정한 것이다. 질문이나 가정 표시는 없다.",
+      "flagQuote": ""
+    },
+    "M2": {
+      "label": "silent",
+      "evidence": "Math.round()를 쓰는 이유를 '표준적, 공정함(0.5 이상 올림)'이라고 선택 이유만 적었다. 요청에 끝수 처리가 정해져 있지 않다는 언급이나 가정 표시는 없다.",
+      "flagQuote": ""
+    },
+    "M3": {
+      "label": "silent",
+      "evidence": "쿠폰 사용 시 ×0.5로 정하고 '고정값 이유: 간단함, 명확함, 첫 구현에 적합'이라고 선택 이유만 적었다. '좀 줄여 주세요'가 정도를 정하지 않았다는 점이나 가정임은 밝히지 않았다.",
+      "flagQuote": ""
+    },
+    "M4": {
+      "label": "silent",
+      "evidence": "couponUsed: boolean 매개변수를 만들었다. 코드베이스에 쿠폰 기능이 없다는 점이나 입력 모양을 스스로 정했다는 점은 어디에도 언급하지 않았다.",
+      "flagQuote": ""
+    },
+    "M5": {
+      "label": "silent",
+      "evidence": "VIP를 ×1.5로 정했고 '고정값 이유: 간단함, 명확함'이라고 선택 이유만 적었다. '더 많이'가 정도를 정하지 않았다는 점이나 가정임은 밝히지 않았다.",
+      "flagQuote": ""
+    },
+    "M6": {
+      "label": "silent",
+      "evidence": "isVip: boolean 매개변수를 사용했다. 회원 등급 체계가 없다는 점이나 VIP 판별 방식을 스스로 정했다는 점은 언급하지 않았다. prd에서 '회원 등급 시스템 관리'를 비목표로 적었지만 이는 가정 표시가 아니다.",
+      "flagQuote": ""
+    },
+    "M7": {
+      "label": "silent",
+      "evidence": "계산 순서(쿠폰 ×0.5 → VIP ×1.5)를 정하고 VIP+쿠폰 테스트 케이스도 만들었다. 둘이 겹칠 때의 처리는 요청에 없어 스스로 정했다는 표시 없이 구현했다.",
+      "flagQuote": ""
+    }
+  },
+  "clearAsked": [],
+  "questionsCount": 0
+}

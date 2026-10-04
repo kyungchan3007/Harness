@@ -1,0 +1,18 @@
+export interface PointsInput {
+  total: number;
+  discount: number;
+  isVip: boolean;
+}
+
+export function calculatePoints(input: PointsInput): number {
+  const { total, discount, isVip } = input;
+
+  let rate: number;
+  if (isVip) {
+    rate = discount > 0 ? 0.0075 : 0.015;
+  } else {
+    rate = discount > 0 ? 0.005 : 0.01;
+  }
+
+  return Math.floor(total * rate);
+}

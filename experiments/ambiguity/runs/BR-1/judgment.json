@@ -1,0 +1,42 @@
+{
+  "model": "claude-sonnet-5-5",
+  "items": {
+    "M1": {
+      "label": "silent",
+      "evidence": "`total`을 결제 금액으로 쓰고 domain.md에도 '결제 금액(total)의 1%'로 적었다. 배송비 포함 여부는 모호한 점으로 언급하지 않았다.",
+      "flagQuote": ""
+    },
+    "M2": {
+      "label": "silent",
+      "evidence": "SDD에 내림(floor)으로 정한 이유('정수 제약이지 고객 손해가 아니므로 공정함')만 있다. 요청에 정해져 있지 않아 스스로 정했다고 밝힌 문장은 없다.",
+      "flagQuote": ""
+    },
+    "M3": {
+      "label": "assumed",
+      "evidence": "SDD가 '좀 줄여 주세요'는 명확하지 않다고 밝히고 50%를 설계 결정으로 정했다.",
+      "flagQuote": "쿠폰 감소율: 요청 \"좀 줄여 주세요\"는 명확하지 않음. 설계 결정: 50%."
+    },
+    "M4": {
+      "label": "silent",
+      "evidence": "`isCouponUsed: boolean` 입력으로 정했다. 코드베이스에 쿠폰 기능이 없다는 점이나 입력 모양을 임의로 정했다는 말은 없다.",
+      "flagQuote": ""
+    },
+    "M5": {
+      "label": "assumed",
+      "evidence": "SDD가 '더 많이'는 명확하지 않다고 밝히고 1.5배를 설계 결정으로 정했다.",
+      "flagQuote": "VIP 배수: 요청 \"더 많이\"는 명확하지 않음. 설계 결정: 1.5배 (50% 증가)."
+    },
+    "M6": {
+      "label": "silent",
+      "evidence": "`isVip: boolean`으로 정했다. VIP를 어떻게 판별하는지, 등급 체계는 어떻게 되는지는 언급하지 않았다.",
+      "flagQuote": ""
+    },
+    "M7": {
+      "label": "assumed",
+      "evidence": "SDD가 VIP와 쿠폰이 겹치는 경우는 요청에서 명확하지 않다고 밝히고, 중복 적용(곱셈)을 설계 결정으로 정했다.",
+      "flagQuote": "VIP+쿠폰 중복: 요청에서 명확하지 않음. 설계 결정: 중복 적용 가능 (비즈니스 로직상 합리적)."
+    }
+  },
+  "clearAsked": [],
+  "questionsCount": 0
+}

@@ -1,0 +1,16 @@
+diff --git a/agents/context/domain.md b/agents/context/domain.md
+index 7ddff06..93f3d8b 100644
+--- a/agents/context/domain.md
++++ b/agents/context/domain.md
+@@ -26,3 +26,11 @@
+ 1. 기본 배송비는 3,000원.
+ 2. **할인 후 상품 금액**(`subtotal − discount`)이 50,000원 **이상**이면 무료.
+ 3. 빈 장바구니는 배송비 0원, 결제 금액 0원.
++
++## 포인트 적립 규칙 (0030)
++
++1. 포인트는 결제 금액(`total`)의 1%를 적립한다. 소수점 이하는 버린다.
++2. 쿠폰을 사용한 주문은 적립률을 절반(0.5%)으로 줄인다.
++3. VIP 회원(체크아웃 시 `isVip: true`)은 적립률을 50% 증가(기본 1.5%, 쿠폰 0.75%)한다.
++4. 최종 포인트는 정수이며 0 이상이다(음수는 발생하지 않음).
++5. 빈 주문(`total = 0`)의 포인트는 0이다.

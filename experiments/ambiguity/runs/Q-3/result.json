@@ -1,0 +1,35 @@
+{
+  "id": "Q-3",
+  "group": "Q",
+  "n": "3",
+  "model": "claude-haiku-4-5-20251001",
+  "copyDir": "/var/folders/ht/prc2m2q939d1l29154xtvtmw0000gn/T/run-qy6Lj6",
+  "minutes": 0.42,
+  "exit": 0,
+  "timedOut": false,
+  "implemented": false,
+  "gatePassed": false,
+  "trace": {
+    "toolCalls": 0,
+    "byRole": {},
+    "mainEdits": 0,
+    "edits": 0,
+    "blocked": 0,
+    "stopBlocked": 0,
+    "testRuns": 0
+  },
+  "usage": {
+    "requests": 3,
+    "sessions": 1,
+    "models": [
+      "claude-haiku-4-5-20251001"
+    ],
+    "input": 25,
+    "cacheWrite": 27818,
+    "cacheRead": 50215,
+    "output": 2461,
+    "maxContext": 27826,
+    "lastContext": 27826
+  },
+  "costUsd": 0.052124000000000004
+}
