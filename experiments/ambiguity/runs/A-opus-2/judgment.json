@@ -1,0 +1,42 @@
+{
+  "model": "claude-sonnet-5-5",
+  "items": {
+    "M1": {
+      "label": "asked",
+      "evidence": "질문 4번에서 결제 금액에 배송비를 포함할지 total vs subtotal−discount로 물음. 제안은 별도.",
+      "flagQuote": "**기준 금액:** \"결제 금액\"에 배송비를 포함할까요? 포함하면 `total`, 빼면 `subtotal − discount`입니다."
+    },
+    "M2": {
+      "label": "asked",
+      "evidence": "질문 5번에서 1포인트 미만을 버릴지 반올림할지 물음.",
+      "flagQuote": "**1포인트 미만:** 버릴까요, 반올림할까요?"
+    },
+    "M3": {
+      "label": "asked",
+      "evidence": "질문 1번에서 쿠폰 주문 감액 폭을 몇 %로 할지 물음.",
+      "flagQuote": "**쿠폰 주문 감액:** \"좀 줄여\"를 몇 %로 할까요? (예: 0.5% 적립, 또는 기본 적립의 절반)"
+    },
+    "M4": {
+      "label": "asked",
+      "evidence": "질문 6번에서 discount > 0으로 판정할지 별도 입력으로 받을지 물음.",
+      "flagQuote": "**쿠폰 주문 판정:** 쿠폰 기능(0003)은 아직 없습니다. `discount > 0`이면 쿠폰 주문으로 볼까요, 아니면 쿠폰 사용 여부를 따로 입력받을까요?"
+    },
+    "M5": {
+      "label": "asked",
+      "evidence": "질문 2번에서 VIP 적립률을 몇 %로 할지 물음.",
+      "flagQuote": "**VIP 적립률:** \"더 많이\"를 몇 %로 할까요? (예: 2%)"
+    },
+    "M6": {
+      "label": "silent",
+      "evidence": "VIP를 어떻게 판별하는지(입력 모양, 등급 체계)에 대한 질문은 없음. sdd에 'VIP 여부' 입력이라고 적었고 prd 비목표에 '회원 등급 판정'이 있으나, 이는 가정으로 밝힌 것도 질문도 아님.",
+      "flagQuote": ""
+    },
+    "M7": {
+      "label": "asked",
+      "evidence": "질문 3번에서 쿠폰과 VIP가 겹칠 때 곱할지 더할지 우선할지 물음.",
+      "flagQuote": "**쿠폰과 VIP가 겹칠 때:** 곱할까요, 더할까요, 아니면 한쪽을 우선할까요?"
+    }
+  },
+  "clearAsked": [],
+  "questionsCount": 6
+}

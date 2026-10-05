@@ -1,0 +1,33 @@
+import { assertWon, type Won } from "../money.js";
+
+/** 적립률 표. 단위는 bp (1bp = 0.01%) 정수 */
+export interface PointsPolicy {
+  normal: number;
+  coupon: number;
+  vip: number;
+  vipCoupon: number;
+}
+
+/** agents/context/domain.md 포인트 적립 규칙 2 (수치는 잠정) */
+export const DEFAULT_POINTS_POLICY: PointsPolicy = { normal: 100, coupon: 50, vip: 200, vipCoupon: 100 };
+
+export interface PointsInput {
+  /** 결제 금액 (priceCart의 total) */
+  total: Won;
+  couponUsed: boolean;
+  isVip: boolean;
+}
+
+const BP_DENOMINATOR = 10_000;
+
+export function calcPoints(input: PointsInput, policy: PointsPolicy = DEFAULT_POINTS_POLICY): number {
+  const { total, couponUsed, isVip } = input;
+  assertWon(total, "total");
+
+  const rateBp = isVip ? (couponUsed ? policy.vipCoupon : policy.vip) : couponUsed ? policy.coupon : policy.normal;
+
+  // total * rateBp는 큰 금액에서 안전 정수를 넘을 수 있어 몫·나머지로 나눠 정수로만 계산한다
+  const whole = Math.floor(total / BP_DENOMINATOR) * rateBp;
+  const rest = Math.floor(((total % BP_DENOMINATOR) * rateBp) / BP_DENOMINATOR);
+  return whole + rest;
+}

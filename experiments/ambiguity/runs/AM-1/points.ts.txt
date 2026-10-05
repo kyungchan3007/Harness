@@ -1,0 +1,45 @@
+import { assertWon, type Won } from "../money.js";
+
+/**
+ * 포인트 적립 옵션
+ * @property usedCoupon - 쿠폰 사용 여부 (기본값: false)
+ * @property isVIP - VIP 회원 여부 (기본값: false)
+ */
+export interface PointsOptions {
+  usedCoupon?: boolean;
+  isVIP?: boolean;
+}
+
+/**
+ * 결제 금액을 기반으로 적립 포인트를 계산한다.
+ *
+ * 규칙 (agents/context/domain.md 포인트 규칙):
+ * 1. 기본 적립률은 결제 금액(total)의 1%
+ * 2. 쿠폰을 사용한 주문은 적립률이 50% 감소 (1% → 0.5%)
+ * 3. VIP 회원은 적립률이 2배가 된다 (1% → 2%, 쿠폰 사용 시 0.5% → 1%)
+ * 4. 포인트는 1포인트 단위(정수)로, 소수점은 내림(floor) 처리한다
+ *
+ * @param total - 결제 금액 (원, 0 이상의 정수)
+ * @param options - 포인트 적립 옵션
+ * @returns 적립 포인트 (정수)
+ * @throws RangeError - total이 유효하지 않은 경우
+ */
+export function calcPoints(total: Won, options: PointsOptions = {}): number {
+  assertWon(total, "total");
+
+  const { usedCoupon = false, isVIP = false } = options;
+
+  // 기본 적립률: 1%
+  const baseRate = 0.01;
+
+  // 쿠폰 배율: 쿠폰 사용 시 50% 감소 (0.5배)
+  const couponRate = usedCoupon ? 0.5 : 1.0;
+
+  // VIP 배율: VIP 회원 시 2배
+  const vipRate = isVIP ? 2.0 : 1.0;
+
+  // 포인트 = total × 기본적립률 × 쿠폰배율 × VIP배율, 소수점은 내림
+  const points = Math.floor(total * baseRate * couponRate * vipRate);
+
+  return points;
+}

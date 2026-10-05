@@ -9,12 +9,62 @@
     "implemented": 2,
     "stoppedToAsk": 0
   },
+  "A-opus": {
+    "runs": 3,
+    "asked": 17,
+    "assumed": 2,
+    "silent": 2,
+    "majorSilent": 2,
+    "clearAsked": 0,
+    "implemented": 0,
+    "stoppedToAsk": 3
+  },
+  "A-sonnet": {
+    "runs": 3,
+    "asked": 8,
+    "assumed": 11,
+    "silent": 2,
+    "majorSilent": 2,
+    "clearAsked": 0,
+    "implemented": 2,
+    "stoppedToAsk": 1
+  },
+  "AM": {
+    "runs": 3,
+    "asked": 0,
+    "assumed": 9,
+    "silent": 12,
+    "majorSilent": 9,
+    "clearAsked": 0,
+    "implemented": 3,
+    "stoppedToAsk": 0
+  },
+  "BM": {
+    "runs": 3,
+    "asked": 0,
+    "assumed": 16,
+    "silent": 5,
+    "majorSilent": 4,
+    "clearAsked": 0,
+    "implemented": 3,
+    "stoppedToAsk": 0
+  },
   "BR": {
     "runs": 3,
     "asked": 0,
     "assumed": 3,
     "silent": 18,
     "majorSilent": 13,
+    "clearAsked": 0,
+    "implemented": 3,
+    "stoppedToAsk": 0
+  },
+  "BR-sonnet": {
+    "runs": 3,
+    "asked": 6,
+    "assumed": 15,
+    "silent": 0,
+    "majorSilent": 0,
     "clearAsked": 0,
     "implemented": 3,
     "stoppedToAsk": 0
@@ -26,6 +76,26 @@
     "silent": 3,
     "majorSilent": 3,
     "clearAsked": 0,
+    "implemented": 0,
+    "stoppedToAsk": 3
+  },
+  "Q-opus": {
+    "runs": 3,
+    "asked": 21,
+    "assumed": 0,
+    "silent": 0,
+    "majorSilent": 0,
+    "clearAsked": 0,
+    "implemented": 0,
+    "stoppedToAsk": 3
+  },
+  "Q-sonnet": {
+    "runs": 3,
+    "asked": 21,
+    "assumed": 0,
+    "silent": 0,
+    "majorSilent": 0,
+    "clearAsked": 1,
     "implemented": 0,
     "stoppedToAsk": 3
   }

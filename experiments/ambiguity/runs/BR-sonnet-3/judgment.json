@@ -1,0 +1,42 @@
+{
+  "model": "claude-sonnet-5-5",
+  "items": {
+    "M1": {
+      "label": "assumed",
+      "evidence": "배송비 포함 total을 기준으로 정했고, 원문에 없어 잠정(Q5)이며 의도와 다를 수 있다고 밝히고 확인을 요청함. 질문 형태가 아니라 확인 요청이 딸린 가정.",
+      "flagQuote": "원문에 숫자가 없는 부분은 designer가 잠정값으로 정했고, 문서마다 \"잠정\"으로 표시했습니다. 아래 값이 의도와 맞는지 확인해 주세요."
+    },
+    "M2": {
+      "label": "assumed",
+      "evidence": "소수 내림을 선택했고, 원문에 없어 잠정(Q4)이라고 표시했다. 최종 메시지에서도 확인 대상 값으로 나열했다.",
+      "flagQuote": "원문에 숫자가 없는 부분은 designer가 잠정값으로 정했고, 문서마다 \"잠정\"으로 표시했습니다. 아래 값이 의도와 맞는지 확인해 주세요."
+    },
+    "M3": {
+      "label": "assumed",
+      "evidence": "쿠폰 사용 시 0.5%(절반)로 정했고, 원문에 정량 기준이 없어 잠정(Q1)이라고 명시했다.",
+      "flagQuote": "원문에 숫자가 없는 부분은 designer가 잠정값으로 정했고, 문서마다 \"잠정\"으로 표시했습니다. 아래 값이 의도와 맞는지 확인해 주세요."
+    },
+    "M4": {
+      "label": "assumed",
+      "evidence": "코드에 쿠폰 사용 여부가 없다는 것을 확인하고 usedCoupon boolean 입력으로 받기로 했다. 이 판단은 최종 메시지와 prd Q6에 근거와 함께 밝혔으나, 사람에게 묻는 형태는 아니고 설계 결정으로 서술했다.",
+      "flagQuote": "쿠폰 사용 여부와 VIP 여부는 현재 코드에 없어서 `calculatePoints({ total, usedCoupon, isVip })`의 입력으로 받습니다."
+    },
+    "M5": {
+      "label": "assumed",
+      "evidence": "VIP 2%로 정했고, 원문에 없어 잠정(Q2)이라고 명시했다.",
+      "flagQuote": "원문에 숫자가 없는 부분은 designer가 잠정값으로 정했고, 문서마다 \"잠정\"으로 표시했습니다. 아래 값이 의도와 맞는지 확인해 주세요."
+    },
+    "M6": {
+      "label": "assumed",
+      "evidence": "VIP 개념이 코드에 없어 isVip boolean 입력으로 받기로 했고, 판별은 범위 밖이라고 밝혔다. 질문이 아니라 설계 결정 서술.",
+      "flagQuote": "쿠폰 사용 여부와 VIP 여부는 현재 코드에 없어서 `calculatePoints({ total, usedCoupon, isVip })`의 입력으로 받습니다."
+    },
+    "M7": {
+      "label": "assumed",
+      "evidence": "VIP+쿠폰을 1%로 정했고(VIP 2%에 쿠폰 절반 적용), 원문에 없어 잠정(Q3)으로 표시했으며 최종 메시지의 확인 목록에도 포함했다.",
+      "flagQuote": "원문에 숫자가 없는 부분은 designer가 잠정값으로 정했고, 문서마다 \"잠정\"으로 표시했습니다. 아래 값이 의도와 맞는지 확인해 주세요."
+    }
+  },
+  "clearAsked": [],
+  "questionsCount": 0
+}

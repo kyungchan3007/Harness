@@ -1,0 +1,44 @@
+{
+  "model": "claude-sonnet-5-5",
+  "items": {
+    "M1": {
+      "label": "asked",
+      "evidence": "Question 7 asks whether '결제 금액' is total including shipping or should exclude shipping.",
+      "flagQuote": "\"결제 금액\"은 `domain.md`의 `total`(`subtotal − discount + shipping`)인가요? 그렇다면 배송비도 적립 대상에 들어갑니다. 배송비를 뺀 금액으로 할지 정해 주세요."
+    },
+    "M2": {
+      "label": "asked",
+      "evidence": "Question 8 asks whether to floor, round, or ceil fractional points.",
+      "flagQuote": "**정수 처리:** 1% 계산에서 소수가 나오면 내림, 반올림, 올림 중 무엇인가요? (예: 결제 12,350원 → 123.5P)"
+    },
+    "M3": {
+      "label": "asked",
+      "evidence": "Question 4 asks what accrual rate applies when a coupon is used.",
+      "flagQuote": "쿠폰 사용 시 적립률은 몇 %인가요?"
+    },
+    "M4": {
+      "label": "asked",
+      "evidence": "Question 1 asks how coupon usage is known, e.g. whether an input such as couponUsed boolean suffices.",
+      "flagQuote": "쿠폰 모델이 이미 있는 곳이 있나요? 아니면 이번 태스크가 입력으로만 받는 `couponUsed: boolean` 정도면 되나요?"
+    },
+    "M5": {
+      "label": "asked",
+      "evidence": "Question 5 asks the VIP accrual rate.",
+      "flagQuote": "VIP 적립률은 몇 %인가요?"
+    },
+    "M6": {
+      "label": "asked",
+      "evidence": "Question 2 asks how VIP status is determined, whether via an isVip input or a separate tier model.",
+      "flagQuote": "VIP 여부는 입력값(`isVip: boolean`)으로 받으면 되나요, 아니면 등급 모델이 따로 필요한가요?"
+    },
+    "M7": {
+      "label": "asked",
+      "evidence": "Question 6 asks how to handle orders that are both VIP and coupon, offering options.",
+      "flagQuote": "**VIP이면서 쿠폰을 쓴 주문:** 아래 중 어느 쪽인가요?"
+    }
+  },
+  "clearAsked": [
+    "C1"
+  ],
+  "questionsCount": 11
+}

@@ -1,0 +1,42 @@
+{
+  "model": "claude-sonnet-5-5",
+  "items": {
+    "M1": {
+      "label": "asked",
+      "evidence": "Question 4 asks whether 결제 금액 means total (subtotal − discount + shipping) or the amount excluding shipping.",
+      "flagQuote": "\"결제 금액\"은 `domain.md`의 `total`(`subtotal − discount + shipping`)을 뜻하나요?"
+    },
+    "M2": {
+      "label": "asked",
+      "evidence": "Question 6 asks whether fractional points are floored, rounded, or ceiled.",
+      "flagQuote": "1% 계산에서 소수가 나오면 버림, 반올림, 올림 중 무엇으로 하나요? (예: 12,345원 → 123.45포인트)"
+    },
+    "M3": {
+      "label": "asked",
+      "evidence": "Question 1 asks how much the rate is reduced for coupon orders.",
+      "flagQuote": "**쿠폰 사용 주문**은 1%에서 몇 %로 줄이나요? (예: 0.5%, 0%)"
+    },
+    "M4": {
+      "label": "asked",
+      "evidence": "Question 8 asks how coupon usage is known, and whether a minimal input shape can be used.",
+      "flagQuote": "VIP 여부와 쿠폰 사용 여부는 함수 인자로 받나요? 회원 등급과 쿠폰 모델은 아직 없습니다(쿠폰은 0003 예정)."
+    },
+    "M5": {
+      "label": "asked",
+      "evidence": "Question 2 asks what VIP rate to use.",
+      "flagQuote": "**VIP**는 몇 %로 늘리나요? (예: 2%)"
+    },
+    "M6": {
+      "label": "asked",
+      "evidence": "Question 8 covers how VIP status is provided, proposing an isVip boolean as the input shape.",
+      "flagQuote": "이번 태스크에서 `{ isVip: boolean, couponUsed: boolean }` 정도의 최소 입력만 받아도 되나요?"
+    },
+    "M7": {
+      "label": "asked",
+      "evidence": "Question 3 asks how to compute a VIP order that also used a coupon, offering options.",
+      "flagQuote": "**쿠폰을 쓴 VIP 주문**은 어떻게 하나요?"
+    }
+  },
+  "clearAsked": [],
+  "questionsCount": 9
+}
