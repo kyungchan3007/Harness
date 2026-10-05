@@ -1,0 +1,38 @@
+{
+  "id": "A-sonnet-1",
+  "group": "A-sonnet",
+  "n": "1",
+  "model": "claude-sonnet-5-5",
+  "ref": "6af14ac",
+  "copyDir": "/var/folders/ht/prc2m2q939d1l29154xtvtmw0000gn/T/run-lOIvP8",
+  "minutes": 2.58,
+  "exit": 0,
+  "timedOut": false,
+  "implemented": true,
+  "gatePassed": true,
+  "trace": {
+    "toolCalls": 15,
+    "byRole": {
+      "main": 15
+    },
+    "mainEdits": 13,
+    "edits": 13,
+    "blocked": 0,
+    "stopBlocked": 0,
+    "testRuns": 2
+  },
+  "usage": {
+    "requests": 12,
+    "sessions": 1,
+    "models": [
+      "claude-sonnet-5-5"
+    ],
+    "input": 24,
+    "cacheWrite": 54334,
+    "cacheRead": 624652,
+    "output": 16818,
+    "maxContext": 74611,
+    "lastContext": 74611
+  },
+  "costUsd": 1.0724835000000001
+}

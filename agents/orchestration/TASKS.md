@@ -28,3 +28,4 @@
 | 0024 | 모호한 요청에 되묻는가, 지어내는가 (포인트 적립 과제) | claude | done | [0024](../intent/specs/0024-ambiguity/prd.md) · #28 |
 | 0025 | "애매한 곳·가정" 필수 칸 장치 + 재실행(AM·BM) | claude | done | [0025](../intent/specs/0025-assumption-field/prd.md) · #30 |
 | 0026 | 모호한 요청 실험을 큰 모델(Sonnet·Opus)로 다시 | claude | done | [0026](../intent/specs/0026-bigger-models/prd.md) · #31 |
+| 0027 | 묻고 → 답 받고 → 이어 가기 (대화형) 실험 | claude | done | [0027](../intent/specs/0027-ask-answer-continue/prd.md) · #32 |

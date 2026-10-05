@@ -1,0 +1,41 @@
+import { assertWon, type Won } from "../money.js";
+
+/** 포인트. 항상 0 이상의 정수 (agents/context/domain.md) */
+export type Points = number;
+
+export type MemberTier = "regular" | "vip";
+
+/** 적립률을 베이시스 포인트(1% = 100)로 보관해 부동소수 오차를 피한다 */
+export interface TierRate {
+  default: number;
+  withCoupon: number;
+}
+
+export interface PointPolicy {
+  rateBp: Record<MemberTier, TierRate>;
+}
+
+/** 임시 값: 쿠폰 감산폭·VIP 배율은 요청에 수치가 없었다 (0030 prd 가정 표) */
+export const DEFAULT_POINT_POLICY: PointPolicy = {
+  rateBp: {
+    regular: { default: 100, withCoupon: 50 },
+    vip: { default: 200, withCoupon: 100 },
+  },
+};
+
+export interface PointInput {
+  /** 결제 금액 (priceCart의 total) */
+  total: Won;
+  tier: MemberTier;
+  couponUsed: boolean;
+}
+
+const BP = 10_000;
+
+export function calcPoints({ total, tier, couponUsed }: PointInput, policy: PointPolicy = DEFAULT_POINT_POLICY): Points {
+  assertWon(total, "total");
+  const rate = policy.rateBp[tier];
+  const bp = couponUsed ? rate.withCoupon : rate.default;
+  // total * bp를 한 번에 곱하면 큰 금액에서 안전 정수 범위를 넘으므로 몫과 나머지로 나눠 계산한다
+  return Math.floor(total / BP) * bp + Math.floor(((total % BP) * bp) / BP);
+}

@@ -1,0 +1,42 @@
+{
+  "model": "claude-sonnet-5-5",
+  "items": {
+    "M1": {
+      "label": "silent",
+      "evidence": "기준 금액을 total로 쓰지만 배송비 포함 여부에 대한 언급이 없다. 파라미터 이름이 total일 뿐 가정으로 밝히지 않았다.",
+      "flagQuote": ""
+    },
+    "M2": {
+      "label": "assumed",
+      "evidence": "PRD '애매한 곳·가정'에 '내림 처리: 소수점 이하는 버린다 (가정)'이라고 명시했다.",
+      "flagQuote": "내림 처리: 소수점 이하는 버린다 (가정)."
+    },
+    "M3": {
+      "label": "assumed",
+      "evidence": "쿠폰 시 0.5%로 정했다. PRD는 이를 '요청에 명시된 값 (가정)'이라고 적었다. 요청에는 없는 값인데 요청에 명시됐다고 잘못 표현했지만, 가정이라는 표시는 했다.",
+      "flagQuote": "적립율 1% / 0.5% / 1.5%는 요청에 명시된 값 (가정)."
+    },
+    "M4": {
+      "label": "silent",
+      "evidence": "쿠폰 사용 여부를 hasDiscount: boolean으로 받는다. 입력 모양을 스스로 정했다는 언급이 없고, 쿠폰 기능이 코드베이스에 없다는 설명도 없다.",
+      "flagQuote": ""
+    },
+    "M5": {
+      "label": "assumed",
+      "evidence": "VIP를 1.5배로 정했다. PRD에서 1.5배를 '요청에 명시된 값 (가정)'이라고 적었다. 요청에는 없는 값이지만 가정 표시는 했다.",
+      "flagQuote": "적립율 1% / 0.5% / 1.5%는 요청에 명시된 값 (가정)."
+    },
+    "M6": {
+      "label": "silent",
+      "evidence": "VIP 판별을 isVip: boolean으로 받는다. 입력 모양이나 등급 체계를 스스로 정했다는 언급이 없다.",
+      "flagQuote": ""
+    },
+    "M7": {
+      "label": "assumed",
+      "evidence": "VIP와 쿠폰이 겹치면 0.5% × 1.5 = 0.75%로 계산한다. PRD에 '(가정)'으로 표시했고 SDD에도 순서 결정을 적었다.",
+      "flagQuote": "VIP와 쿠폰이 겹친 경우: 기본율의 1.5배이므로 0.5% × 1.5 = 0.75% (가정)."
+    }
+  },
+  "clearAsked": [],
+  "questionsCount": 0
+}

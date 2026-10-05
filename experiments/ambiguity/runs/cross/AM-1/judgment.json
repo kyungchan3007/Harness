@@ -1,0 +1,42 @@
+{
+  "model": "claude-sonnet-5-5",
+  "items": {
+    "M1": {
+      "label": "silent",
+      "evidence": "기준 금액을 total(결제 금액)로 쓰지만, 배송비 포함 여부에 대한 언급이나 가정 표시가 없다. 코드 주석에 'total의 1%'만 있다.",
+      "flagQuote": ""
+    },
+    "M2": {
+      "label": "assumed",
+      "evidence": "PRD '애매한 곳·가정' 섹션에서 소수점 포인트 처리를 내림으로 정했고 '(가정)'이라고 명시했다.",
+      "flagQuote": "소수점 포인트 처리 — **내림(floor)**으로 정함. 예: 159원의 1%는 1.59포인트 → 1포인트. (가정)"
+    },
+    "M3": {
+      "label": "assumed",
+      "evidence": "쿠폰 사용 시 감소 정도를 50%로 정하고 PRD에서 '(가정)'으로 표시했다.",
+      "flagQuote": "쿠폰 사용 시 적립 감소 정도 — **50% 감소** (1% → 0.5%)로 정함. 정책상 쿠폰 할인으로 이익이 줄어든 만큼 적립도 축소. (가정)"
+    },
+    "M4": {
+      "label": "silent",
+      "evidence": "입력을 options.usedCoupon boolean으로 정했지만, 쿠폰 사용 여부를 어떤 입력으로 알 수 있는지(입력 모양)가 정해져 있지 않다는 언급이나 가정 표시가 없다.",
+      "flagQuote": ""
+    },
+    "M5": {
+      "label": "assumed",
+      "evidence": "VIP 배수를 2배로 정하고 PRD에서 '(가정)'으로 표시했다.",
+      "flagQuote": "VIP 회원 적립률 배수 — **2배**로 정함. 일반 고객 1%에서 VIP는 2%, 쿠폰 사용 시는 1%. (가정)"
+    },
+    "M6": {
+      "label": "silent",
+      "evidence": "isVIP boolean 옵션으로 정했지만, VIP 판별 방식이나 등급 체계에 대한 언급이나 가정 표시가 없다.",
+      "flagQuote": ""
+    },
+    "M7": {
+      "label": "silent",
+      "evidence": "VIP와 쿠폰이 겹치면 두 배율을 곱하고(쿠폰+VIP면 1%) 예시도 있지만, 겹칠 때 순서나 방식을 요청에 없어 정한 것이라고 밝히지 않았다. 곱셈은 순서와 무관해 문제가 안 된다는 설명도 없다.",
+      "flagQuote": ""
+    }
+  },
+  "clearAsked": [],
+  "questionsCount": 0
+}

@@ -1,0 +1,19 @@
+import type { PriceBreakdown } from "./price-cart.js";
+
+export interface Member {
+  grade: "VIP" | "NORMAL";
+}
+
+export function calculatePoints(breakdown: PriceBreakdown, member: Member): number {
+  let rate = 0.01; // 1%
+
+  if (member.grade === "VIP") {
+    rate *= 2; // 2%
+  }
+
+  if (breakdown.discount > 0) {
+    rate *= 0.5; // 절반
+  }
+
+  return Math.floor(breakdown.total * rate);
+}

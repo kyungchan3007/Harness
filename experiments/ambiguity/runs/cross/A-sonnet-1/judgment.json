@@ -1,0 +1,42 @@
+{
+  "model": "claude-sonnet-5-5",
+  "items": {
+    "M1": {
+      "label": "assumed",
+      "evidence": "The final message states it interpreted 결제 금액 as total including shipping, and explains how to change it. It is presented as an interpretation, not a question.",
+      "flagQuote": "\"결제 금액\"을 배송비가 포함된 `total`로 해석했습니다. 배송비를 빼려면 `subtotal − discount`를 넘기면 됩니다."
+    },
+    "M2": {
+      "label": "assumed",
+      "evidence": "The final message says rounding down is an assumption and offers to change it. The PRD lists it as unconfirmed.",
+      "flagQuote": "내림으로 가정했습니다. 반올림을 원하시면 함수 한 줄만 바꾸면 됩니다."
+    },
+    "M3": {
+      "label": "assumed",
+      "evidence": "The final message says the request had no number for the coupon reduction, so it used a temporary value (half) and asked the user to check the rates. This is a request to confirm, not a question about a specific choice, and the assumption is stated explicitly.",
+      "flagQuote": "요청에 \"좀 줄여\", \"더 많이\"의 수치가 없어서 임시 값을 넣었습니다."
+    },
+    "M4": {
+      "label": "silent",
+      "evidence": "The final message says coupon usage is passed in by the caller as `couponUsed`. The reason is that coupons don't exist in the repo yet. It does not say that this input shape was the AI's own decision or needs confirming. The PRD assumption table mentions it, but only as a fact with a rationale. The final message just describes the design.",
+      "flagQuote": ""
+    },
+    "M5": {
+      "label": "assumed",
+      "evidence": "The final message says VIP was assumed to be 2x and the user should confirm the rates. The assumption is stated explicitly.",
+      "flagQuote": "쿠폰 사용 시 절반, VIP는 2배로 가정했습니다."
+    },
+    "M6": {
+      "label": "silent",
+      "evidence": "The final message says the tier (`regular` or `vip`) is passed in by the caller because the repo has no member tier yet. It does not flag this input shape or the two-tier scheme as the AI's own decision to confirm. The domain.md addition just records `regular` and `vip` as a term.",
+      "flagQuote": ""
+    },
+    "M7": {
+      "label": "assumed",
+      "evidence": "The final message says the VIP-with-coupon case is not in the request, so it chose the same halving, giving 1%. It is stated as the AI's own decision.",
+      "flagQuote": "VIP가 쿠폰을 쓰는 경우는 요청에 없어서 같은 방식(절반)으로 1%로 정했습니다."
+    }
+  },
+  "clearAsked": [],
+  "questionsCount": 0
+}
