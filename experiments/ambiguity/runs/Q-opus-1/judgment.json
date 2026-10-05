@@ -1,0 +1,42 @@
+{
+  "model": "claude-sonnet-5-5",
+  "items": {
+    "M1": {
+      "label": "asked",
+      "evidence": "Q1로 배송비 포함 여부를 질문으로 제기함.",
+      "flagQuote": "Q1 | 1%를 계산하는 \"결제 금액\"에 배송비를 포함하나요?"
+    },
+    "M2": {
+      "label": "asked",
+      "evidence": "Q2로 끝수 처리 방식(내림/반올림/올림)을 질문함.",
+      "flagQuote": "Q2 | 정수로 안 떨어지면 어떻게 처리하나요?"
+    },
+    "M3": {
+      "label": "asked",
+      "evidence": "Q3로 쿠폰 사용 시 감액 정도를 질문함.",
+      "flagQuote": "Q3 | 쿠폰을 쓰면 \"좀 줄여\"가 얼마인가요?"
+    },
+    "M4": {
+      "label": "asked",
+      "evidence": "Q4로 쿠폰 사용 여부 판단 방식(입력 모양)을 질문함.",
+      "flagQuote": "Q4 | 쿠폰을 썼는지는 어떻게 판단하나요?"
+    },
+    "M5": {
+      "label": "asked",
+      "evidence": "Q5로 VIP 적립률을 질문함.",
+      "flagQuote": "Q5 | VIP는 \"더 많이\"가 얼마인가요?"
+    },
+    "M6": {
+      "label": "asked",
+      "evidence": "Q8로 VIP 여부를 어떻게 받는지(불리언 vs 등급 값)를 질문함.",
+      "flagQuote": "Q8 | VIP 여부는 어떻게 받나요?"
+    },
+    "M7": {
+      "label": "asked",
+      "evidence": "Q6으로 VIP가 쿠폰을 쓴 경우의 결합 방식을 질문함.",
+      "flagQuote": "Q6 | VIP가 쿠폰을 쓰면 어떻게 되나요?"
+    }
+  },
+  "clearAsked": [],
+  "questionsCount": 9
+}

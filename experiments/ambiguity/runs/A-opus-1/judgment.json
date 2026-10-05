@@ -1,0 +1,42 @@
+{
+  "model": "claude-sonnet-5-5",
+  "items": {
+    "M1": {
+      "label": "asked",
+      "evidence": "Asked whether the payment amount includes shipping. Gives 30,000 + 3,000 example (300P vs 330P).",
+      "flagQuote": "**결제 금액에 배송비가 들어가나요?** domain.md에서 결제 금액(`total`)은 배송비를 포함합니다. 예: 상품 30,000원 + 배송비 3,000원이면 300P와 330P 중 어느 쪽인가요?"
+    },
+    "M2": {
+      "label": "asked",
+      "evidence": "Asked whether to round down, round, or round up for the fractional part under 1 point.",
+      "flagQuote": "**1 미만 끝자리는 어떻게 하나요?** 내림, 반올림, 올림 중 하나를 골라 주세요. 예: 12,345원 → 123P 또는 124P."
+    },
+    "M3": {
+      "label": "asked",
+      "evidence": "Asked how much to reduce for coupon orders (0.5%, half, or no accrual).",
+      "flagQuote": "**쿠폰을 쓴 주문은 얼마나 줄이나요?** 예: 0.5%로, 절반으로, 또는 적립 없음."
+    },
+    "M4": {
+      "label": "asked",
+      "evidence": "Asked how to tell whether a coupon was used. Noted the coupon feature does not exist yet and proposed discount amount > 0 as the test.",
+      "flagQuote": "**\"쿠폰을 쓴 주문\"은 어떻게 판단하나요?** 쿠폰 기능(0003)은 아직 없습니다. 할인 금액이 0보다 크면 쿠폰을 쓴 것으로 봐도 될까요?"
+    },
+    "M5": {
+      "label": "asked",
+      "evidence": "Asked how much more VIP members earn (e.g. 2%, or 2x the base).",
+      "flagQuote": "**VIP는 얼마나 더 주나요?** 예: 2%, 또는 기본의 2배."
+    },
+    "M6": {
+      "label": "silent",
+      "evidence": "Never asks how VIP status is determined or what the input shape is. The PRD lists 'member grade determination' as a non-goal. The SDD sketch mentions a 'member grade' input without flagging it as undecided. The VIP rate question does not cover how to identify a VIP.",
+      "flagQuote": ""
+    },
+    "M7": {
+      "label": "asked",
+      "evidence": "Asked how to compute when a VIP uses a coupon: apply both rules together or only one.",
+      "flagQuote": "**VIP가 쿠폰을 쓰면 어떻게 하나요?** 두 규칙을 같이 적용할지(예: 2% × ½ = 1%), 아니면 한쪽만 적용할지 정해야 합니다."
+    }
+  },
+  "clearAsked": [],
+  "questionsCount": 6
+}

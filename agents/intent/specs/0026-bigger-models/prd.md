@@ -9,10 +9,10 @@
 - **비목표:** 필수 칸 장치(#30), 묻고 → 답 받고 → 이어 가기(#32), Opus BR(비용).
 
 ## Acceptance
-- [ ] 실행 스크립트에 모델별 결과 폴더·복사본 기준 커밋 지정
-- [ ] Sonnet A·Q·BR, Opus A·Q 각 3회 실행·판정
-- [ ] 모델별 비교표(되물음·가정·몰래, 배송비 항목 M1, 시간·비용)
-- [ ] 결론·한계·"어떤 작업에 이렇게 하면 좋은가"를 sdd·LEARNINGS에 기록
-- [ ] `pnpm check` ALL PASS
+- [x] 실행 스크립트에 모델별 결과 폴더·복사본 기준 커밋 지정
+- [x] Sonnet A·Q·BR, Opus A·Q 각 3회 실행·판정
+- [x] 모델별 비교표(되물음·가정·몰래, 배송비 항목 M1, 시간·비용)
+- [x] 결론·한계·"어떤 작업에 이렇게 하면 좋은가"를 sdd·LEARNINGS에 기록
+- [x] `pnpm check` ALL PASS
 
 설계와 검증 결과: [sdd.md](sdd.md) · 과정 기록: [trace.md](trace.md)

@@ -44,6 +44,9 @@ function transcriptLines(copyDir) {
 }
 
 const DEFAULT_MODEL = "claude-haiku-4-5-20251001";
+/** 0026: 설치된 CLI가 Opus 5.5를 지원하지 않아(2.1.280 이상 필요) 다른 CLI를 지정할 수 있게 한다. 실행마다 버전을 남긴다 */
+const CLAUDE_BIN = process.env.CLAUDE_BIN || "claude";
+const cliVersion = () => spawnSync(CLAUDE_BIN, ["--version"], { encoding: "utf8" }).stdout.trim();
 /** 0026: Haiku 외 모델은 결과 폴더·집계 그룹에 모델 이름을 붙인다 (예: A-sonnet) */
 export function groupKey(group, model = DEFAULT_MODEL) {
   const short = /claude-(\w+)-/.exec(model)?.[1];
@@ -64,7 +67,7 @@ export function runOnce({ group, n, model = DEFAULT_MODEL, timeoutMin = 30, ref 
     writeFileSync(join(dir, rel), text);
   }
   const started = Date.now();
-  const r = spawnSync("claude", ["-p", PROMPTS[group](task), "--model", model, "--output-format", "json", "--allowedTools", ALLOWED_TOOLS.join(",")], {
+  const r = spawnSync(CLAUDE_BIN, ["-p", PROMPTS[group](task), "--model", model, "--output-format", "json", "--allowedTools", ALLOWED_TOOLS.join(",")], {
     cwd: dir, encoding: "utf8", timeout: timeoutMin * 60_000, maxBuffer: 1 << 28,
   });
   let final = null;
@@ -85,9 +88,10 @@ export function runOnce({ group, n, model = DEFAULT_MODEL, timeoutMin = 30, ref 
   const entries = existsSync(traceFile) ? readFileSync(traceFile, "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l)) : [];
 
   const result = {
-    id: `${key}-${n}`, group: key, n, model, ref, copyDir: dir,
+    id: `${key}-${n}`, group: key, n, model, ref, cli: cliVersion(), copyDir: dir,
     minutes: Math.round((Date.now() - started) / 600) / 100,
     exit: r.status, timedOut: r.error?.code === "ETIMEDOUT",
+    apiError: /^API Error/.test(finalMessage.trim()), // 0026: 모델 쪽 거절로 끊긴 실행 — 결과로 세지 않고 runs/_invalid로 옮겨 다시 돌린다
     implemented,
     gatePassed: spawnSync("bash", ["agents/harness/evals/checks.sh"], { cwd: dir }).status === 0,
     trace: analyzeTrace(entries),
