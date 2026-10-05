@@ -1,0 +1,31 @@
+import { assertWon, type Won } from "../money.js";
+
+export interface PointsOptions {
+  /** 쿠폰 적용 여부 (할인 금액이 있으면 true) */
+  hasDiscount?: boolean;
+  /** VIP 회원 여부 */
+  isVIP?: boolean;
+}
+
+/**
+ * 포인트 계산
+ *
+ * 기본 적립률 1% → [VIP 2배] → [쿠폰 절반]
+ *
+ * @param total 결제 금액 (원)
+ * @param options 쿠폰 적용 여부, VIP 여부
+ * @returns 적립 포인트 (정수)
+ */
+export function calculatePoints(total: Won, options: PointsOptions = {}): number {
+  assertWon(total, "결제 금액");
+
+  const { hasDiscount = false, isVIP = false } = options;
+
+  let rate = 0.01; // 1% 기본 적립률
+
+  if (isVIP) rate *= 2; // VIP: 2배
+  if (hasDiscount) rate *= 0.5; // 쿠폰: 절반
+
+  const points = Math.floor(total * rate);
+  return points;
+}

@@ -1,0 +1,53 @@
+/**
+ * 포인트 적립 계산 함수
+ *
+ * 포인트 적립 규칙:
+ * 1. 기본 적립: 결제 금액의 1%
+ * 2. 쿠폰 적용: 70% 적립 (30% 감소)
+ * 3. VIP 회원: 1.5배 적립
+ * 4. 결합: 기본값 × 0.7 × 1.5
+ * 5. 최종: Math.floor()로 정수화
+ *
+ * 규칙의 단일 소스: agents/context/domain.md
+ */
+
+/**
+ * 포인트 적립 함수
+ * @param total 결제 금액 (0 이상의 정수)
+ * @param options 옵션 객체
+ * @param options.hasCoupon 쿠폰 사용 여부 (기본값: false)
+ * @param options.isVip VIP 회원 여부 (기본값: false)
+ * @returns 적립 포인트 (정수)
+ *
+ * @throws Error if total < 0
+ *
+ * @example
+ * calculatePoints(10000)                                  // 100
+ * calculatePoints(10000, { hasCoupon: true })            // 70
+ * calculatePoints(10000, { isVip: true })                // 150
+ * calculatePoints(10000, { hasCoupon: true, isVip: true }) // 105
+ */
+export function calculatePoints(
+  total: number,
+  options?: { hasCoupon?: boolean; isVip?: boolean }
+): number {
+  // Input validation
+  if (typeof total !== 'number' || isNaN(total) || total < 0) {
+    throw new Error('total must be a non-negative number');
+  }
+
+  const hasCoupon = options?.hasCoupon ?? false;
+  const isVip = options?.isVip ?? false;
+
+  // 기본 적립: 결제 금액의 1%
+  const basePoints = total * 0.01;
+
+  // 쿠폰과 VIP 배수 적용
+  const couponMultiplier = hasCoupon ? 0.7 : 1.0;
+  const vipMultiplier = isVip ? 1.5 : 1.0;
+
+  // 최종 적립 포인트 (정수로 내림)
+  const earned = Math.floor(basePoints * couponMultiplier * vipMultiplier);
+
+  return earned;
+}

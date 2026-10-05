@@ -1,0 +1,42 @@
+{
+  "model": "claude-sonnet-5-5",
+  "items": {
+    "M1": {
+      "label": "silent",
+      "evidence": "코드는 total(결제 금액)에 1%를 적용하고 배송비 포함 여부는 언급이 없다. 배송비 관련 가정이나 질문이 없다.",
+      "flagQuote": ""
+    },
+    "M2": {
+      "label": "silent",
+      "evidence": "소수점 이하 버림(Math.floor)으로 정했지만 요청에 정해져 있지 않다는 표시가 없다. 최종 메시지와 SDD에 '(소수점 이하 버림)'이라고 값만 적었다. 가정 목록에도 없다. PRD Acceptance의 '최소 1포인트'는 코드와 모순된다.",
+      "flagQuote": ""
+    },
+    "M3": {
+      "label": "assumed",
+      "evidence": "PRD '애매한 곳·가정'에 쿠폰 감액을 '할인 금액의 1%를 포인트에서 제외'로 정했고 '(가정)'이라고 명시했다.",
+      "flagQuote": "\"쿠폰을 쓴 주문은 적립을 좀 줄여 주세요\" — 할인 금액의 1%를 포인트에서 제외 (할인받은 금액만큼 포인트 차감) (가정)"
+    },
+    "M4": {
+      "label": "silent",
+      "evidence": "쿠폰 여부를 discount 금액 옵션으로 판단하도록 구현했다. 쿠폰 기능이 코드베이스에 없다는 점이나 입력 모양을 임의로 정했다는 언급은 없다. discount는 할인 금액으로 다루기만 했다.",
+      "flagQuote": ""
+    },
+    "M5": {
+      "label": "assumed",
+      "evidence": "PRD '애매한 곳·가정'에 VIP 적립을 기본 적립량의 2배로 정했고 '(가정)'이라고 명시했다.",
+      "flagQuote": "\"VIP 회원은 더 많이 적립해 주세요\" — 기본 적립량의 2배 (가정)"
+    },
+    "M6": {
+      "label": "silent",
+      "evidence": "isVip boolean 옵션으로 VIP를 판별한다. 등급 체계나 입력 모양을 스스로 정했다는 언급은 없다.",
+      "flagQuote": ""
+    },
+    "M7": {
+      "label": "silent",
+      "evidence": "코드는 할인 차감, 0 하한 적용, VIP 2배 순서로 계산한다. 이 순서가 요청에 정해져 있지 않다는 언급은 없고 VIP와 쿠폰의 조합 순서에 대한 가정이나 질문도 없다.",
+      "flagQuote": ""
+    }
+  },
+  "clearAsked": [],
+  "questionsCount": 0
+}

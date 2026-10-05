@@ -1,0 +1,26 @@
+import type { PriceBreakdown } from "./price-cart.js";
+
+export interface UserGrade {
+  grade: "VIP" | "NORMAL";
+}
+
+export function calculatePoints(breakdown: PriceBreakdown, user: UserGrade): number {
+  // 적립 기준 금액: 쿠폰 할인 후 상품 금액 (배송비 제외)
+  const pointsBase = breakdown.subtotal - breakdown.discount;
+
+  // 기본 적립률 1%
+  let rate = 0.01;
+
+  // VIP는 적립률 2배
+  if (user.grade === "VIP") {
+    rate *= 2;
+  }
+
+  // 쿠폰 사용 시 (discount > 0) 적립률 절반
+  if (breakdown.discount > 0) {
+    rate *= 0.5;
+  }
+
+  // 포인트 계산 및 내림
+  return Math.floor(pointsBase * rate);
+}

@@ -1,0 +1,17 @@
+{
+  "passed": [
+    "T2",
+    "T4"
+  ],
+  "total": 5,
+  "score": 2,
+  "items": {
+    "M1": false,
+    "M2": true,
+    "M3": false,
+    "M4": false,
+    "M5": true,
+    "M6": true,
+    "M7": false
+  }
+}

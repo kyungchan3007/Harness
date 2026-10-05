@@ -1,0 +1,15 @@
+// 포인트 계산: 결제 금액에 따라 적립 (domain.md 포인트 규칙 참고)
+export function calculatePoints(
+  total: number,
+  hasDiscount: boolean,
+  isVip: boolean
+): number {
+  if (total === 0) return 0;
+
+  // 기본: 1%, 쿠폰: 0.5%
+  const baseRate = hasDiscount ? 0.005 : 0.01;
+  // VIP는 1.5배
+  const rate = isVip ? baseRate * 1.5 : baseRate;
+
+  return Math.floor(total * rate);
+}

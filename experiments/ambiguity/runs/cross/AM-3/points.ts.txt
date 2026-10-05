@@ -1,0 +1,37 @@
+import { assertWon, type Won } from "../money.js";
+
+export type Points = number;
+
+export interface PointsOptions {
+  /** 상품 합계에서 뺄 할인 금액 */
+  discount?: Won;
+  /** VIP 회원 여부 */
+  isVip?: boolean;
+}
+
+export function calculatePoints(total: Won, options: PointsOptions = {}): Points {
+  const { discount = 0, isVip = false } = options;
+
+  assertWon(total, "total");
+  assertWon(discount, "discount");
+  if (discount > total) {
+    throw new RangeError(`할인(${discount})이 결제 금액(${total})보다 클 수 없습니다`);
+  }
+
+  // 기본 적립: 결제 금액의 1%
+  const basePoints = Math.floor(total * 0.01);
+
+  // 할인 조정: 할인 금액의 1%를 뺀다
+  const discountDeduction = Math.floor(discount * 0.01);
+  let finalPoints = basePoints - discountDeduction;
+
+  // 최소값 보장: 음수 방지
+  finalPoints = Math.max(0, finalPoints);
+
+  // VIP 배수: 2배
+  if (isVip) {
+    finalPoints *= 2;
+  }
+
+  return finalPoints;
+}

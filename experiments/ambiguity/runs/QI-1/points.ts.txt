@@ -1,0 +1,27 @@
+import type { PriceBreakdown } from "./price-cart.js";
+import { assertWon, type Won } from "../money.js";
+
+export interface Customer {
+  grade: "VIP" | "NORMAL";
+}
+
+export function calculatePoints(priceBreakdown: PriceBreakdown, customer: Customer): number {
+  const { subtotal, discount } = priceBreakdown;
+
+  assertWon(subtotal, "subtotal");
+  assertWon(discount, "discount");
+
+  const baseAmount = subtotal - discount;
+  let rate = 0.01;
+
+  if (customer.grade === "VIP") {
+    rate *= 2;
+  }
+
+  if (discount > 0) {
+    rate *= 0.5;
+  }
+
+  const points = Math.floor(baseAmount * rate);
+  return Math.max(0, points);
+}

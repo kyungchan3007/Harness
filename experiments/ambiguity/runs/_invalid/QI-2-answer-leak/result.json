@@ -1,0 +1,43 @@
+{
+  "id": "QI-2",
+  "group": "QI",
+  "n": "2",
+  "model": "claude-haiku-4-5-20251001",
+  "answerModel": "claude-sonnet-5-5",
+  "ref": "6af14ac",
+  "copyDir": "/var/folders/ht/prc2m2q939d1l29154xtvtmw0000gn/T/run-FB09l3",
+  "sessionId": "4b20eba7-4b44-4bf3-ac1b-b1542914d1a2",
+  "minutes": 3.28,
+  "rounds": 1,
+  "answeredItems": [
+    "M1",
+    "M2",
+    "M3",
+    "M4",
+    "M5",
+    "M6",
+    "M7"
+  ],
+  "unansweredMajor": [],
+  "implemented": true,
+  "gatePassed": true,
+  "costUsd": 0.243,
+  "answerCostUsd": 0.054,
+  "answers": [
+    {
+      "round": 1,
+      "answer": "1. 쿠폰을 쓴 주문은 적립률을 절반으로 줄입니다 (1% → 0.5%).\n2. VIP는 적립률 2배입니다 (1% → 2%). VIP 판별은 회원 정보를 { grade: \"VIP\" | \"NORMAL\" } 형태로 따로 받아서 합니다.\n3. VIP가 쿠폰을 쓰면 VIP 2배를 먼저 적용하고 쿠폰으로 절반을 줄입니다 (2% → 1%). 쿠폰을 썼는지는 priceCart 결과(PriceBreakdown)의 discount가 0보다 큰지로 판단합니다. 적립 기준 금액은 쿠폰 할인 후 상품 금액(subtotal − discount)이고, 배송비는 빼고 계산합니다.\n4. 1포인트 미만은 버립니다(내림).\n5. 입력은 priceCart 결과(PriceBreakdown: subtotal·discount·shipping·total)와 회원 정보 { grade: \"VIP\" | \"NORMAL\" }입니다. 쿠폰 할인은 discount로 들어옵니다. 함수 이름은 자유입니다.",
+      "usedItems": [
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "M5",
+        "M6",
+        "M7"
+      ],
+      "usedInterface": true,
+      "costUsd": 0.053949750000000005
+    }
+  ]
+}

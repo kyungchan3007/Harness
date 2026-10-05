@@ -1,0 +1,23 @@
+import type { PriceBreakdown } from "./price-cart.js";
+import { assertWon } from "../money.js";
+
+export interface Member {
+  grade: "VIP" | "NORMAL";
+}
+
+export function earnPoints(breakdown: PriceBreakdown, member: Member): number {
+  assertWon(breakdown.total, "total");
+
+  let rate = 1;
+
+  if (member.grade === "VIP") {
+    rate *= 2;
+  }
+
+  if (breakdown.discount > 0) {
+    rate *= 0.5;
+  }
+
+  const points = Math.floor((breakdown.total * rate) / 100);
+  return points;
+}
