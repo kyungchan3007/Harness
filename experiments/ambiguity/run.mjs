@@ -1,4 +1,4 @@
-// 모호한 요청 실험 한 번 실행 — node experiments/ambiguity/run.mjs --group A|Q|BR --n 1 [--model 모델] [--timeout 분]
+// 모호한 요청 실험 한 번 실행 — node experiments/ambiguity/run.mjs --group A|Q|BR --n 1 [--model 모델] [--timeout 분] [--ref 복사본 기준 커밋]
 // 복사본 준비(0015 장치) → AI 실행 → 산출물 저장 → runs/<group>-<n>/  (판정은 judge.mjs)
 import { spawnSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -43,10 +43,18 @@ function transcriptLines(copyDir) {
   return dirs.flatMap(listJsonl).flatMap((f) => readFileSync(f, "utf8").split("\n"));
 }
 
-export function runOnce({ group, n, model = "claude-haiku-4-5-20251001", timeoutMin = 30 }) {
-  const out = join(HERE, "runs", `${group}-${n}`);
+const DEFAULT_MODEL = "claude-haiku-4-5-20251001";
+/** 0026: Haiku 외 모델은 결과 폴더·집계 그룹에 모델 이름을 붙인다 (예: A-sonnet) */
+export function groupKey(group, model = DEFAULT_MODEL) {
+  const short = /claude-(\w+)-/.exec(model)?.[1];
+  return model === DEFAULT_MODEL || !short ? group : `${group}-${short}`;
+}
+
+export function runOnce({ group, n, model = DEFAULT_MODEL, timeoutMin = 30, ref = "HEAD" }) {
+  const key = groupKey(group, model);
+  const out = join(HERE, "runs", `${key}-${n}`);
   if (existsSync(out)) throw new Error(`이미 결과가 있습니다: ${out}`);
-  const { dir, leaks } = prepareCopy();
+  const { dir, leaks } = prepareCopy({ ref });
   if (leaks.length) throw new Error(`복사본 누출 ${leaks.length}건 — 실행 중단: ${dir}`);
   spawnSync("git", ["checkout", "-q", "-b", BRANCH], { cwd: dir });
 
@@ -77,7 +85,7 @@ export function runOnce({ group, n, model = "claude-haiku-4-5-20251001", timeout
   const entries = existsSync(traceFile) ? readFileSync(traceFile, "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l)) : [];
 
   const result = {
-    id: `${group}-${n}`, group, n, model, copyDir: dir,
+    id: `${key}-${n}`, group: key, n, model, ref, copyDir: dir,
     minutes: Math.round((Date.now() - started) / 600) / 100,
     exit: r.status, timedOut: r.error?.code === "ETIMEDOUT",
     implemented,
@@ -94,6 +102,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const arg = (k, d) => { const i = process.argv.indexOf(`--${k}`); return i >= 0 ? process.argv[i + 1] : d; };
   const group = arg("group"), n = arg("n");
   if (!PROMPTS[group] || !n) { console.error("사용법: node experiments/ambiguity/run.mjs --group A|Q|BR --n 1"); process.exit(2); }
-  const r = runOnce({ group, n, model: arg("model"), timeoutMin: Number(arg("timeout", 30)) });
+  const r = runOnce({ group, n, model: arg("model", DEFAULT_MODEL), timeoutMin: Number(arg("timeout", 30)), ref: arg("ref", "HEAD") });
   console.log(`${r.id}: 구현 ${r.implemented ? "있음" : "없음"} · 게이트 ${r.gatePassed ? "통과" : "실패"} · ${r.minutes}분 · $${r.costUsd?.toFixed(2)}`);
 }
