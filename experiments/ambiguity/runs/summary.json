@@ -29,6 +29,26 @@
     "implemented": 2,
     "stoppedToAsk": 1
   },
+  "AM": {
+    "runs": 3,
+    "asked": 0,
+    "assumed": 9,
+    "silent": 12,
+    "majorSilent": 9,
+    "clearAsked": 0,
+    "implemented": 3,
+    "stoppedToAsk": 0
+  },
+  "BM": {
+    "runs": 3,
+    "asked": 0,
+    "assumed": 16,
+    "silent": 5,
+    "majorSilent": 4,
+    "clearAsked": 0,
+    "implemented": 3,
+    "stoppedToAsk": 0
+  },
   "BR": {
     "runs": 3,
     "asked": 0,

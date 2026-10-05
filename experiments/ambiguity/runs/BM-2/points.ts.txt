@@ -1,0 +1,45 @@
+import { assertWon, type Won } from "../money.js";
+
+export interface PointsOptions {
+  /** VIP 회원 여부 */
+  isVip?: boolean;
+  /** 쿠폰 사용 여부 */
+  hasCoupon?: boolean;
+}
+
+/**
+ * 결제 금액 기반 포인트 적립 계산
+ *
+ * 규칙: domain.md 포인트 섹션 (0030)
+ * - 기본 적립률: 결제 금액의 1%
+ * - VIP 배율: 1.5배
+ * - 쿠폰 감소율: 50% (0.5배)
+ * - 계산 순서: 기본율 → VIP 배율 → 쿠폰 감소 → Math.round
+ * - 최종 포인트: 0 이상의 정수
+ *
+ * @param total 결제 금액 (0 이상의 정수)
+ * @param options VIP 여부, 쿠폰 사용 여부
+ * @returns 포인트 (0 이상의 정수)
+ * @throws RangeError if total is not a valid Won
+ */
+export function calculatePoints(total: Won, options: PointsOptions = {}): number {
+  assertWon(total, "결제 금액");
+
+  const { isVip = false, hasCoupon = false } = options;
+
+  // 기본 적립률: 1%
+  let points = total * 0.01;
+
+  // VIP 배율 (1.5배)
+  if (isVip) {
+    points *= 1.5;
+  }
+
+  // 쿠폰 감소 (50% 감소 = 0.5배)
+  if (hasCoupon) {
+    points *= 0.5;
+  }
+
+  // 최종 반올림
+  return Math.round(points);
+}

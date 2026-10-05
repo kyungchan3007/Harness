@@ -14,11 +14,11 @@ export const IMPL_PATH = "src/pricing/coupon.ts";
 export const ORACLE_PATH = "src/pricing/coupon.oracle.test.ts";
 
 /** 실험을 설계·준비한 태스크 — 기록 폴더를 빼고, 작업 보드·일지의 행도 지운다 */
-export const EXCLUDED_TASKS = ["0012", "0013", "0014", "0015", "0016", "0022", "0023", "0024", "0026"]; // 0022~0026: 실험 결과·채점 내용·정답지가 적혀 있어 힌트가 됨
+export const EXCLUDED_TASKS = ["0012", "0013", "0014", "0015", "0016", "0022", "0023", "0024", "0025", "0026"]; // 0022~0026: 실험 결과·채점 내용·정답지가 적혀 있어 힌트가 됨
 /** 복사본에 넣지 않는 경로 — 실험 자체(채점·정답)와 위 태스크 기록 */
 export const EXCLUDED_PATHS = ["experiments/**", ...EXCLUDED_TASKS.map((id) => `agents/intent/specs/${id}-*/**`)];
 /** 표 행 단위로 위 태스크를 지울 파일 */
-const ROW_FILTERED_FILES = ["agents/orchestration/TASKS.md", "agents/JOURNAL.md", "LEARNINGS.md"];
+const ROW_FILTERED_FILES = ["agents/orchestration/TASKS.md", "agents/JOURNAL.md", "LEARNINGS.md", "README.md"];
 
 /** 복사본에 있으면 안 되는 말 — 채점 기준·정답·실험 설계가 새어 들어갔다는 신호 */
 export const LEAK_PATTERNS = [
@@ -29,6 +29,8 @@ export const LEAK_PATTERNS = [
   /priceWithCoupons/,
   /CouponError/,
   /experiments\/role-split/,
+  /포인트 적립/, // 0024~ 애매한 요청 실험 과제
+  /몰래 지어/,
 ];
 
 const SKIP_DIRS = new Set(["node_modules", ".git"]);
