@@ -27,3 +27,4 @@
 | 0023 | 채점표 세 번째 입력값(배송비 정책) 테스트 + 지난 실행 재채점 | claude | done | [0023](../intent/specs/0023-oracle-shipping-policy/prd.md) · #26 |
 | 0024 | 모호한 요청에 되묻는가, 지어내는가 (포인트 적립 과제) | claude | done | [0024](../intent/specs/0024-ambiguity/prd.md) · #28 |
 | 0025 | "애매한 곳·가정" 필수 칸 장치 + 재실행(AM·BM) | claude | done | [0025](../intent/specs/0025-assumption-field/prd.md) · #30 |
+| 0026 | 모호한 요청 실험을 큰 모델(Sonnet·Opus)로 다시 | claude | done | [0026](../intent/specs/0026-bigger-models/prd.md) · #31 |

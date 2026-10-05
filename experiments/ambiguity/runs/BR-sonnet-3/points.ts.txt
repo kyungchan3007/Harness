@@ -1,0 +1,65 @@
+import { assertWon, type Won } from "../money.js";
+
+/** 포인트. 항상 0 이상의 정수, 1포인트 단위 (agents/context/domain.md) */
+export type Point = number;
+
+/** 적립률 단위. 1bps = 0.01% (100bps = 1%) */
+export type Bps = number;
+
+export interface PointPolicy {
+  /** 일반 회원, 쿠폰 미사용 (원문 1%) */
+  general: Bps;
+  /** 일반 회원, 쿠폰 사용 (잠정) */
+  generalWithCoupon: Bps;
+  /** VIP, 쿠폰 미사용 (잠정) */
+  vip: Bps;
+  /** VIP, 쿠폰 사용 (잠정) */
+  vipWithCoupon: Bps;
+}
+
+export const DEFAULT_POINT_POLICY: PointPolicy = {
+  general: 100,
+  generalWithCoupon: 50,
+  vip: 200,
+  vipWithCoupon: 100,
+};
+
+export interface PointInput {
+  /** 결제 금액 = priceCart().total */
+  total: Won;
+  /** 쿠폰 사용 여부 (판별은 0003 몫) */
+  usedCoupon: boolean;
+  /** VIP 여부 (판별은 이 태스크 범위 밖) */
+  isVip: boolean;
+}
+
+const BPS_DENOMINATOR = 10_000;
+
+function assertBps(value: number, label: string): void {
+  if (!Number.isSafeInteger(value) || value < 0) {
+    throw new RangeError(`${label}은(는) 0 이상의 정수 bps여야 합니다: ${value}`);
+  }
+}
+
+/** 결제 금액에 대한 적립 포인트. 소수는 내림, 정수 연산만 사용한다. */
+export function calculatePoints(input: PointInput, policy: PointPolicy = DEFAULT_POINT_POLICY): Point {
+  const { total, usedCoupon, isVip } = input;
+  assertWon(total, "total");
+  assertBps(policy.general, "policy.general");
+  assertBps(policy.generalWithCoupon, "policy.generalWithCoupon");
+  assertBps(policy.vip, "policy.vip");
+  assertBps(policy.vipWithCoupon, "policy.vipWithCoupon");
+
+  const bps = isVip
+    ? usedCoupon
+      ? policy.vipWithCoupon
+      : policy.vip
+    : usedCoupon
+      ? policy.generalWithCoupon
+      : policy.general;
+
+  // floor(total * bps / 10000)과 같지만 중간값이 안전한 정수 범위를 넘지 않도록 나눠 계산한다.
+  return (
+    Math.floor(total / BPS_DENOMINATOR) * bps + Math.floor(((total % BPS_DENOMINATOR) * bps) / BPS_DENOMINATOR)
+  );
+}

@@ -1,0 +1,42 @@
+{
+  "model": "claude-sonnet-5-5",
+  "items": {
+    "M1": {
+      "label": "asked",
+      "evidence": "Asks whether '결제 금액' is total including shipping or should exclude shipping.",
+      "flagQuote": "\"결제 금액\"은 `domain.md`의 total(`subtotal − discount + shipping`)이 맞나요? 그러면 배송비도 적립 대상에 포함됩니다. 배송비를 뺀 금액이 기준이어야 하나요?"
+    },
+    "M2": {
+      "label": "asked",
+      "evidence": "Asks whether to floor, round, or ceil fractional points.",
+      "flagQuote": "소수가 나올 때 내림, 반올림, 올림 중 무엇인가요?"
+    },
+    "M3": {
+      "label": "asked",
+      "evidence": "Asks how much '좀 줄여' means, with examples (0.5% or 50%).",
+      "flagQuote": "\"좀 줄여\"는 구체적으로 얼마인가요? 예를 들면 1% → 0.5%, 또는 적립액의 50%입니다."
+    },
+    "M4": {
+      "label": "asked",
+      "evidence": "Asks whether coupon can be an input value since no coupon feature exists, and whether only usage matters or coupon type matters.",
+      "flagQuote": "쿠폰 기능(0003)이 아직 없는데, 이번 태스크에서 입력값으로만 받으면 되나요? 아니면 쿠폰 모델이 먼저 필요한가요?"
+    },
+    "M5": {
+      "label": "asked",
+      "evidence": "Asks how much more VIP earns, with examples (2% or +1%p).",
+      "flagQuote": "\"더 많이\"는 구체적으로 얼마인가요? 예를 들면 2%, 또는 기본 적립에 +1%p입니다."
+    },
+    "M6": {
+      "label": "asked",
+      "evidence": "Asks where VIP status comes from, whether as an isVip input, and whether there are multiple tiers.",
+      "flagQuote": "VIP 여부는 어디서 오나요? 회원 모델이 없으니 입력값(`isVip: boolean`)으로 받으면 되나요?"
+    },
+    "M7": {
+      "label": "asked",
+      "evidence": "Asks about priority or combination when both coupon and VIP apply.",
+      "flagQuote": "우선순위나 합산 방식이 있나요? 예를 들면 VIP 2%에 쿠폰 감산, 또는 쿠폰이면 VIP 혜택 없음입니다."
+    }
+  },
+  "clearAsked": [],
+  "questionsCount": 16
+}

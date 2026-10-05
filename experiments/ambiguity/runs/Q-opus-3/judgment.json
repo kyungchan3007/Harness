@@ -1,0 +1,42 @@
+{
+  "model": "claude-sonnet-5-5",
+  "items": {
+    "M1": {
+      "label": "asked",
+      "evidence": "Q1 asks whether shipping is included in the payment amount for points.",
+      "flagQuote": "**결제 금액에 배송비가 들어가나요?** `domain.md`에서 결제 금액은 `상품 합계 − 할인 + 배송비`입니다. 배송비까지 포함해 적립하나요, 아니면 `상품 합계 − 할인`(배송비 제외)에만 적립하나요?"
+    },
+    "M2": {
+      "label": "asked",
+      "evidence": "Q2 asks whether fractional points are floored, rounded, or ceiled.",
+      "flagQuote": "**1포인트 미만은 어떻게 처리하나요?** 예를 들어 12,345원 × 1% = 123.45P입니다. 내림, 반올림, 올림 중 무엇인가요?"
+    },
+    "M3": {
+      "label": "asked",
+      "evidence": "Q3 asks how much the coupon order's points are reduced.",
+      "flagQuote": "**쿠폰 주문은 얼마나 줄이나요?** 적립률을 낮추나요(예: 0.5%), 계산된 포인트에서 일정 비율을 빼나요? 아니면 쿠폰 할인으로 결제 금액이 이미 줄었으니 따로 더 줄이지 않나요?"
+    },
+    "M4": {
+      "label": "asked",
+      "evidence": "Q4 asks how coupon use is determined (discount > 0 vs separate input).",
+      "flagQuote": "**쿠폰을 쓴 주문은 어떻게 알아보나요?** 쿠폰 기능(0003)은 아직 없고, 지금 코드에는 할인 금액만 있습니다. `할인 금액 > 0`이면 쿠폰을 쓴 것으로 볼까요, 아니면 쿠폰 사용 여부를 따로 입력받을까요?"
+    },
+    "M5": {
+      "label": "asked",
+      "evidence": "Q5 asks how much extra VIP gets (rate vs multiplier).",
+      "flagQuote": "**VIP는 얼마나 더 주나요?** 적립률(예: 2%)인가요, 배수(예: 2배)인가요? 등급은 VIP와 일반 두 가지뿐인가요? 입력은 예/아니오 값인가요, 등급 값인가요?"
+    },
+    "M6": {
+      "label": "asked",
+      "evidence": "The Q5 message also asks whether grades are only VIP/normal and whether the input is a boolean or a grade value, which covers VIP detection.",
+      "flagQuote": "등급은 VIP와 일반 두 가지뿐인가요? 입력은 예/아니오 값인가요, 등급 값인가요?"
+    },
+    "M7": {
+      "label": "asked",
+      "evidence": "Q6 asks how to combine VIP and coupon when both apply.",
+      "flagQuote": "**VIP가 쿠폰을 쓰면 어떻게 계산하나요?** 두 효과를 곱하나요, 쿠폰을 쓰면 VIP 혜택이 없나요, 아니면 VIP는 쿠폰 감산을 받지 않나요?"
+    }
+  },
+  "clearAsked": [],
+  "questionsCount": 8
+}

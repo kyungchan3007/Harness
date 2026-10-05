@@ -24,3 +24,4 @@
 | 2026-10-02 | 0023 채점표 세 번째 입력값 테스트 + 재채점 (#26) | 함정 22/22 확인, 재채점 12건(B-1·B-2만 T22 실패), ALL PASS | 타입만 다른 위반(Won→number)은 실행 테스트로 못 잡음 | [trace](intent/specs/0023-oracle-shipping-policy/trace.md) |
 | 2026-10-04 | 0024 모호한 요청 실험 (#28) | 몰래 지어냄 A 95% · Q 14% · BR 86%, 9회·판정·직접 확인, ALL PASS | 채점 AI가 "명시 안 함"이라 쓰고 assumed 판정 → 인용 필수로 강화 / 흔한 말의 숨은 뜻은 아무도 못 봄 | [trace](intent/specs/0024-ambiguity/trace.md) |
 | 2026-10-05 | 0025 "애매한 곳·가정" 필수 칸 (#30) | 몰래 지어냄 AM 57% · BM 24% (0024 A 95% · BR 86%), 6회·판정·칸 직접 확인, ALL PASS | 템플릿 안내 줄이 검사를 통과하던 구멍 / 복사본 힌트 2곳 / 판정 AI에 hook 끼어듦 / 숨은 뜻은 칸으로도 못 잡음 | [trace](intent/specs/0025-assumption-field/trace.md) |
+| 2026-10-05 | 0026 모호한 요청 — 큰 모델 (#31) | 몰래 지어냄 A: Haiku 95% → Sonnet·Opus 10%, BR: 86% → Sonnet 0%, Opus 지시 없이 3/3 물음, 15회·판정·직접 확인, ALL PASS | Opus는 설치된 CLI로 못 돌림 / Sonnet A 거절 3번 / 채점 AI = Sonnet | [trace](intent/specs/0026-bigger-models/trace.md) |

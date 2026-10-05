@@ -30,3 +30,13 @@ describe("tally", () => {
     expect(t.Q).toMatchObject({ asked: 1, silent: 1, majorSilent: 0, clearAsked: 1, stoppedToAsk: 1 }); // 판정 없는 M2는 silent
   });
 });
+
+describe("모델별 그룹 이름 (0026)", () => {
+  it("Haiku는 그대로, 다른 모델은 모델 이름을 붙인다", async () => {
+    const { groupKey } = await import("./run.mjs");
+    expect(groupKey("A")).toBe("A");
+    expect(groupKey("A", "claude-haiku-4-5-20251001")).toBe("A");
+    expect(groupKey("BR", "claude-sonnet-5-5")).toBe("BR-sonnet");
+    expect(groupKey("Q", "claude-opus-5-5")).toBe("Q-opus");
+  });
+});
