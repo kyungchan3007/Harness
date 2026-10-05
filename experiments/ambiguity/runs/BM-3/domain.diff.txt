@@ -1,0 +1,24 @@
+diff --git a/agents/context/domain.md b/agents/context/domain.md
+index 7ddff06..0933e5b 100644
+--- a/agents/context/domain.md
++++ b/agents/context/domain.md
+@@ -26,3 +26,19 @@
+ 1. 기본 배송비는 3,000원.
+ 2. **할인 후 상품 금액**(`subtotal − discount`)이 50,000원 **이상**이면 무료.
+ 3. 빈 장바구니는 배송비 0원, 결제 금액 0원.
++
++## 포인트 적립 규칙 (0030)
++
++| 용어 | 뜻 |
++| --- | --- |
++| 포인트(Point) | 주문 후 적립되는 고객 보상. **항상 0 이상의 정수**. 소수점 포인트는 존재하지 않는다 |
++| 적립률(Earning Rate) | 결제 금액 대비 포인트 적립 비율. 기본값은 1% |
++| 회원 등급(Membership) | 고객의 등급 분류. 기본(Regular) 또는 VIP 중 하나 |
++
++### 적립 규칙
++
++1. **기본 적립:** 결제 금액(`total`)의 1%를 포인트로 적립한다. `basePoints = floor(total × 0.01)`
++2. **쿠폰 적용 시:** 쿠폰으로 할인받은 주문의 경우, 적립 포인트를 70%로 감소시킨다. `couponAdjusted = basePoints × 0.7`
++3. **VIP 회원:** VIP 등급 회원의 경우, 적립 포인트를 1.5배 증가시킨다. `vipAdjusted = basePoints × 1.5`
++4. **결합 규칙:** 쿠폰과 VIP가 모두 적용되는 경우, 두 배수를 곱한다. `final = floor(basePoints × 0.7 × 1.5)`
++5. **정수 단위:** 최종 포인트는 내림(`Math.floor`)으로 정수화한다. 소수점 이하는 버린다.

@@ -1,0 +1,43 @@
+import { assertWon, type Won } from "../money.js";
+
+/**
+ * 포인트 적립 계산
+ *
+ * 도메인 규칙: agents/context/domain.md 포인트 규칙 1~8
+ * - 기본 적립률: 결제 금액의 1%
+ * - 쿠폰 사용 시: 80% 감소 (0.8%)
+ * - VIP 회원: 150% 증가 (1.5%)
+ * - 둘 다 적용: 1.2% (0.8% × 1.5)
+ * - 반올림: Math.round (0.5 이상 올림)
+ */
+
+const BASIC_RATE = 0.01;
+const COUPON_RATE = 0.8;
+const VIP_RATE = 1.5;
+
+export function calculatePoints(
+  total: Won,
+  options?: { couponUsed?: boolean; isVip?: boolean }
+): number {
+  assertWon(total, "total");
+
+  const { couponUsed = false, isVip = false } = options ?? {};
+
+  // 기본 포인트 계산
+  let pointsBase = total * BASIC_RATE;
+
+  // 쿠폰 적용
+  if (couponUsed) {
+    pointsBase *= COUPON_RATE;
+  }
+
+  // VIP 적용
+  if (isVip) {
+    pointsBase *= VIP_RATE;
+  }
+
+  // Math.round로 반올림하여 정수로 변환
+  const points = Math.round(pointsBase);
+
+  return Math.max(0, points);
+}

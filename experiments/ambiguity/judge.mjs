@@ -2,6 +2,7 @@
 // 채점 AI(Sonnet)에 정답지 + 실행 산출물을 주고 애매한 곳마다 asked/assumed/silent 판정 → runs/<id>/judgment.json
 import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseJudgment, tally } from "./judge-lib.mjs";
@@ -47,7 +48,7 @@ JSON만 출력하라:
 
 export function judgeRun(id, model = "claude-sonnet-5-5") {
   const runDir = join(RUNS, id);
-  const r = spawnSync("claude", ["-p", prompt(runDir), "--model", model, "--output-format", "json"], { encoding: "utf8", maxBuffer: 1 << 26, timeout: 600_000 });
+  const r = spawnSync("claude", ["-p", prompt(runDir), "--model", model, "--output-format", "json"], { cwd: tmpdir(), encoding: "utf8", maxBuffer: 1 << 26, timeout: 600_000 }); // 저장소 hook(기록 강제)이 끼지 않게 빈 곳에서
   const judgment = parseJudgment(JSON.parse(r.stdout).result);
   writeFileSync(join(runDir, "judgment.json"), JSON.stringify({ model, ...judgment }, null, 2) + "\n");
   return judgment;
