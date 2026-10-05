@@ -5,12 +5,12 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { beforeEach, describe, expect, it } from "vitest";
 import { describeSession } from "../session-context.mjs";
-import { checkBeforeStop, checkPrd, checkSdd, checkTrace, decideEdit, decideRequest, decideRole, hasReadRequest, inspectTask, isFixBranch, isRecordPath, issueNumberOf, ownersOf, parseTaskId } from "./records.mjs";
+import { checkAssumptions, checkBeforeStop, checkPrd, checkSdd, checkTrace, decideEdit, decideRequest, decideRole, hasReadRequest, inspectTask, isFixBranch, isRecordPath, issueNumberOf, ownersOf, parseTaskId } from "./records.mjs";
 
 const TEMPLATES = join(dirname(fileURLToPath(import.meta.url)), "../../../intent/templates");
 const template = (name) => readFileSync(join(TEMPLATES, name), "utf8");
 
-const FILLED_PRD = "# 0042 — 추가 배송비 — PRD\n\n- **이슈:** #12\n\n## Acceptance\n- [ ] 도서산간 3,000원 추가\n";
+const FILLED_PRD = "# 0042 — 추가 배송비 — PRD\n\n- **이슈:** #12\n\n## Acceptance\n- [ ] 도서산간 3,000원 추가\n\n## 애매한 곳·가정\n- 도서산간 판별 기준 — 우편번호 목록 (가정)\n";
 const FILLED_SDD = "# 0042 — SDD\n\n## 설계\n- **접근:** 배송 정책에 지역 가산 추가\n- **대안·트레이드오프:**\n  - 지역 테이블 분리: 과함 → 기각\n- **검증 계획:** 경계값 테스트\n";
 const FILLED_TRACE = "# 0042 — Trace\n\n| 순서 | 단계 | 한 일 | 판단·이유 |\n| --- | --- | --- | --- |\n| 1 | CLAIM | 브랜치 생성 | - |\n";
 
@@ -42,7 +42,7 @@ const fillTask = ({ trace = true } = {}) => {
 
 describe("템플릿 탐지", () => {
   it("실제 템플릿 파일은 모두 미완으로 판정한다", () => {
-    expect(checkPrd(template("prd.md"), "0042")).toHaveLength(3); // 제목 · Acceptance · 이슈 번호("#번호" 자리표시)
+    expect(checkPrd(template("prd.md"), "0042")).toHaveLength(4); // 제목 · Acceptance · 이슈 번호("#번호" 자리표시) · 애매한 곳·가정(안내 줄뿐)
     expect(checkSdd(template("sdd.md"))).toHaveLength(3);
     expect(checkTrace(template("trace.md"))).toHaveLength(1);
   });
@@ -316,5 +316,26 @@ describe("원문 고정 (0022)", () => {
     expect(inspectTask(repo, "0042-extra-shipping").join("\n")).toContain("### 원문 대조 항목이 없습니다");
     write(`${TASK}/verdict.md`, "## 1차 · x\n판정: approved\n### 확인한 것\n- 테스트 통과\n### 원문 대조\n- 규칙 1~3 ↔ 구현·테스트\n");
     expect(inspectTask(repo, "0042-extra-shipping")).toEqual([]);
+  });
+});
+
+describe("애매한 곳·가정 칸 (0025)", () => {
+  const base = "# 0042 — 추가 배송비 — PRD\n\n- **이슈:** #1\n\n## Acceptance\n- [ ] 도서산간 3,000원 추가\n";
+  it("칸이 없거나 비면 문제", () => {
+    expect(checkAssumptions(base).join()).toContain("칸이 없습니다");
+    expect(checkAssumptions(`${base}\n## 애매한 곳·가정\n`).join()).toContain("칸이 비었습니다");
+    expect(checkAssumptions(template("prd.md")).join()).toContain("칸이 비었습니다"); // 템플릿 안내 줄만 있으면 빈 칸
+  });
+  it("줄마다 (가정)·(확인 필요) 표시가 있어야 통과", () => {
+    expect(checkAssumptions(`${base}\n## 애매한 곳·가정\n- 추가 금액 — 3,000원\n`).join()).toContain("표시가 없습니다");
+    expect(checkAssumptions(`${base}\n## 애매한 곳·가정\n- 추가 금액 — 3,000원 (가정)\n- 제주 포함 여부 (확인 필요)\n`)).toEqual([]);
+  });
+  it("정말 없으면 \"없음 — 이유\" 한 줄만", () => {
+    expect(checkAssumptions(`${base}\n## 애매한 곳·가정\n- 없음 — 요청이 값·입력을 모두 정함\n`)).toEqual([]);
+    expect(checkAssumptions(`${base}\n## 애매한 곳·가정\n- 없음 — x\n- 끝수 (가정)\n`).join()).toContain("함께 쓸 수 없습니다");
+  });
+  it("0025 이전 태스크는 면제, 이후는 checkPrd가 검사", () => {
+    expect(checkPrd(base.replace("0042", "0020"), "0020").join()).not.toContain("애매한 곳");
+    expect(checkPrd(base, "0042").join()).toContain("칸이 없습니다");
   });
 });

@@ -1,0 +1,40 @@
+{
+  "id": "BM-2",
+  "group": "BM",
+  "n": "2",
+  "model": "claude-haiku-4-5-20251001",
+  "copyDir": "/var/folders/ht/prc2m2q939d1l29154xtvtmw0000gn/T/run-Tw04mT",
+  "minutes": 9.7,
+  "exit": 0,
+  "timedOut": false,
+  "implemented": true,
+  "gatePassed": true,
+  "trace": {
+    "toolCalls": 83,
+    "byRole": {
+      "main": 22,
+      "designer": 18,
+      "builder": 19,
+      "verifier": 24
+    },
+    "mainEdits": 3,
+    "edits": 17,
+    "blocked": 2,
+    "stopBlocked": 1,
+    "testRuns": 9
+  },
+  "usage": {
+    "requests": 81,
+    "sessions": 1,
+    "models": [
+      "claude-haiku-4-5-20251001"
+    ],
+    "input": 669,
+    "cacheWrite": 143380,
+    "cacheRead": 1951654,
+    "output": 12848,
+    "maxContext": 51127,
+    "lastContext": 51127
+  },
+  "costUsd": 0.6537343999999999
+}

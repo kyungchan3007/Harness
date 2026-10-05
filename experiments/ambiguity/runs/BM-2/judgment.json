@@ -1,0 +1,42 @@
+{
+  "model": "claude-sonnet-5-5",
+  "items": {
+    "M1": {
+      "label": "silent",
+      "evidence": "기준 금액을 total(결제 금액)로 정해 구현했고, 배송비 포함 여부에 대한 모호성은 언급하지 않음. 가정 목록에도 없음.",
+      "flagQuote": ""
+    },
+    "M2": {
+      "label": "assumed",
+      "evidence": "PRD '애매한 곳·가정'에 반올림 규칙이 '미명시(원문)'이며 Math.round로 정했다고 가정으로 밝힘.",
+      "flagQuote": "반올림 규칙 — 미명시 (원문) → Math.round (반올림) (가정: 상거래 업계 표준, 공정성)"
+    },
+    "M3": {
+      "label": "assumed",
+      "evidence": "'좀 줄여'가 애매하다고 명시하고 50% 감소로 정했으며 가정이라고 밝힘.",
+      "flagQuote": "쿠폰 감소율 — \"좀 줄여\" (원문) → 적립률 50% 감소 (1% → 0.5%) (가정: 쿠폰 사용 시 고객 만족도 이미 높으므로 포인트 유인 완화)"
+    },
+    "M4": {
+      "label": "assumed",
+      "evidence": "trace.md에 입력값(hasCoupon boolean)이 '원문에 없음 — 설계 결정'이라고 명시함.",
+      "flagQuote": "**원문에 없음 — 설계 결정:**  "
+    },
+    "M5": {
+      "label": "assumed",
+      "evidence": "'더 많이'가 애매하다고 하고 1.5배로 정했으며 가정이라고 밝힘.",
+      "flagQuote": "VIP 배율 — \"더 많이\" (원문) → 1.5배 (1% → 1.5%) (가정: 상위 고객층 로열티 인센티브)"
+    },
+    "M6": {
+      "label": "assumed",
+      "evidence": "isVip boolean 플래그를 '원문에 없음 — 설계 결정' 항목에서 입력 형태로 정했다고 밝힘.",
+      "flagQuote": "**원문에 없음 — 설계 결정:**  "
+    },
+    "M7": {
+      "label": "assumed",
+      "evidence": "계산 순서가 미명시라 VIP 배율 → 쿠폰 감소 순으로 정했다고 가정으로 밝힘.",
+      "flagQuote": "계산 순서 — 미명시 (원문) → 기본율 → VIP 배율 → 쿠폰 감소 → 반올림 (가정: 논리적 계층 구조)"
+    }
+  },
+  "clearAsked": [],
+  "questionsCount": 0
+}

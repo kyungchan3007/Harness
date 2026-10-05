@@ -1,0 +1,37 @@
+{
+  "id": "AM-2",
+  "group": "AM",
+  "n": "2",
+  "model": "claude-haiku-4-5-20251001",
+  "copyDir": "/var/folders/ht/prc2m2q939d1l29154xtvtmw0000gn/T/run-3OAZPf",
+  "minutes": 3.34,
+  "exit": 0,
+  "timedOut": false,
+  "implemented": true,
+  "gatePassed": true,
+  "trace": {
+    "toolCalls": 37,
+    "byRole": {
+      "main": 37
+    },
+    "mainEdits": 16,
+    "edits": 16,
+    "blocked": 1,
+    "stopBlocked": 0,
+    "testRuns": 5
+  },
+  "usage": {
+    "requests": 46,
+    "sessions": 1,
+    "models": [
+      "claude-haiku-4-5-20251001"
+    ],
+    "input": 369,
+    "cacheWrite": 62112,
+    "cacheRead": 2039563,
+    "output": 19041,
+    "maxContext": 62120,
+    "lastContext": 62120
+  },
+  "costUsd": 0.3771702999999999
+}
