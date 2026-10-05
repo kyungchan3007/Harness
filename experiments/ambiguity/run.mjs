@@ -1,4 +1,4 @@
-// 모호한 요청 실험 한 번 실행 — node experiments/ambiguity/run.mjs --group A|Q|BR --n 1 [--model 모델] [--timeout 분]
+// 모호한 요청 실험 한 번 실행 — node experiments/ambiguity/run.mjs --group A|Q|BR|AM|BM --n 1 [--model 모델] [--timeout 분]
 // 복사본 준비(0015 장치) → AI 실행 → 산출물 저장 → runs/<group>-<n>/  (판정은 judge.mjs)
 import { spawnSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -34,7 +34,11 @@ ${COMMON}
 ---
 ${task}`,
 };
+// 0025: 같은 지시, 다른 저장소 — 복사본에 "애매한 곳·가정" 필수 칸 장치가 있다(커밋 기준). 지시 문장은 A·BR과 똑같다
+PROMPTS.AM = PROMPTS.A;
+PROMPTS.BM = PROMPTS.BR;
 const SETUP_FILES = { BR: (task) => ({ [`${SPEC}/request.md`]: renderRequest("1", task) }) };
+SETUP_FILES.BM = SETUP_FILES.BR;
 
 function transcriptLines(copyDir) {
   const base = join(homedir(), ".claude", "projects");
@@ -93,7 +97,7 @@ export function runOnce({ group, n, model = "claude-haiku-4-5-20251001", timeout
 if (import.meta.url === `file://${process.argv[1]}`) {
   const arg = (k, d) => { const i = process.argv.indexOf(`--${k}`); return i >= 0 ? process.argv[i + 1] : d; };
   const group = arg("group"), n = arg("n");
-  if (!PROMPTS[group] || !n) { console.error("사용법: node experiments/ambiguity/run.mjs --group A|Q|BR --n 1"); process.exit(2); }
+  if (!PROMPTS[group] || !n) { console.error("사용법: node experiments/ambiguity/run.mjs --group A|Q|BR|AM|BM --n 1"); process.exit(2); }
   const r = runOnce({ group, n, model: arg("model"), timeoutMin: Number(arg("timeout", 30)) });
   console.log(`${r.id}: 구현 ${r.implemented ? "있음" : "없음"} · 게이트 ${r.gatePassed ? "통과" : "실패"} · ${r.minutes}분 · $${r.costUsd?.toFixed(2)}`);
 }
