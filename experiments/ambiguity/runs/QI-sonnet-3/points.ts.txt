@@ -1,0 +1,26 @@
+import { assertWon } from "../money.js";
+import type { PriceBreakdown } from "./price-cart.js";
+
+export type Grade = "VIP" | "NORMAL";
+
+export interface Member {
+  grade: Grade;
+}
+
+/** 기준 금액(subtotal − discount)의 1%, VIP는 2배, 쿠폰(discount > 0) 사용 주문은 절반. 1포인트 미만 내림 */
+export function calcPoints(price: Pick<PriceBreakdown, "subtotal" | "discount">, member: Member): number {
+  const { subtotal, discount } = price;
+  assertWon(subtotal, "subtotal");
+  assertWon(discount, "discount");
+  if (discount > subtotal) {
+    throw new RangeError(`할인(${discount})이 상품 합계(${subtotal})보다 클 수 없습니다`);
+  }
+  if (member.grade !== "VIP" && member.grade !== "NORMAL") {
+    throw new RangeError(`알 수 없는 회원 등급입니다: ${String(member.grade)}`);
+  }
+
+  // 적립률의 역수: NORMAL 100 · NORMAL+쿠폰 200 · VIP 50 · VIP+쿠폰 100
+  const divisor = (member.grade === "VIP" ? 50 : 100) * (discount > 0 ? 2 : 1);
+  const base = subtotal - discount;
+  return (base - (base % divisor)) / divisor;
+}

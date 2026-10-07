@@ -1,0 +1,26 @@
+diff --git a/agents/context/domain.md b/agents/context/domain.md
+index 7ddff06..6d3553e 100644
+--- a/agents/context/domain.md
++++ b/agents/context/domain.md
+@@ -12,6 +12,9 @@
+ | 할인(discount) | 상품 합계에서 빼는 금액. 0002에서는 항상 0 (쿠폰은 0003) |
+ | 배송비(shipping) | 할인 후 금액 기준으로 정해지는 고정 금액 |
+ | 결제 금액(total) | `subtotal − discount + shipping` |
++| 적립 기준 금액 | `subtotal − discount` (배송비 제외) |
++| 회원 등급(grade) | `"VIP"` 또는 `"NORMAL"`. 판정은 이 엔진 밖이고 입력으로 받는다 |
++| 포인트(point) | 1포인트 단위의 0 이상 정수 |
+ 
+ ## 장바구니 규칙 (0002)
+ 
+@@ -26,3 +29,11 @@
+ 1. 기본 배송비는 3,000원.
+ 2. **할인 후 상품 금액**(`subtotal − discount`)이 50,000원 **이상**이면 무료.
+ 3. 빈 장바구니는 배송비 0원, 결제 금액 0원.
++
++## 포인트 적립 규칙 (0030)
++
++1. 적립 기준 금액은 `subtotal − discount`다. 배송비·`total`은 쓰지 않는다.
++2. 기본 적립률은 1%, `VIP` 등급은 2배인 2%다.
++3. `discount > 0`이면 쿠폰을 쓴 주문으로 보고 적립률을 절반으로 줄인다. VIP 2배를 먼저 적용하고 절반을 줄인다(일반+쿠폰 0.5%, VIP+쿠폰 1%).
++4. 1포인트 미만은 버린다(내림). 결과는 항상 0 이상의 정수다.
++5. 금액이 0 이상의 정수가 아니거나, `discount > subtotal`이거나, 알 수 없는 등급이면 거부한다.

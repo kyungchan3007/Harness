@@ -1,0 +1,41 @@
+import { assertWon } from "../money.js";
+import type { PriceBreakdown } from "./price-cart.js";
+
+export type MemberGrade = "VIP" | "NORMAL";
+
+export interface Member {
+  grade: MemberGrade;
+}
+
+export interface PointsPolicy {
+  /** 기본 적립률 (베이시스 포인트, 1% = 100) */
+  baseRateBp: number;
+  /** VIP 적립률 배수 */
+  vipMultiplier: number;
+}
+
+export const DEFAULT_POINTS_POLICY: PointsPolicy = { baseRateBp: 100, vipMultiplier: 2 };
+
+const BP_PER_WHOLE = 10_000;
+
+/** 주문 1건의 적립 포인트 (domain.md 포인트 적립 규칙 0030) */
+export function earnPoints(
+  breakdown: PriceBreakdown,
+  member: Member,
+  policy: PointsPolicy = DEFAULT_POINTS_POLICY,
+): number {
+  const { subtotal, discount } = breakdown;
+  assertWon(subtotal, "subtotal");
+  assertWon(discount, "discount");
+  if (discount > subtotal) {
+    throw new RangeError(`할인(${discount})이 상품 합계(${subtotal})보다 클 수 없습니다`);
+  }
+
+  const base = subtotal - discount;
+  let rateBp = policy.baseRateBp;
+  if (member.grade === "VIP") rateBp *= policy.vipMultiplier;
+  const usedCoupon = discount > 0;
+
+  // 쿠폰 절반을 분모에 넣어 모든 중간값을 정수로 유지하고, 내림은 마지막에 한 번만 한다
+  return Math.floor((base * rateBp) / (usedCoupon ? BP_PER_WHOLE * 2 : BP_PER_WHOLE));
+}

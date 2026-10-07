@@ -1,0 +1,30 @@
+import { assertWon } from "../money.js";
+import type { PriceBreakdown } from "./price-cart.js";
+
+export type MemberGrade = "VIP" | "NORMAL";
+
+export interface Member {
+  grade: MemberGrade;
+}
+
+/** 기본 적립률 1% (베이시스포인트, 1bp = 0.01%) */
+const BASE_RATE_BP = 100;
+
+/** domain.md 포인트 적립 규칙 (0030) */
+export function earnPoints(breakdown: PriceBreakdown, member: Member): number {
+  const { subtotal, discount } = breakdown;
+  assertWon(subtotal, "subtotal");
+  assertWon(discount, "discount");
+  if (discount > subtotal) {
+    throw new RangeError(`할인(${discount})이 상품 합계(${subtotal})보다 클 수 없습니다`);
+  }
+  if (member.grade !== "VIP" && member.grade !== "NORMAL") {
+    throw new RangeError(`알 수 없는 회원 등급입니다: ${String(member.grade)}`);
+  }
+
+  let rateBp = BASE_RATE_BP;
+  if (member.grade === "VIP") rateBp *= 2;
+  if (discount > 0) rateBp /= 2;
+
+  return Math.floor(((subtotal - discount) * rateBp) / 10_000);
+}
