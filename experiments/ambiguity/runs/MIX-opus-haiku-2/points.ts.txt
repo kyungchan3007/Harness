@@ -1,0 +1,58 @@
+import type { PriceBreakdown } from "./price-cart.js";
+import { assertWon } from "../money.js";
+
+export type Points = number;
+export type MemberGrade = "VIP" | "NORMAL";
+export interface Member {
+  grade: MemberGrade;
+}
+
+const BASE_RATE_BP = 100;
+const VIP_MULTIPLIER = 2;
+const COUPON_DIVISOR = 2;
+const BP_DENOMINATOR = 10_000;
+
+export function calculatePoints(
+  breakdown: PriceBreakdown,
+  member: Member
+): Points {
+  // 1. 검증
+  assertWon(breakdown.subtotal, "subtotal");
+  assertWon(breakdown.discount, "discount");
+
+  if (breakdown.discount > breakdown.subtotal) {
+    throw new RangeError(
+      `할인(${breakdown.discount})이 상품 합계(${breakdown.subtotal})보다 클 수 없습니다`
+    );
+  }
+
+  if (member.grade !== "VIP" && member.grade !== "NORMAL") {
+    throw new RangeError(
+      `회원 등급은 "VIP" 또는 "NORMAL"이어야 합니다: ${member.grade}`
+    );
+  }
+
+  // 2. 기준 금액
+  const base = breakdown.subtotal - breakdown.discount;
+
+  // 3. 적립률 (정수 basis point)
+  // VIP 2배를 먼저 적용, 그 다음 쿠폰으로 절반
+  let rateBp = BASE_RATE_BP;
+  if (member.grade === "VIP") {
+    rateBp = rateBp * VIP_MULTIPLIER; // 1% → 2% (100bp → 200bp)
+  }
+  if (breakdown.discount > 0) {
+    rateBp = rateBp / COUPON_DIVISOR; // 절반 (100bp → 50bp 또는 200bp → 100bp)
+  }
+
+  // 4. 버림 (마지막에 한 번만)
+  const product = base * rateBp;
+
+  if (!Number.isSafeInteger(product)) {
+    throw new RangeError(`포인트 계산 중간값이 안전한 정수가 아닙니다: ${product}`);
+  }
+
+  const points = Math.floor(product / BP_DENOMINATOR);
+
+  return points;
+}
