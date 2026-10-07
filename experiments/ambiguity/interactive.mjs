@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { prepareCopy } from "../role-split/lib.mjs";
-import { PROMPTS } from "./run.mjs";
+import { groupKey, PROMPTS } from "./run.mjs";
 import { composeAnswer, isWaitingForAnswer } from "./intent-lib.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -18,8 +18,12 @@ const ALLOWED_TOOLS = ["Read", "Write", "Edit", "MultiEdit", "Glob", "Grep", "Ta
 const INTENT = JSON.parse(readFileSync(join(HERE, "intent.json"), "utf8"));
 const KEY = JSON.parse(readFileSync(join(HERE, "answer-key.json"), "utf8"));
 
+/** 0028: 설치된 CLI가 Opus 5.5를 지원하지 않아 CLI를 지정할 수 있게 한다(0026과 같은 방식). 실행마다 버전을 남긴다 */
+const CLAUDE_BIN = process.env.CLAUDE_BIN || "claude";
+const cliVersion = () => spawnSync(CLAUDE_BIN, ["--version"], { encoding: "utf8" }).stdout.trim();
+
 function claude(args, cwd, timeoutMin = 30) {
-  const r = spawnSync("claude", ["-p", ...args, "--output-format", "json"], { cwd, encoding: "utf8", timeout: timeoutMin * 60_000, maxBuffer: 1 << 28 });
+  const r = spawnSync(CLAUDE_BIN, ["-p", ...args, "--output-format", "json"], { cwd, encoding: "utf8", timeout: timeoutMin * 60_000, maxBuffer: 1 << 28 });
   try { return JSON.parse(r.stdout); } catch { return { result: r.stdout?.slice(-4000) ?? "", is_error: true }; }
 }
 
@@ -42,7 +46,8 @@ JSON만 출력: {"questions":[{"n":1,"items":["M3"],"interface":false}, ...]}`;
 }
 
 export function runInteractive({ n, model = "claude-haiku-4-5-20251001", rounds = 2, answerModel = "claude-sonnet-5-5", ref = "HEAD" }) {
-  const id = `QI-${n}`;
+  const group = groupKey("QI", model); // 0028: Haiku는 QI, 다른 모델은 QI-sonnet처럼
+  const id = `${group}-${n}`;
   const out = join(HERE, "runs", id);
   if (existsSync(out)) throw new Error(`이미 결과가 있습니다: ${out}`);
   const { dir, leaks } = prepareCopy({ ref });
@@ -88,7 +93,7 @@ export function runInteractive({ n, model = "claude-haiku-4-5-20251001", rounds 
 
   const askedItems = [...new Set(answers.flatMap((a) => a.usedItems ?? []))].sort();
   const result = {
-    id, group: "QI", n, model, answerModel, ref, copyDir: dir, sessionId,
+    id, group, n, model, answerModel, ref, cli: cliVersion(), copyDir: dir, sessionId,
     minutes: Math.round((Date.now() - started) / 600) / 100,
     apiError: dialog.some((d) => /^API Error/.test((d.text ?? "").trim())),
     rounds: answers.length, answeredItems: askedItems,
