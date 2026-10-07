@@ -1,0 +1,153 @@
+{
+  "id": "MIX-opus-haiku-1",
+  "group": "MIX-opus-haiku",
+  "n": "1",
+  "model": "claude-opus-5-5",
+  "answerModel": "claude-sonnet-5-5",
+  "ref": "6af14ac",
+  "cli": "2.1.289 (Claude Code)",
+  "copyDir": "/var/folders/ht/prc2m2q939d1l29154xtvtmw0000gn/T/run-UMeQie",
+  "sessionId": "5373509f-a85f-4faa-9b4f-4549418ff649",
+  "minutes": 6.25,
+  "apiError": false,
+  "rounds": 2,
+  "answeredItems": [
+    "M1",
+    "M2",
+    "M3",
+    "M4",
+    "M5",
+    "M6",
+    "M7"
+  ],
+  "unansweredMajor": [],
+  "implemented": true,
+  "gatePassed": true,
+  "costUsd": 2.061,
+  "answerCostUsd": 0.041,
+  "answers": [
+    {
+      "round": 1,
+      "questions": [
+        {
+          "n": 1,
+          "items": [
+            "M1"
+          ],
+          "interface": false
+        },
+        {
+          "n": 2,
+          "items": [
+            "M3"
+          ],
+          "interface": false
+        },
+        {
+          "n": 3,
+          "items": [
+            "M4"
+          ],
+          "interface": true
+        },
+        {
+          "n": 4,
+          "items": [
+            "M5",
+            "M6"
+          ],
+          "interface": true
+        },
+        {
+          "n": 5,
+          "items": [
+            "M7"
+          ],
+          "interface": false
+        },
+        {
+          "n": 6,
+          "items": [
+            "M2"
+          ],
+          "interface": false
+        },
+        {
+          "n": 7,
+          "items": [],
+          "interface": false
+        },
+        {
+          "n": 8,
+          "items": [],
+          "interface": false
+        }
+      ],
+      "answer": "1. 적립 기준은 쿠폰 할인 후 상품 금액(subtotal − discount)입니다. 배송비는 빼고 계산합니다.\n2. 쿠폰을 쓴 주문은 적립률을 절반으로 줄입니다 (1% → 0.5%).\n3. 쿠폰을 썼는지는 priceCart 결과(PriceBreakdown)의 discount가 0보다 큰지로 판단합니다. 쿠폰 할인은 discount로 들어옵니다. 입력은 priceCart 결과(PriceBreakdown: subtotal·discount·shipping·total)와 회원 정보 { grade: \"VIP\" | \"NORMAL\" }입니다. 함수 이름은 자유입니다.\n4. VIP는 적립률 2배입니다 (1% → 2%). 회원 정보는 { grade: \"VIP\" | \"NORMAL\" } 형태로 따로 받습니다. 입력은 priceCart 결과(PriceBreakdown: subtotal·discount·shipping·total)와 회원 정보 { grade: \"VIP\" | \"NORMAL\" }입니다. 함수 이름은 자유입니다.\n5. VIP가 쿠폰을 쓰면 VIP 2배를 먼저 적용하고 쿠폰으로 절반을 줄입니다 (2% → 1%).\n6. 1포인트 미만은 버립니다(내림).\n7. 그 부분은 따로 정한 게 없으니 알아서 정해 주세요.\n8. 그 부분은 따로 정한 게 없으니 알아서 정해 주세요.",
+      "usedItems": [
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "M5",
+        "M6",
+        "M7"
+      ],
+      "usedInterface": true,
+      "costUsd": 0.021788000000000002
+    },
+    {
+      "round": 2,
+      "questions": [
+        {
+          "n": 1,
+          "items": [],
+          "interface": false
+        }
+      ],
+      "answer": "1. 그 부분은 따로 정한 게 없으니 알아서 정해 주세요.",
+      "usedItems": [],
+      "usedInterface": false,
+      "costUsd": 0.0188374
+    }
+  ],
+  "phases": [
+    {
+      "phase": "design",
+      "costUsd": 0.2979588,
+      "turns": 11,
+      "input": 14,
+      "cacheWrite": 30915,
+      "cacheRead": 151839,
+      "output": 5648
+    },
+    {
+      "phase": "design",
+      "costUsd": 0.6568896000000001,
+      "turns": 8,
+      "input": 10,
+      "cacheWrite": 28045,
+      "cacheRead": 157129,
+      "output": 9362
+    },
+    {
+      "phase": "design",
+      "costUsd": 0.7650530000000001,
+      "turns": 6,
+      "input": 10,
+      "cacheWrite": 4326,
+      "cacheRead": 220267,
+      "output": 2122
+    },
+    {
+      "phase": "build",
+      "designedCode": false,
+      "costUsd": 0.34151719999999997,
+      "turns": 40,
+      "input": 290,
+      "cacheWrite": 61592,
+      "cacheRead": 1658172,
+      "output": 19684
+    }
+  ]
+}

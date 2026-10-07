@@ -1,0 +1,53 @@
+import type { PriceBreakdown } from "./price-cart.js";
+import { assertWon, type Won } from "../money.js";
+
+export type MemberGrade = "VIP" | "NORMAL";
+
+export interface Member {
+  grade: MemberGrade;
+}
+
+export interface PointsPolicy {
+  /** 기본 적립률 (bp, 100 = 1%) */
+  baseRateBp: number;
+  /** VIP 배수 */
+  vipMultiplier: number;
+  /** 쿠폰 사용 시 나누는 값 */
+  couponDivisor: number;
+}
+
+export const DEFAULT_POINTS_POLICY: PointsPolicy = {
+  baseRateBp: 100,
+  vipMultiplier: 2,
+  couponDivisor: 2,
+};
+
+export function calculatePoints(
+  breakdown: PriceBreakdown,
+  member: Member,
+  policy: PointsPolicy = DEFAULT_POINTS_POLICY,
+): number {
+  assertWon(breakdown.subtotal, "subtotal");
+  assertWon(breakdown.discount, "discount");
+
+  if (breakdown.discount > breakdown.subtotal) {
+    throw new RangeError(`할인(${breakdown.discount})이 상품 합계(${breakdown.subtotal})보다 클 수 없습니다`);
+  }
+
+  if (member.grade !== "VIP" && member.grade !== "NORMAL") {
+    throw new RangeError(`회원 등급(${member.grade})이 유효하지 않습니다`);
+  }
+
+  const base = breakdown.subtotal - breakdown.discount;
+
+  let rateBp = policy.baseRateBp;
+  if (member.grade === "VIP") {
+    rateBp *= policy.vipMultiplier;
+  }
+  if (breakdown.discount > 0) {
+    rateBp /= policy.couponDivisor;
+  }
+
+  const points = Math.floor((base * rateBp) / 10_000);
+  return points;
+}
