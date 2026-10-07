@@ -1,0 +1,29 @@
+import { assertWon } from "../money.js";
+import type { PriceBreakdown } from "./price-cart.js";
+
+export type MemberGrade = "VIP" | "NORMAL";
+
+export interface Member {
+  grade: MemberGrade;
+}
+
+/** 등급별 적립률(천분율). 소수 연산의 부동소수점 오차를 피하려고 정수로 둔다 */
+const EARN_PER_MILLE: Record<MemberGrade, number> = { NORMAL: 10, VIP: 20 };
+
+export function calcPoints(breakdown: PriceBreakdown, member: Member): number {
+  const { subtotal, discount } = breakdown;
+  assertWon(subtotal, "subtotal");
+  assertWon(discount, "discount");
+  if (discount > subtotal) {
+    throw new RangeError(`할인(${discount})이 상품 합계(${subtotal})보다 클 수 없습니다`);
+  }
+  if (!Object.hasOwn(EARN_PER_MILLE, member.grade)) {
+    throw new RangeError(`알 수 없는 회원 등급: ${String(member.grade)}`);
+  }
+
+  const base = subtotal - discount;
+  const gradePerMille = EARN_PER_MILLE[member.grade];
+  const perMille = discount > 0 ? gradePerMille / 2 : gradePerMille;
+
+  return Math.floor((base * perMille) / 1_000);
+}

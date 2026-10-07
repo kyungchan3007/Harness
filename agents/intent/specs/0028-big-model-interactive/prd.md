@@ -13,10 +13,10 @@
 - CLI 버전 — Sonnet은 설치된 2.1.251, Opus는 앱 내장 2.1.286 (가정: 0026과 같은 조합, 한계에 적음)
 
 ## Acceptance
-- [ ] interactive.mjs에 모델별 결과 폴더(QI-sonnet 등)·CLI 지정
-- [ ] Sonnet QI 3회, Opus QI 3회 실행·채점
-- [ ] 비교표(점수·M1 맞춤·물은 항목·문답 횟수·시간·비용)
-- [ ] 결론·한계·"어떤 작업에 이렇게 하면 좋은가"를 sdd·LEARNINGS에 기록
-- [ ] `pnpm check` ALL PASS
+- [x] interactive.mjs에 모델별 결과 폴더(QI-sonnet 등)·CLI 지정
+- [x] Sonnet QI 3회, Opus QI 3회 실행·채점
+- [x] 비교표(점수·M1 맞춤·물은 항목·문답 횟수·시간·비용)
+- [x] 결론·한계·"어떤 작업에 이렇게 하면 좋은가"를 sdd·LEARNINGS에 기록
+- [x] `pnpm check` ALL PASS
 
 설계와 검증 결과: [sdd.md](sdd.md) · 과정 기록: [trace.md](trace.md)

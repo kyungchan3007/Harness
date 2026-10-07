@@ -26,3 +26,4 @@
 | 2026-10-05 | 0025 "애매한 곳·가정" 필수 칸 (#30) | 몰래 지어냄 AM 57% · BM 24% (0024 A 95% · BR 86%), 6회·판정·칸 직접 확인, ALL PASS | 템플릿 안내 줄이 검사를 통과하던 구멍 / 복사본 힌트 2곳 / 판정 AI에 hook 끼어듦 / 숨은 뜻은 칸으로도 못 잡음 | [trace](intent/specs/0025-assumption-field/trace.md) |
 | 2026-10-05 | 0026 모호한 요청 — 큰 모델 (#31) | 몰래 지어냄 A: Haiku 95% → Sonnet·Opus 10%, BR: 86% → Sonnet 0%, Opus 지시 없이 3/3 물음, 15회·판정·직접 확인, ALL PASS | Opus는 설치된 CLI로 못 돌림 / Sonnet A 거절 3번 / 채점 AI = Sonnet | [trace](intent/specs/0026-bigger-models/trace.md) |
 | 2026-10-05 | 0027 묻고 → 답 → 이어 가기 (#32) | 숨겨진 테스트 평소 27% → 대화형 87%, 지난 실행 16개 재채점, ALL PASS | 요청자 AI가 묻지 않은 답을 덧붙임(첫 3회 무효) / 채점 AI에 hook 끼어듦 / 정답 의도가 흔한 선택과 겹침 | [trace](intent/specs/0027-ask-answer-continue/trace.md) |
+| 2026-10-07 | 0028 큰 모델 + 대화형 (#36) | 숨겨진 테스트 Sonnet·Opus 대화형 15/15, 6회·M1 질문 직접 확인, ALL PASS | 앱 업데이트로 내장 CLI 경로 바뀜 / Sonnet 모델 쪽 거절 1번 / 정답 의도가 흔한 선택과 겹침 | [trace](intent/specs/0028-big-model-interactive/trace.md) |

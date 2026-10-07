@@ -1,0 +1,45 @@
+import { assertWon } from "../money.js";
+import type { PriceBreakdown } from "./price-cart.js";
+
+export type MemberGrade = "VIP" | "NORMAL";
+
+export interface Member {
+  grade: MemberGrade;
+}
+
+export interface PointsPolicy {
+  /** 기본 적립률 (basis point, 100bp = 1%) */
+  baseRateBp: number;
+  /** VIP 적립률 배수 */
+  vipMultiplier: number;
+  /** 쿠폰을 쓴 주문의 적립률 나눔 수 (VIP 배수 적용 뒤) */
+  couponDivisor: number;
+}
+
+export const DEFAULT_POINTS_POLICY: PointsPolicy = { baseRateBp: 100, vipMultiplier: 2, couponDivisor: 2 };
+
+const BP_PER_UNIT = 10_000;
+
+/** 주문 1건의 적립 포인트 (domain.md 포인트 적립 규칙 0030) */
+export function calculatePoints(
+  breakdown: PriceBreakdown,
+  member: Member,
+  policy: PointsPolicy = DEFAULT_POINTS_POLICY,
+): number {
+  const { subtotal, discount } = breakdown;
+  assertWon(subtotal, "subtotal");
+  assertWon(discount, "discount");
+  if (discount > subtotal) {
+    throw new RangeError(`할인(${discount})이 상품 합계(${subtotal})보다 클 수 없습니다`);
+  }
+  if (member.grade !== "VIP" && member.grade !== "NORMAL") {
+    throw new RangeError(`알 수 없는 회원 등급입니다: ${String(member.grade)}`);
+  }
+
+  const base = subtotal - discount;
+  const multiplier = member.grade === "VIP" ? policy.vipMultiplier : 1;
+  const divisor = discount > 0 ? policy.couponDivisor : 1;
+
+  // 정수끼리 곱하고 마지막에 한 번만 내림한다 (부동소수 오차·이중 내림 방지)
+  return Math.floor((base * policy.baseRateBp * multiplier) / (BP_PER_UNIT * divisor));
+}

@@ -1,0 +1,27 @@
+{
+  "id": "QI-sonnet-2",
+  "group": "QI-sonnet",
+  "n": "2",
+  "model": "claude-sonnet-5-5",
+  "answerModel": "claude-sonnet-5-5",
+  "ref": "6af14ac",
+  "cli": "2.1.251 (Claude Code)",
+  "copyDir": "/var/folders/ht/prc2m2q939d1l29154xtvtmw0000gn/T/run-KoNFI5",
+  "sessionId": "ec85d71a-a9bc-4172-a2f2-990a97fbc69b",
+  "minutes": 0.47,
+  "apiError": true,
+  "rounds": 0,
+  "answeredItems": [],
+  "unansweredMajor": [
+    "M1",
+    "M3",
+    "M4",
+    "M5",
+    "M6"
+  ],
+  "implemented": false,
+  "gatePassed": false,
+  "costUsd": 0.406,
+  "answerCostUsd": 0,
+  "answers": []
+}
