@@ -44,3 +44,12 @@ describe("요청자 답장 만들기", async () => {
     expect(composeAnswer([{ n: 1, items: [], interface: true }], intent)).toEqual({ answer: "1. 입력은 PriceBreakdown.", usedItems: [], usedInterface: true });
   });
 });
+
+describe("단계별 사용량 (0029)", () => {
+  it("claude -p 결과에서 비용·요청 수·토큰을 꺼내고, 없으면 0", async () => {
+    const { phaseUsage } = await import("./interactive.mjs");
+    expect(phaseUsage({ total_cost_usd: 0.5, num_turns: 4, usage: { input_tokens: 1, cache_creation_input_tokens: 2, cache_read_input_tokens: 3, output_tokens: 4 } }))
+      .toEqual({ costUsd: 0.5, turns: 4, input: 1, cacheWrite: 2, cacheRead: 3, output: 4 });
+    expect(phaseUsage({ result: "API Error" })).toEqual({ costUsd: 0, turns: 0, input: 0, cacheWrite: 0, cacheRead: 0, output: 0 });
+  });
+});
