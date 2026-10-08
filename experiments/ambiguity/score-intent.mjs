@@ -1,4 +1,4 @@
-// 의도 일치 채점(0027) — node experiments/ambiguity/score-intent.mjs [실행ID...] [--from 다른 runs 폴더]  (없으면 구현이 있고 채점 안 된 실행 전부)
+// 의도 일치 채점(0027) — node experiments/ambiguity/score-intent.mjs [실행ID...] [--from 다른 runs 폴더] [--oracle uncommon]  (없으면 구현이 있고 채점 안 된 실행 전부)
 // 구현마다 함수 모양이 달라서: 채점 AI가 "연결 파일"(값 전달만)을 쓰고 → 계산이 섞였는지 검사 → 숨겨진 테스트(요청자 의도) 실행
 import { spawnSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
@@ -10,7 +10,10 @@ import { plumbingProblems, summarizeOracle } from "./intent-lib.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const RUNS = join(HERE, "runs");
-const ORACLE = join(HERE, "oracle", "points.oracle.ts");
+// 0030: --oracle uncommon 이면 흔하지 않은 의도 테스트로 채점하고 결과를 따로 저장 (흔한 의도 결과를 덮어쓰지 않음)
+const VARIANT = (() => { const i = process.argv.indexOf("--oracle"); return i >= 0 ? process.argv.splice(i, 2)[1] : ""; })();
+const ORACLE = join(HERE, "oracle", VARIANT ? `points-${VARIANT}.oracle.ts` : "points.oracle.ts");
+const SCORE_FILE = VARIANT ? `intent-score-${VARIANT}.json` : "intent-score.json";
 const TITLES = [...readFileSync(ORACLE, "utf8").matchAll(/it\("([^"]+)"/g)].map((m) => m[1]);
 const DOCS = ["prd.md", "sdd.md", "domain.diff.txt"];
 
@@ -47,8 +50,11 @@ export function scoreIntent(id, model = "claude-sonnet-5-5") {
   try {
     writeFileSync(join(dir, "src/pricing/points.ts"), impl);
     const priceCart = readFileSync(join(dir, "src/pricing/price-cart.ts"), "utf8");
-    let adapter, problems;
-    for (let attempt = 0; attempt < 2; attempt++) {
+    // 연결 파일은 값 전달만 하므로 의도와 무관 — 이미 있으면 다시 쓰지 않는다(0030)
+    const saved = join(runDir, "points.adapter.ts.txt");
+    let adapter = existsSync(saved) ? readFileSync(saved, "utf8") : undefined;
+    let problems = adapter ? plumbingProblems(adapter) : undefined;
+    for (let attempt = 0; attempt < 2 && (!adapter || problems.length); attempt++) {
       const r = spawnSync("claude", ["-p", adapterPrompt(runDir, impl, priceCart, problems), "--model", model, "--output-format", "json"], { cwd: tmpdir(), encoding: "utf8", maxBuffer: 1 << 26, timeout: 600_000 }); // 저장소 hook(기록 강제)이 끼지 않게 빈 곳에서
       adapter = stripFence(JSON.parse(r.stdout).result);
       problems = plumbingProblems(adapter);
@@ -70,7 +76,7 @@ export function scoreIntent(id, model = "claude-sonnet-5-5") {
 }
 
 function save(runDir, s) {
-  writeFileSync(join(runDir, "intent-score.json"), JSON.stringify(s, null, 2) + "\n");
+  writeFileSync(join(runDir, SCORE_FILE), JSON.stringify(s, null, 2) + "\n");
   return s;
 }
 
@@ -89,7 +95,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   if (from) process.argv.splice(2, process.argv.length, ...process.argv.slice(2).map((id) => importRun(from, id)));
   const ids = process.argv.slice(2).length
     ? process.argv.slice(2)
-    : readdirSync(RUNS).filter((d) => existsSync(join(RUNS, d, "points.ts.txt")) && !existsSync(join(RUNS, d, "intent-score.json")));
+    : readdirSync(RUNS).filter((d) => existsSync(join(RUNS, d, "points.ts.txt")) && !existsSync(join(RUNS, d, SCORE_FILE)));
   for (const id of ids) {
     const s = scoreIntent(id);
     console.log(`${id}: ${s.score}/${s.total} ${Object.entries(s.items).map(([m, ok]) => `${m}${ok ? "✓" : "✗"}`).join(" ")}${s.adapterRejected ? ` (연결 파일 거부: ${s.adapterRejected})` : ""}${s.loadError ? " (불러오기 실패)" : ""}`);

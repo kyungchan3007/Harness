@@ -1,0 +1,9 @@
+import { calculatePoints } from "./points.js";
+import type { PriceBreakdown } from "./price-cart.js";
+
+export function earn(breakdown: PriceBreakdown, member: { grade: "VIP" | "NORMAL" }): number {
+  return calculatePoints(breakdown.total, {
+    isVip: member.grade === "VIP",
+    hasCoupon: breakdown.discount > 0,
+  });
+}

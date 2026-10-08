@@ -1,0 +1,104 @@
+{
+  "id": "QI-uncommon-1",
+  "group": "QI",
+  "intent": "uncommon",
+  "n": "1",
+  "model": "claude-haiku-4-5-20251001",
+  "answerModel": "claude-sonnet-5-5",
+  "ref": "6af14ac",
+  "cli": "2.1.251 (Claude Code)",
+  "copyDir": "/var/folders/ht/prc2m2q939d1l29154xtvtmw0000gn/T/run-DPCaov",
+  "sessionId": "a3708bc6-3bbc-4ea0-a935-111e35958c7e",
+  "minutes": 3.55,
+  "apiError": false,
+  "rounds": 1,
+  "answeredItems": [
+    "M2",
+    "M3",
+    "M4",
+    "M5",
+    "M6",
+    "M7"
+  ],
+  "unansweredMajor": [
+    "M1"
+  ],
+  "implemented": true,
+  "gatePassed": true,
+  "costUsd": 0.34,
+  "answerCostUsd": 0.182,
+  "answers": [
+    {
+      "round": 1,
+      "questions": [
+        {
+          "n": 1,
+          "items": [
+            "M3"
+          ],
+          "interface": false
+        },
+        {
+          "n": 2,
+          "items": [
+            "M5"
+          ],
+          "interface": false
+        },
+        {
+          "n": 3,
+          "items": [
+            "M2"
+          ],
+          "interface": false
+        },
+        {
+          "n": 4,
+          "items": [
+            "M7"
+          ],
+          "interface": false
+        },
+        {
+          "n": 5,
+          "items": [
+            "M4",
+            "M6"
+          ],
+          "interface": true
+        }
+      ],
+      "answer": "1. 쿠폰을 쓴 주문은 포인트를 적립하지 않습니다(0포인트).\n2. VIP는 적립률 3배입니다 (1% → 3%).\n3. 1포인트 미만은 반올림합니다(0.5 이상이면 올림).\n4. VIP는 쿠폰을 써도 줄이지 않고 VIP 적립률 3% 그대로 적립합니다.\n5. 쿠폰을 썼는지는 priceCart 결과(PriceBreakdown)의 discount가 0보다 큰지로 판단합니다. 쿠폰 할인은 discount로 들어옵니다. 회원 정보는 { grade: \"VIP\" | \"NORMAL\" } 형태로 따로 받습니다. 입력은 priceCart 결과(PriceBreakdown: subtotal·discount·shipping·total)와 회원 정보 { grade: \"VIP\" | \"NORMAL\" }입니다. 함수 이름은 자유입니다.",
+      "usedItems": [
+        "M2",
+        "M3",
+        "M4",
+        "M5",
+        "M6",
+        "M7"
+      ],
+      "usedInterface": true,
+      "costUsd": 0.18169125
+    }
+  ],
+  "phases": [
+    {
+      "phase": "design",
+      "costUsd": 0.03755025,
+      "turns": 1,
+      "input": 9,
+      "cacheWrite": 24373,
+      "cacheRead": 0,
+      "output": 1415
+    },
+    {
+      "phase": "design",
+      "costUsd": 0.30206955,
+      "turns": 41,
+      "input": 292,
+      "cacheWrite": 39045,
+      "cacheRead": 1649313,
+      "output": 17608
+    }
+  ]
+}

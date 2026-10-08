@@ -1,4 +1,4 @@
-// 대화형 실행(0027) — node experiments/ambiguity/interactive.mjs --n 1 [--model 모델] [--rounds 2] [--ref 복사본 기준 커밋] [--build-model 구현 모델]
+// 대화형 실행(0027) — node experiments/ambiguity/interactive.mjs --n 1 [--model 모델] [--rounds 2] [--ref 복사본 기준 커밋] [--build-model 구현 모델] [--intent uncommon]
 // Q 지시로 시작 → 구현 없이 질문으로 끝나면 질문을 항목으로 분류(AI) → intent.json의 그 항목 답만 코드로 조립해 보냄 → 같은 세션을 이어서(--resume) → 최대 rounds번
 import { spawnSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -15,7 +15,7 @@ const BRANCH = `task/${TASK_ID}-points`;
 const SPEC = `agents/intent/specs/${TASK_ID}-points`;
 const IMPL = "src/pricing/points.ts";
 const ALLOWED_TOOLS = ["Read", "Write", "Edit", "MultiEdit", "Glob", "Grep", "Task", "Agent", "Bash(pnpm:*)", "Bash(git:*)", "Bash(node:*)", "Bash(ls:*)"];
-const INTENT = JSON.parse(readFileSync(join(HERE, "intent.json"), "utf8"));
+const loadIntent = (variant) => JSON.parse(readFileSync(join(HERE, variant ? `intent-${variant}.json` : "intent.json"), "utf8")); // 0030: --intent uncommon
 const KEY = JSON.parse(readFileSync(join(HERE, "answer-key.json"), "utf8"));
 
 /** 0028: 설치된 CLI가 Opus 5.5를 지원하지 않아 CLI를 지정할 수 있게 한다(0026과 같은 방식). 실행마다 버전을 남긴다 */
@@ -55,9 +55,10 @@ export function phaseUsage(r) {
 const DESIGN_ONLY = "이 답을 반영해서 요구사항·설계 문서(prd.md·sdd.md, 필요하면 도메인 규칙 문서)까지만 작성해 주세요. 코드는 쓰지 마세요 — 다른 개발자가 이 문서만 보고 구현합니다.";
 const BUILD_FROM_DOCS = (spec) => `작업 번호 0030, 이슈 #1(이미 있음), 브랜치 \`task/0030-points\`(이미 체크아웃됨)입니다.\n이 저장소의 규칙(AGENTS.md)대로, 태스크 폴더 \`${spec}/\`의 요구사항·설계 문서를 읽고 그대로 \`src/pricing/points.ts\`를 구현해 주세요.`;
 
-export function runInteractive({ n, model = "claude-haiku-4-5-20251001", rounds = 2, answerModel = "claude-sonnet-5-5", ref = "HEAD", buildModel, buildBin = "claude" }) {
+export function runInteractive({ n, model = "claude-haiku-4-5-20251001", rounds = 2, answerModel = "claude-sonnet-5-5", ref = "HEAD", buildModel, buildBin = "claude", intent: intentVariant }) {
+  const INTENT = loadIntent(intentVariant);
   const group = buildModel ? `MIX-${groupKey("x", model).slice(2) || "haiku"}-${groupKey("x", buildModel).slice(2) || "haiku"}` : groupKey("QI", model); // 0028: QI-sonnet처럼, 0029: MIX-opus-haiku
-  const id = `${group}-${n}`;
+  const id = `${group}${intentVariant ? `-${intentVariant}` : ""}-${n}`; // 0030: QI-uncommon-1처럼
   const out = join(HERE, "runs", id);
   if (existsSync(out)) throw new Error(`이미 결과가 있습니다: ${out}`);
   const { dir, leaks } = prepareCopy({ ref });
@@ -112,7 +113,7 @@ export function runInteractive({ n, model = "claude-haiku-4-5-20251001", rounds 
 
   const askedItems = [...new Set(answers.flatMap((a) => a.usedItems ?? []))].sort();
   const result = {
-    id, group, n, model, answerModel, ref, cli: cliVersion(), copyDir: dir, sessionId,
+    id, group, intent: intentVariant ?? "common", n, model, answerModel, ref, cli: cliVersion(), copyDir: dir, sessionId,
     minutes: Math.round((Date.now() - started) / 600) / 100,
     apiError: dialog.some((d) => /^API Error/.test((d.text ?? "").trim())),
     rounds: answers.length, answeredItems: askedItems,
@@ -131,7 +132,7 @@ export function runInteractive({ n, model = "claude-haiku-4-5-20251001", rounds 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const arg = (k, d) => { const i = process.argv.indexOf(`--${k}`); return i >= 0 ? process.argv[i + 1] : d; };
   const n = arg("n");
-  if (!n) { console.error("사용법: node experiments/ambiguity/interactive.mjs --n 1 [--model 모델] [--rounds 2] [--ref 복사본 기준 커밋] [--build-model 구현 모델]"); process.exit(2); }
-  const r = runInteractive({ n, model: arg("model"), rounds: Number(arg("rounds", 2)), ref: arg("ref", "HEAD"), buildModel: arg("build-model"), buildBin: process.env.BUILD_BIN || "claude" });
+  if (!n) { console.error("사용법: node experiments/ambiguity/interactive.mjs --n 1 [--model 모델] [--rounds 2] [--ref 복사본 기준 커밋] [--build-model 구현 모델] [--intent uncommon]"); process.exit(2); }
+  const r = runInteractive({ n, model: arg("model"), rounds: Number(arg("rounds", 2)), ref: arg("ref", "HEAD"), buildModel: arg("build-model"), buildBin: process.env.BUILD_BIN || "claude", intent: arg("intent") });
   console.log(`${r.id}: 문답 ${r.rounds}번 · 답한 항목 ${r.answeredItems.join(",") || "-"} · 구현 ${r.implemented ? "있음" : "없음"} · 게이트 ${r.gatePassed ? "통과" : "실패"} · ${r.minutes}분 · $${r.costUsd}`);
 }

@@ -1,0 +1,27 @@
+import { assertWon } from "../money.js";
+import type { PriceBreakdown } from "./price-cart.js";
+
+export type Grade = "VIP" | "NORMAL";
+
+export interface Member {
+  grade: Grade;
+}
+
+/** 적립률(%). 정수로 두어 부동소수 오차 없이 계산한다 */
+const RATE_PERCENT: Record<Grade, number> = { NORMAL: 1, VIP: 3 };
+
+/** 주문 1건의 적립 포인트 (domain.md 포인트 적립 규칙) */
+export function calculatePoints(breakdown: PriceBreakdown, member: Member): number {
+  const { subtotal, discount } = breakdown;
+  assertWon(subtotal, "subtotal");
+  assertWon(discount, "discount");
+  if (!Object.hasOwn(RATE_PERCENT, member.grade)) {
+    throw new RangeError(`알 수 없는 회원 등급입니다: ${member.grade}`);
+  }
+
+  const couponUsed = discount > 0;
+  if (couponUsed && member.grade === "NORMAL") return 0;
+
+  // subtotal × rate / 100 을 반올림(0.5 이상 올림)
+  return Math.floor((subtotal * RATE_PERCENT[member.grade] + 50) / 100);
+}

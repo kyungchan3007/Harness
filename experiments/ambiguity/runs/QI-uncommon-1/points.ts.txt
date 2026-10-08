@@ -1,0 +1,19 @@
+import type { PriceBreakdown } from "./price-cart.js";
+
+export interface MemberInfo {
+  grade: "VIP" | "NORMAL";
+}
+
+export function calculatePoints(priceBreakdown: PriceBreakdown, memberInfo: MemberInfo): number {
+  const isVip = memberInfo.grade === "VIP";
+  const hasCoupon = priceBreakdown.discount > 0;
+
+  if (!isVip && hasCoupon) {
+    return 0;
+  }
+
+  const rate = isVip ? 3 : 1;
+  const points = (priceBreakdown.total * rate) / 100;
+
+  return Math.round(points);
+}
