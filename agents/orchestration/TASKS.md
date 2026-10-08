@@ -31,4 +31,4 @@
 | 0027 | 묻고 → 답 받고 → 이어 가기 (대화형) 실험 | claude | done | [0027](../intent/specs/0027-ask-answer-continue/prd.md) · #32 |
 | 0028 | 큰 모델 + 대화형 (묻고 답 받으면 100%에 가까워지는가) | claude | done | [0028](../intent/specs/0028-big-model-interactive/prd.md) · #36 |
 | 0029 | 설계 Opus + 구현 Haiku 조합 | claude | done | [0029](../intent/specs/0029-design-opus-build-haiku/prd.md) · #38 |
-| 0030 | 흔하지 않은 정답 의도로 다시 (묻는 것의 진짜 가치) | claude | in-progress | [0030](../intent/specs/0030-uncommon-intent/prd.md) · #41 |
+| 0030 | 흔하지 않은 정답 의도로 다시 (묻는 것의 진짜 가치) | claude | done | [0030](../intent/specs/0030-uncommon-intent/prd.md) · #41 |

@@ -1,0 +1,24 @@
+import { assertWon } from "../money.js";
+
+export interface PointsOptions {
+  isVip?: boolean;
+  hasCoupon?: boolean;
+}
+
+export function calculatePoints(total: number, options: PointsOptions = {}): number {
+  const { isVip = false, hasCoupon = false } = options;
+
+  assertWon(total, "total");
+
+  // VIP 제외하고 쿠폰 있으면 0포인트
+  if (hasCoupon && !isVip) {
+    return 0;
+  }
+
+  // VIP면 3%, 일반이면 1%
+  const rate = isVip ? 0.03 : 0.01;
+  const points = total * rate;
+
+  // 반올림 (0.5 이상 올림)
+  return Math.round(points);
+}

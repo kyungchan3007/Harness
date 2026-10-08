@@ -1,0 +1,43 @@
+import { assertWon } from "../money.js";
+import type { PriceBreakdown } from "./price-cart.js";
+
+export type MemberGrade = "VIP" | "NORMAL";
+
+export interface Member {
+  grade: MemberGrade;
+}
+
+export interface PointsPolicy {
+  /** NORMAL 적립률(%) */
+  normalPercent: number;
+  /** VIP 적립률(%). 쿠폰을 써도 그대로 적립 */
+  vipPercent: number;
+}
+
+export const DEFAULT_POINTS_POLICY: PointsPolicy = { normalPercent: 1, vipPercent: 3 };
+
+/** 적립 포인트 (agents/context/domain.md 포인트 적립 규칙) */
+export function calculatePoints(
+  breakdown: PriceBreakdown,
+  member: Member,
+  policy: PointsPolicy = DEFAULT_POINTS_POLICY,
+): number {
+  const { subtotal, discount } = breakdown;
+  assertWon(subtotal, "subtotal");
+  assertWon(discount, "discount");
+  if (member.grade !== "VIP" && member.grade !== "NORMAL") {
+    throw new RangeError(`알 수 없는 회원 등급입니다: ${String(member.grade)}`);
+  }
+
+  // 규칙 3: 쿠폰(discount > 0)을 쓴 NORMAL 주문은 적립 없음
+  if (member.grade === "NORMAL" && discount > 0) return 0;
+
+  const percent = member.grade === "VIP" ? policy.vipPercent : policy.normalPercent;
+  const scaled = subtotal * percent;
+  if (!Number.isSafeInteger(scaled)) {
+    throw new RangeError(`적립 계산 범위를 넘었습니다: subtotal=${subtotal}, percent=${percent}`);
+  }
+
+  // 규칙 4: 반올림은 정수 연산으로 마지막에 한 번만 (subtotal * 0.01의 부동소수 오차 회피)
+  return Math.floor((scaled + 50) / 100);
+}

@@ -6,3 +6,6 @@
 | 2 | BUILD | 흔하지 않은 정답 의도·숨겨진 테스트·자체 검증 | 0027 한계(정답 의도가 흔한 추측과 겹침)를 없애려고 |
 | 3 | VERIFY | oracle-check: "배송비 포함 total" 구현이 T1뿐 아니라 T5에서도 떨어짐 | total = 할인 후 + 배송비라 T5(할인 전 기준)도 틀리는 게 맞음 → 기대값을 고침. 7개 모두 기대대로 |
 | 4 | BUILD | interactive `--intent`, score-intent `--oracle`·연결 파일 재사용 | 흔한 의도 결과를 덮지 않게 결과 파일 분리, 연결 파일은 의도와 무관 |
+| 5 | VERIFY | 혼자 정함 구현 16개 재채점(연결 파일 재사용) | 흔한 의도 37/90 → 4/90. AI 비용 없음 |
+| 6 | VERIFY | 대화형 Haiku·Opus 각 3회 → 채점, 첫 메시지·구현 직접 확인 | Opus 15/15(M1 스스로 물음), Haiku 9/15(M1 안 물음 → total 기준 → T1·T5 실패) |
+| 7 | RECORD | sdd·LEARNINGS·JOURNAL·README | 결론: 0027·0028은 쉬운 의도 덕이 아니었고, 추측의 점수는 착시였다 |

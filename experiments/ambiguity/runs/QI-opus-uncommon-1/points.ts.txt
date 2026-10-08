@@ -1,0 +1,26 @@
+import { assertWon } from "../money.js";
+import type { PriceBreakdown } from "./price-cart.js";
+
+export type MemberGrade = "VIP" | "NORMAL";
+
+export interface Member {
+  grade: MemberGrade;
+}
+
+/** 등급별 적립률(%) — domain.md 포인트 적립 규칙 2 */
+export const POINT_RATE_PERCENT: Readonly<Record<MemberGrade, number>> = { NORMAL: 1, VIP: 3 };
+
+export function earnPoints(breakdown: PriceBreakdown, member: Member): number {
+  const { subtotal, discount } = breakdown;
+  assertWon(subtotal, "subtotal");
+  assertWon(discount, "discount");
+  if (!Object.hasOwn(POINT_RATE_PERCENT, member.grade)) {
+    throw new RangeError(`알 수 없는 회원 등급입니다: ${String(member.grade)}`);
+  }
+
+  // 규칙 3·4: 쿠폰(discount > 0)을 쓴 NORMAL 주문은 적립 없음, VIP는 그대로
+  if (member.grade === "NORMAL" && discount > 0) return 0;
+
+  // 규칙 1·5: 상품 합계 기준, 정수 연산으로 반올림 (부동소수점 x.5 경계 오차 방지)
+  return Math.floor((subtotal * POINT_RATE_PERCENT[member.grade] + 50) / 100);
+}

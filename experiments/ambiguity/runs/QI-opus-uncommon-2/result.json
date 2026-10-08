@@ -1,0 +1,127 @@
+{
+  "id": "QI-opus-uncommon-2",
+  "group": "QI-opus",
+  "intent": "uncommon",
+  "n": "2",
+  "model": "claude-opus-5-5",
+  "answerModel": "claude-sonnet-5-5",
+  "ref": "6af14ac",
+  "cli": "2.1.293 (Claude Code)",
+  "copyDir": "/var/folders/ht/prc2m2q939d1l29154xtvtmw0000gn/T/run-DxU2eJ",
+  "sessionId": "aa37dfae-6bf8-457a-9ce5-5af6fcc6adba",
+  "minutes": 3.2,
+  "apiError": false,
+  "rounds": 1,
+  "answeredItems": [
+    "M1",
+    "M2",
+    "M3",
+    "M4",
+    "M5",
+    "M6",
+    "M7"
+  ],
+  "unansweredMajor": [],
+  "implemented": true,
+  "gatePassed": true,
+  "costUsd": 0.949,
+  "answerCostUsd": 0.019,
+  "answers": [
+    {
+      "round": 1,
+      "questions": [
+        {
+          "n": 1,
+          "items": [
+            "M1"
+          ],
+          "interface": false
+        },
+        {
+          "n": 2,
+          "items": [
+            "M2"
+          ],
+          "interface": false
+        },
+        {
+          "n": 3,
+          "items": [
+            "M3"
+          ],
+          "interface": false
+        },
+        {
+          "n": 4,
+          "items": [
+            "M4"
+          ],
+          "interface": true
+        },
+        {
+          "n": 5,
+          "items": [
+            "M5"
+          ],
+          "interface": false
+        },
+        {
+          "n": 6,
+          "items": [
+            "M6"
+          ],
+          "interface": true
+        },
+        {
+          "n": 7,
+          "items": [
+            "M7"
+          ],
+          "interface": false
+        },
+        {
+          "n": 8,
+          "items": [],
+          "interface": false
+        },
+        {
+          "n": 9,
+          "items": [],
+          "interface": false
+        }
+      ],
+      "answer": "1. 적립 기준은 쿠폰 할인 전 상품 합계(subtotal)입니다. 배송비는 빼고, 할인 금액도 빼지 않습니다.\n2. 1포인트 미만은 반올림합니다(0.5 이상이면 올림).\n3. 쿠폰을 쓴 주문은 포인트를 적립하지 않습니다(0포인트).\n4. 쿠폰을 썼는지는 priceCart 결과(PriceBreakdown)의 discount가 0보다 큰지로 판단합니다. 쿠폰 할인은 discount로 들어옵니다. 입력은 priceCart 결과(PriceBreakdown: subtotal·discount·shipping·total)와 회원 정보 { grade: \"VIP\" | \"NORMAL\" }입니다. 함수 이름은 자유입니다.\n5. VIP는 적립률 3배입니다 (1% → 3%).\n6. 회원 정보는 { grade: \"VIP\" | \"NORMAL\" } 형태로 따로 받습니다. 입력은 priceCart 결과(PriceBreakdown: subtotal·discount·shipping·total)와 회원 정보 { grade: \"VIP\" | \"NORMAL\" }입니다. 함수 이름은 자유입니다.\n7. VIP는 쿠폰을 써도 줄이지 않고 VIP 적립률 3% 그대로 적립합니다.\n8. 그 부분은 따로 정한 게 없으니 알아서 정해 주세요.\n9. 그 부분은 따로 정한 게 없으니 알아서 정해 주세요.",
+      "usedItems": [
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "M5",
+        "M6",
+        "M7"
+      ],
+      "usedInterface": true,
+      "costUsd": 0.0193204
+    }
+  ],
+  "phases": [
+    {
+      "phase": "design",
+      "costUsd": 0.2740632,
+      "turns": 14,
+      "input": 12,
+      "cacheWrite": 20275,
+      "cacheRead": 133201,
+      "output": 7300
+    },
+    {
+      "phase": "design",
+      "costUsd": 0.6751544000000002,
+      "turns": 17,
+      "input": 18,
+      "cacheWrite": 17335,
+      "cacheRead": 374121,
+      "output": 11976
+    }
+  ]
+}
