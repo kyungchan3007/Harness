@@ -28,3 +28,4 @@
 | 2026-10-05 | 0027 묻고 → 답 → 이어 가기 (#32) | 숨겨진 테스트 평소 27% → 대화형 87%, 지난 실행 16개 재채점, ALL PASS | 요청자 AI가 묻지 않은 답을 덧붙임(첫 3회 무효) / 채점 AI에 hook 끼어듦 / 정답 의도가 흔한 선택과 겹침 | [trace](intent/specs/0027-ask-answer-continue/trace.md) |
 | 2026-10-07 | 0028 큰 모델 + 대화형 (#36) | 숨겨진 테스트 Sonnet·Opus 대화형 15/15, 6회·M1 질문 직접 확인, ALL PASS | 앱 업데이트로 내장 CLI 경로 바뀜 / Sonnet 모델 쪽 거절 1번 / 정답 의도가 흔한 선택과 겹침 | [trace](intent/specs/0028-big-model-interactive/trace.md) |
 | 2026-10-07 | 0029 설계 Opus + 구현 Haiku 조합 (#38) | 15/15, 1번 $1.35 (전부 Opus $0.98), 단계별 비용·토큰 실측, ALL PASS | 장치가 "커밋할까요?"를 질문으로 봐 Opus 턴 낭비(2회) / 큰 구현 손익분기 미측정 | [trace](intent/specs/0029-design-opus-build-haiku/trace.md) |
+| 2026-10-08 | fix/0027 진행 확인은 질문이 아님 (#32) | 저장된 대화 재검증: 질문 28개 유지·"커밋할까요?" 2개 제외, 테스트 3개, ALL PASS | 첫 고침이 코드 속 `policy?`·인사말 "알려 주세요"를 질문으로 봄 / 검증 스크립트가 대화를 잘못 자름 | [trace](intent/specs/0027-ask-answer-continue/trace.md) |
