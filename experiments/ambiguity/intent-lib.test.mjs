@@ -53,3 +53,18 @@ describe("단계별 사용량 (0029)", () => {
     expect(phaseUsage({ result: "API Error" })).toEqual({ costUsd: 0, turns: 0, input: 0, cacheWrite: 0, cacheRead: 0, output: 0 });
   });
 });
+
+describe("진행 확인은 질문이 아니다 (fix/0027, 0029에서 발견)", async () => {
+  const { isWaitingForAnswer, questionSentences } = await import("./intent-lib.mjs");
+  it("커밋·진행 확인만 있으면 기다리지 않음", () => {
+    expect(isWaitingForAnswer({ implemented: false, finalMessage: "문서를 다 썼습니다.\n지금 상태를 문서만 담은 커밋으로 남길까요?" })).toBe(false);
+    expect(isWaitingForAnswer({ implemented: false, finalMessage: "이대로 구현을 진행할까요?" })).toBe(false);
+  });
+  it("코드 안의 물음표(선택 인자)와 인사말 \"알려 주세요\"는 질문이 아님", () => {
+    expect(questionSentences("함수는 `calculatePoints(breakdown, member, policy?)`로 정했습니다.")).toEqual([]);
+    expect(isWaitingForAnswer({ implemented: false, finalMessage: "바꾸시려면 알려 주세요." })).toBe(false);
+  });
+  it("진짜 질문이 하나라도 섞이면 기다림", () => {
+    expect(isWaitingForAnswer({ implemented: false, finalMessage: "1. 결제 금액에 배송비가 들어가나요?\n커밋할까요?" })).toBe(true);
+  });
+});

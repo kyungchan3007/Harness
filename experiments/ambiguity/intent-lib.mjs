@@ -29,9 +29,25 @@ export function summarizeOracle(json, titles) {
   return { passed: [...passed].sort(), total: titles.length, score: passed.size, items };
 }
 
-/** 구현 파일이 없고 마지막 메시지에 물음이 있으면 "답을 기다리는 중" */
+/**
+ * 진행 확인 질문 — 요구사항이 아니라 "다음 단계로 넘어갈까"를 묻는 것 (예: "커밋할까요?", "이대로 진행할까요?").
+ * 0029에서 Opus가 문서를 다 쓰고 "커밋할까요?"로 끝내자 장치가 질문으로 보고 한 턴을 더 쓰게 했다.
+ */
+const CONFIRM_ONLY = /(커밋|머지|푸시|PR|브랜치)|(이대로|바로|이어서|계속)?\s*(진행|구현|시작|계속|넘어가|저장|남길)[^?？]{0,10}(할까요|해도 될까요|드릴까요|하시겠어요|갈까요|길까요)/;
+
+/** 메시지에서 물음표로 끝나는 문장들 — 코드(`policy?` 같은 선택 인자)는 빼고 본다 */
+export function questionSentences(message) {
+  const text = (message ?? "").replace(/```[\s\S]*?```/g, " ").replace(/`[^`\n]*`/g, "_");
+  return text.split(/\n|(?<=[?？])\s+/).map((l) => l.trim()).filter((l) => /[?？]/.test(l));
+}
+
+/**
+ * 구현 파일이 없고, 진행 확인이 아닌 진짜 질문이 하나라도 있으면 "답을 기다리는 중".
+ * (0029 이전엔 물음표·"확인 필요"·"알려 주"만 봐서 "커밋할까요?", "바꾸려면 알려 주세요"도 질문으로 셌다)
+ */
 export function isWaitingForAnswer({ implemented, finalMessage }) {
-  return !implemented && /\?|？|확인.{0,6}(필요|부탁)|알려 ?주/.test(finalMessage ?? "");
+  if (implemented) return false;
+  return questionSentences(finalMessage).some((q) => !CONFIRM_ONLY.test(q));
 }
 
 /**
