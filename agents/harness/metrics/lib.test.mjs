@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  classifyPastRead, extractFollowups, followupMentioned, isEdit, keywords, localDate, parseCheckboxes,
-  segmentUnits, summarizeIssues, summarizeUnits, toEvents,
+  CHECK_REQUEST, classifyPastRead, extractFollowups, followupMentioned, inPeriod, isEdit, keywords, localDate, parseCheckboxes,
+  segmentUnits, summarizeIssues, summarizeUnits, toEvents, typedText,
 } from "./lib.mjs";
 
 const user = (ts, text, extra = {}) => JSON.stringify({ type: "user", timestamp: ts, gitBranch: extra.branch ?? "main", message: { content: text }, ...extra.raw });
@@ -112,5 +112,43 @@ describe("[보완] 반영", () => {
     expect(keywords("Codex 토큰 집계")).toEqual(["Codex", "토큰"]);
     expect(followupMentioned("Codex 토큰 집계", ["feat(0030): Codex 세션 토큰 집계 추가"])).toBe(true);
     expect(followupMentioned("Codex 토큰 집계", ["feat: 토큰만 언급"])).toBe(false);
+  });
+});
+
+describe("사용자가 직접 친 요청만 (0031, 2026-10-09 ClauseLens 재측정에서 발견한 오탐)", () => {
+  const checks = (lines) => summarizeUnits(segmentUnits(toEvents(lines))).checkRequests;
+  it("실제 체크 요청 3종은 센다", () => {
+    for (const t of [
+      "니가 커밋하고 푸쉬하고 나면 이거 체크를 체워줘여 할거 같은데",
+      "여기에 완료 조건이 있던데 이거 체크 안해도 되는거야?",
+      "왜 이슈 체크박스는 확인 안해 이거도 지침서에 있지 않아?",
+    ]) expect(CHECK_REQUEST.test(t), t).toBe(true);
+  });
+  it("체크박스를 언급만 한 문장은 세지 않는다 (붙여 넣은 이슈 제목 목록)", () => {
+    expect(CHECK_REQUEST.test("* [fix(harness): 체크박스 동기화·검사가 폴더형 spec(0025~)을 못 찾음 #153](https://x)")).toBe(false);
+    expect(CHECK_REQUEST.test("체크박스 도구가 단일 파일 가정 → 폴더형 미인식")).toBe(false);
+  });
+  it("셸 명령·출력, 시스템 안내, 붙여 넣은 글은 걷어 낸다", () => {
+    expect(typedText("<bash-input>bash checks.sh</bash-input><bash-stdout>✔ 체크박스 확인 안 해도 됨</bash-stdout>")).toBe("");
+    expect(typedText("<system-reminder>체크해줘</system-reminder>\n좋아")).toBe("좋아");
+    expect(typedText('<pasted_content id="1">체크 해줘</pasted_content> 이거 봐줘')).toBe("이거 봐줘");
+    expect(typedText("<artifact-content-authored-by-others/>요약")).toBe("요약");
+  });
+  it("대화 요약과 같은 uuid 중복은 요청으로 세지 않는다", () => {
+    const lines = [
+      user("2026-10-01T01:00:00Z", "이거 체크 안해?", { raw: { uuid: "u1" } }),
+      user("2026-10-01T01:00:00Z", "이거 체크 안해?", { raw: { uuid: "u1" } }), // 다른 파일에 같은 메시지
+      user("2026-10-01T02:00:00Z", "This session is being continued … 체크해줘", { raw: { uuid: "u2", isCompactSummary: true } }),
+      user("2026-10-01T03:00:00Z", "<bash-input>bash checks.sh</bash-input><bash-stdout>체크 해야 함</bash-stdout>", { raw: { uuid: "u3" } }),
+    ];
+    expect(checks(lines)).toBe(1);
+  });
+});
+
+describe("기간 (0031)", () => {
+  it("[since, until) — 날짜만·시각까지 모두", () => {
+    expect(inPeriod("2026-10-02T08:11:00Z", "2026-10-01", "2026-10-02T08:12")).toBe(true);
+    expect(inPeriod("2026-10-02T08:12:30Z", undefined, "2026-10-02T08:12Z")).toBe(false);
+    expect(inPeriod("2026-09-30T23:00:00+09:00", "2026-09-30T15:00Z")).toBe(false);
   });
 });

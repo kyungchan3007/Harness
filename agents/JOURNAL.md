@@ -30,3 +30,4 @@
 | 2026-10-07 | 0029 설계 Opus + 구현 Haiku 조합 (#38) | 15/15, 1번 $1.35 (전부 Opus $0.98), 단계별 비용·토큰 실측, ALL PASS | 장치가 "커밋할까요?"를 질문으로 봐 Opus 턴 낭비(2회) / 큰 구현 손익분기 미측정 | [trace](intent/specs/0029-design-opus-build-haiku/trace.md) |
 | 2026-10-08 | fix/0027 진행 확인은 질문이 아님 (#32) | 저장된 대화 재검증: 질문 28개 유지·"커밋할까요?" 2개 제외, 테스트 3개, ALL PASS | 첫 고침이 코드 속 `policy?`·인사말 "알려 주세요"를 질문으로 봄 / 검증 스크립트가 대화를 잘못 자름 | [trace](intent/specs/0027-ask-answer-continue/trace.md) |
 | 2026-10-08 | 0030 흔하지 않은 정답 의도 (#41) | 추측 41% → 4%, 대화형 Opus 100% · Haiku 60%, 숨겨진 테스트 자체 검증 7/7, ALL PASS | Haiku는 M1을 안 물어 다른 답(M7)까지 무너짐 / 의도 세트 1개 | [trace](intent/specs/0030-uncommon-intent/trace.md) |
+| 2026-10-09 | 0031 측정 도구 정정 (#43) | 체크 수동 지시 고친 도구 3·0·1회 = 손 확인 값, 테스트 5개, ALL PASS | 10/2 "2일 5회 증가"는 도구 오탐이었음 / 시간대 없는 시각이 KST로 해석됨 | [trace](intent/specs/0031-metrics-typed-requests/trace.md) |
