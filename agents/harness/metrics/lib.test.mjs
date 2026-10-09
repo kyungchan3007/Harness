@@ -137,7 +137,7 @@ describe("사용자가 직접 친 요청만 (0031, 2026-10-09 ClauseLens 재측�
   it("대화 요약과 같은 uuid 중복은 요청으로 세지 않는다", () => {
     const lines = [
       user("2026-10-01T01:00:00Z", "이거 체크 안해?", { raw: { uuid: "u1" } }),
-      user("2026-10-01T01:00:00Z", "이거 체크 안해?", { raw: { uuid: "u1" } }), // 다른 파일에 같은 메시지
+      user("2026-10-01T01:00:00Z", "이거 체크 안해?", { raw: { uuid: "u1" } }), // 이어 하기로 다시 기록된 같은 메시지 (파일이 달라도 줄을 합쳐 넘기면 같음)
       user("2026-10-01T02:00:00Z", "This session is being continued … 체크해줘", { raw: { uuid: "u2", isCompactSummary: true } }),
       user("2026-10-01T03:00:00Z", "<bash-input>bash checks.sh</bash-input><bash-stdout>체크 해야 함</bash-stdout>", { raw: { uuid: "u3" } }),
     ];

@@ -68,7 +68,7 @@ export function classifyPastRead(name, input) {
 export function toEvents(lines) {
   const events = [];
   const seenTools = new Set();
-  const seenPrompts = new Set(); // 이어 하기로 같은 메시지가 여러 파일에 기록됨(같은 uuid) — 0031
+  const seenPrompts = new Set(); // 이어 하기로 같은 메시지가 다시 기록됨(같은 uuid) — 0031. 여러 파일이면 호출하는 쪽이 줄을 합쳐 넘긴다
   for (const line of lines) {
     let d;
     try {

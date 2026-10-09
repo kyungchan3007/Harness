@@ -22,7 +22,8 @@ function recallSection(project, since, until) {
   const dir = projectTranscriptDir(project);
   const files = listJsonl(dir).filter((f) => !f.includes("/subagents/"));
   if (files.length === 0) return { md: `- 측정 불가: transcript 없음 (\`${dir.replace(/^\/Users\/[^/]+/, "~")}\`)` };
-  const events = files.flatMap((f) => toEvents(readFileSync(f, "utf8").split("\n"))).filter((e) => (!since || e.ts >= since) && (!until || e.ts < until));
+  // 파일을 모두 합친 뒤 한 번에 — 같은 요청(uuid)·도구 호출(id)이 여러 파일에 있어도 한 번만 센다 (fix/0031)
+  const events = toEvents(files.flatMap((f) => readFileSync(f, "utf8").split("\n"))).filter((e) => (!since || e.ts >= since) && (!until || e.ts < until));
   const units = segmentUnits(events.sort((a, b) => String(a.ts).localeCompare(String(b.ts))));
   const s = summarizeUnits(units);
   const kinds = ["작업 기록", "태스크 문서", "메모리", "git·이슈 이력", "Notion"];
