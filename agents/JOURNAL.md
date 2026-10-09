@@ -31,3 +31,4 @@
 | 2026-10-08 | fix/0027 진행 확인은 질문이 아님 (#32) | 저장된 대화 재검증: 질문 28개 유지·"커밋할까요?" 2개 제외, 테스트 3개, ALL PASS | 첫 고침이 코드 속 `policy?`·인사말 "알려 주세요"를 질문으로 봄 / 검증 스크립트가 대화를 잘못 자름 | [trace](intent/specs/0027-ask-answer-continue/trace.md) |
 | 2026-10-08 | 0030 흔하지 않은 정답 의도 (#41) | 추측 41% → 4%, 대화형 Opus 100% · Haiku 60%, 숨겨진 테스트 자체 검증 7/7, ALL PASS | Haiku는 M1을 안 물어 다른 답(M7)까지 무너짐 / 의도 세트 1개 | [trace](intent/specs/0030-uncommon-intent/trace.md) |
 | 2026-10-09 | 0031 측정 도구 정정 (#43) | 체크 수동 지시 고친 도구 3·0·1회 = 손 확인 값, 테스트 5개, ALL PASS | 10/2 "2일 5회 증가"는 도구 오탐이었음 / 시간대 없는 시각이 KST로 해석됨 | [trace](intent/specs/0031-metrics-typed-requests/trace.md) |
+| 2026-10-09 | fix/0031 파일을 넘는 중복 제거 (#43) | 줄을 합쳐 한 번에 toEvents, 재측정 값 그대로(3·0·1), ALL PASS | "여러 파일에 중복"은 틀린 서술(실제는 같은 파일 안) / 이식 이슈 확인에서 처음 보는 AI가 발견 | [trace](intent/specs/0031-metrics-typed-requests/trace.md) |
