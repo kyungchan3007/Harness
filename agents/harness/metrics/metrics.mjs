@@ -9,7 +9,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { listJsonl, projectTranscriptDir } from "../usage/usage.mjs";
 import {
-  extractFollowups, followupMentioned, pct, PAST_RECORD_RULES, segmentUnits, summarizeIssues, summarizeUnits, toEvents,
+  extractFollowups, inPeriod, followupMentioned, pct, PAST_RECORD_RULES, segmentUnits, summarizeIssues, summarizeUnits, toEvents,
 } from "./lib.mjs";
 
 function parseArgs(argv) {
@@ -70,16 +70,18 @@ function issueSection(repo) {
   return { md: md.join("\n"), summary: s };
 }
 
-function followupSection(gitDir) {
+function followupSection(gitDir, since, until) {
   let log;
   try {
-    log = execFileSync("git", ["-C", gitDir, "log", "--reverse", "--format=%H%x1f%B%x1e"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+    log = execFileSync("git", ["-C", gitDir, "log", "--reverse", "--format=%cI%x1f%B%x1e"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
   } catch {
     return { md: "- 측정 불가: git 기록 없음" };
   }
-  const commits = log.split("\x1e").map((c) => c.trim()).filter(Boolean).map((c) => c.split("\x1f")[1] ?? "");
+  const all = log.split("\x1e").map((c) => c.trim()).filter(Boolean).map((c) => { const [date, body = ""] = c.split("\x1f"); return { date, body }; });
+  const commits = all.map((c) => c.body);
   const tasks = existsSync(join(gitDir, "agents/orchestration/TASKS.md")) ? readFileSync(join(gitDir, "agents/orchestration/TASKS.md"), "utf8") : "";
-  const items = commits.flatMap((msg, i) => extractFollowups(msg).map((item) => ({ item, later: [...commits.slice(i + 1), tasks] })));
+  // 기간(--since/--until)은 [보완]을 남긴 커밋에만 적용, "이후 언급"은 그 뒤 전체에서 찾는다 (0031)
+  const items = all.flatMap((c, i) => (inPeriod(c.date, since, until) ? extractFollowups(c.body).map((item) => ({ item, later: [...commits.slice(i + 1), tasks] })) : []));
   if (items.length === 0) return { md: "- 측정 불가: `[보완]` 형식의 커밋이 없음 (복기가 기계가 읽을 수 있는 형식으로 남아 있지 않음)" };
   const mentioned = items.filter(({ item, later }) => followupMentioned(item, later)).length;
   return { md: `- 커밋 \`[보완]\` 항목 ${items.length}개 중 이후 커밋·TASKS에서 언급 후보 **${mentioned}개 (${pct(mentioned / items.length)})** — 확정은 사람이 확인` };
@@ -88,7 +90,7 @@ function followupSection(gitDir) {
 export function report({ project, repo, since, until }) {
   const recall = recallSection(project, since, until);
   const issues = issueSection(repo);
-  const follow = followupSection(project);
+  const follow = followupSection(project, since, until);
   return [
     `# 복기·체크박스 측정 — ${new Date().toISOString().slice(0, 10)}`,
     "",
