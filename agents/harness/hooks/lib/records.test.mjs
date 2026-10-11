@@ -339,3 +339,37 @@ describe("애매한 곳·가정 칸 (0025)", () => {
     expect(checkPrd(base, "0042").join()).toContain("칸이 없습니다");
   });
 });
+
+describe("업무 값 확인 (0032)", () => {
+  const prd = (lines) => `# 0042 — 추가 배송비 — PRD\n\n- **이슈:** #1\n\n## 애매한 곳·가정\n${lines.map((l) => `- ${l}`).join("\n")}\n\n## Acceptance\n- [ ] 도서산간 추가\n`;
+  it("업무 값을 (가정)으로 정하면 문제", () => {
+    for (const line of ["쿠폰 감소 — 50% 감소 (가정)", "VIP 배율 — 2배 (가정)", "추가 금액 — 3,000원 (가정)", "쿠폰 할인율 — 기본값 (가정)", "끝수 — 반올림 (가정)", "소수점 — 내림(floor) (가정)"]) {
+      expect(checkAssumptions(prd([line]), "0042").join(), line).toContain("[업무 값]");
+    }
+  });
+  it("업무 값이 아닌 (가정)은 통과", () => {
+    expect(checkAssumptions(prd(["도서산간 판별 기준 — 우편번호 목록 (가정)", "함수 위치 — src/pricing (가정)"]), "0042")).toEqual([]);
+  });
+  it("(확인 필요)가 남으면 멈춤 — 괄호 없이 써도", () => {
+    expect(checkAssumptions(prd(["제주 포함 여부 (확인 필요)"]), "0042").join()).toContain("[확인 필요]");
+    expect(checkAssumptions(prd(["제주 포함 여부 — 확인 필요"]), "0042").join()).toContain("[확인 필요]");
+  });
+  it("(확인됨: 답)이면 업무 값도 통과, 빈 답은 아님", () => {
+    expect(checkAssumptions(prd(["쿠폰 감소 — 50% (확인됨: 사용자 10-11 \"절반\")", "제주 포함 여부 (확인됨: 포함)"]), "0042")).toEqual([]);
+    expect(checkAssumptions(prd(["쿠폰 감소 — 50% (확인됨: )"]), "0042").join()).toContain("답이 비었습니다");
+    expect(checkAssumptions(prd(["함수 위치 (확인됨: )"]), "0042").join()).toContain("답이 비었습니다");
+  });
+  it("0031 이하는 이전 규칙 그대로", () => {
+    expect(checkAssumptions(prd(["쿠폰 감소 — 50% 감소 (가정)", "제주 포함 여부 (확인 필요)"]), "0031")).toEqual([]);
+  });
+  it("업무 값 가정이 남은 태스크는 코드 수정 차단, 답을 받으면 허용", () => {
+    git("checkout", "-qb", "task/0042-extra-shipping");
+    fillTask({ trace: false });
+    write(`${TASK}/prd.md`, prd(["쿠폰 감소 — 50% 감소 (가정)"]));
+    const d = decideEdit(repo, "src/a.ts");
+    expect(d.allow).toBe(false);
+    expect(d.reason).toContain("[업무 값]");
+    write(`${TASK}/prd.md`, prd(["쿠폰 감소 — 50% (확인됨: 절반)"]));
+    expect(decideEdit(repo, "src/a.ts").allow).toBe(true);
+  });
+});

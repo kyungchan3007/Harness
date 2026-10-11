@@ -32,3 +32,4 @@
 | 2026-10-08 | 0030 흔하지 않은 정답 의도 (#41) | 추측 41% → 4%, 대화형 Opus 100% · Haiku 60%, 숨겨진 테스트 자체 검증 7/7, ALL PASS | Haiku는 M1을 안 물어 다른 답(M7)까지 무너짐 / 의도 세트 1개 | [trace](intent/specs/0030-uncommon-intent/trace.md) |
 | 2026-10-09 | 0031 측정 도구 정정 (#43) | 체크 수동 지시 고친 도구 3·0·1회 = 손 확인 값, 테스트 5개, ALL PASS | 10/2 "2일 5회 증가"는 도구 오탐이었음 / 시간대 없는 시각이 KST로 해석됨 | [trace](intent/specs/0031-metrics-typed-requests/trace.md) |
 | 2026-10-09 | fix/0031 파일을 넘는 중복 제거 (#43) | 줄을 합쳐 한 번에 toEvents, 재측정 값 그대로(3·0·1), ALL PASS | "여러 파일에 중복"은 틀린 서술(실제는 같은 파일 안) / 이식 이슈 확인에서 처음 보는 AI가 발견 | [trace](intent/specs/0031-metrics-typed-requests/trace.md) |
+| 2026-10-11 | 0032 업무 값 가정 금지 + 확인 필요 멈춤 (#46) | 기존 6회 재채점: 멈춘 실행 0 → 6, 가정으로 지어낸 값 21/25가 사람 확인으로, 테스트 6개, ALL PASS | 규칙을 설명하는 내 prd 줄이 업무 값으로 잡힘 / 빈 확인됨·괄호 없는 확인 필요 구멍 / 몰래 지어냄 40%는 그대로 | [trace](intent/specs/0032-business-value-confirm/trace.md) |
