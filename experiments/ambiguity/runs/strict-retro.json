@@ -1,0 +1,71 @@
+{
+  "runs": [
+    "AM-1",
+    "AM-2",
+    "AM-3",
+    "BM-1",
+    "BM-2",
+    "BM-3"
+  ],
+  "stoppedRuns": 6,
+  "assumed": {
+    "total": 25,
+    "inPrdSection": 23,
+    "caught": 21
+  },
+  "silent": 17,
+  "outside": {
+    "total": 4,
+    "caught": 3,
+    "lines": [
+      {
+        "line": "결제 금액이 0이면 포인트는 0 (가정).",
+        "caught": true
+      },
+      {
+        "line": "포인트 최소값 — 0 이상으로 정규화 (가정)",
+        "caught": false
+      },
+      {
+        "line": "최소 포인트: 반올림 후 0포인트도 허용 (최소 1포인트 요구 없음) — (가정)",
+        "caught": true
+      },
+      {
+        "line": "포인트 계산은 어느 계층에서 호출되는가 — 미정, 구현 단계에서 결정하고 테스트로 검증 (확인 필요)",
+        "caught": true
+      }
+    ]
+  },
+  "perRun": [
+    {
+      "id": "AM-1",
+      "stopped": true,
+      "items": "M1:silent M2:assumed→멈춤 M3:assumed→멈춤 M4:silent M5:assumed→멈춤 M6:silent M7:silent"
+    },
+    {
+      "id": "AM-2",
+      "stopped": true,
+      "items": "M1:silent M2:assumed→멈춤 M3:assumed→멈춤 M4:silent M5:assumed→멈춤 M6:silent M7:assumed→멈춤"
+    },
+    {
+      "id": "AM-3",
+      "stopped": true,
+      "items": "M1:silent M2:silent M3:assumed→멈춤 M4:silent M5:assumed→멈춤 M6:silent M7:silent"
+    },
+    {
+      "id": "BM-1",
+      "stopped": true,
+      "items": "M1:silent M2:assumed→멈춤 M3:assumed→멈춤 M4:assumed→통과 M5:assumed→멈춤 M6:assumed→멈춤 M7:assumed→멈춤"
+    },
+    {
+      "id": "BM-2",
+      "stopped": true,
+      "items": "M1:silent M2:assumed→멈춤 M3:assumed→멈춤 M4:assumed M5:assumed→멈춤 M6:assumed M7:assumed→멈춤"
+    },
+    {
+      "id": "BM-3",
+      "stopped": true,
+      "items": "M1:silent M2:silent M3:assumed→멈춤 M4:silent M5:assumed→멈춤 M6:assumed→통과 M7:assumed→멈춤"
+    }
+  ]
+}

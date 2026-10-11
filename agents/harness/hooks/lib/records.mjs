@@ -77,7 +77,7 @@ export function checkPrd(text, id) {
   if (id >= ISSUE_REQUIRED_FROM && !issueNumberOf(text)) {
     problems.push('"- **이슈:** #번호" 줄이 없습니다. 이슈를 먼저 만들고 그 이슈에서 브랜치를 만드세요 (gh issue develop <번호> --name task/NNNN-슬러그 --checkout)');
   }
-  if (id >= ASSUMPTION_REQUIRED_FROM) problems.push(...checkAssumptions(text));
+  if (id >= ASSUMPTION_REQUIRED_FROM) problems.push(...checkAssumptions(text, id));
   return problems;
 }
 
@@ -87,23 +87,45 @@ export function checkPrd(text, id) {
 /** 이 번호부터는 prd에 "## 애매한 곳·가정" 칸이 필수 */
 export const ASSUMPTION_REQUIRED_FROM = "0025";
 export const ASSUMPTION_HEADING = "## 애매한 곳·가정";
-/** 줄마다 하나: 스스로 정한 값(가정) · 사람 답이 필요한 것(확인 필요) · 애매한 곳이 정말 없음(없음 — 이유) */
-const ASSUMPTION_MARK = /가정|확인 필요/;
+/** 줄마다 하나: 스스로 정한 값(가정) · 사람 답이 필요한 것(확인 필요) · 사람이 답한 것(확인됨: 답) · 애매한 곳이 정말 없음(없음 — 이유) */
+const ASSUMPTION_MARK = /가정|확인 필요|\(확인됨:/;
 const NONE_LINE = /^없음\s*[—-]\s*\S/;
+
+// ── 업무 값 확인 (0032) ─────────────────────────────────────
+// 필수 칸만으로는 업무 값을 (가정)으로 적고 지어냈다(0032 이슈 배경) → 업무 값은 사람 답을 받아야 진행
+
+/** 이 번호부터는 업무 값 줄에 (가정) 금지, (확인 필요)가 남으면 코드 수정·완료 차단 */
+export const CONFIRM_REQUIRED_FROM = "0032";
+const UNRESOLVED = /확인 필요/;
+const RESOLVED = /\(확인됨:\s*[^)\s][^)]*\)/;
+/** 사람이 정할 업무 값: 숫자+단위, 비율 낱말, 금액류, 끝수 처리 */
+export const BUSINESS_VALUE = /\d[\d,.]*\s*(?:%|퍼센트|배|원|포인트|점)|(?:비|배|할인|적립|감소|증가|이자|수수료)[율률]|금액|요금|수수료|한도|반올림|내림|올림|버림|끝수/;
 
 export function assumptionSection(prdText) {
   const parts = prdText.split(new RegExp(`^${ASSUMPTION_HEADING}\\s*$`, "m"));
   return parts.length < 2 ? undefined : parts[1].split(/^## /m)[0];
 }
 
-export function checkAssumptions(prdText) {
+export function checkAssumptions(prdText, id = ASSUMPTION_REQUIRED_FROM) {
   const section = assumptionSection(prdText);
   const guide = '요청에 정해지지 않은 곳마다 "- 무엇이 애매한가 — 정한 값 (가정)" 또는 "(확인 필요)", 정말 없으면 "- 없음 — 이유"';
   if (section === undefined) return [`"${ASSUMPTION_HEADING}" 칸이 없습니다. ${guide}`];
   const items = section.split("\n").filter((l) => /^- \S/.test(l)).map((l) => l.slice(2).trim()).filter((t) => !t.startsWith("(")); // "(…)"는 템플릿 안내 줄
   if (!items.length) return [`"${ASSUMPTION_HEADING}" 칸이 비었습니다. ${guide}`];
   if (items.some((t) => NONE_LINE.test(t))) return items.length === 1 ? [] : ['"없음" 줄과 애매한 곳 줄을 함께 쓸 수 없습니다'];
-  return items.filter((t) => !ASSUMPTION_MARK.test(t)).map((t) => `"${ASSUMPTION_HEADING}"의 줄에 (가정) 또는 (확인 필요) 표시가 없습니다 — "${t.slice(0, 50)}"`);
+  const unmarked = items.filter((t) => !ASSUMPTION_MARK.test(t)).map((t) => `"${ASSUMPTION_HEADING}"의 줄에 (가정) 또는 (확인 필요) 표시가 없습니다 — "${t.slice(0, 50)}"`);
+  if (id < CONFIRM_REQUIRED_FROM) return unmarked;
+  return [...unmarked, ...items.filter((t) => ASSUMPTION_MARK.test(t)).flatMap((t) => confirmProblem(t))];
+}
+
+/** 0032 엄격 규칙: 답 받은 줄은 통과, 확인 필요는 멈춤, 업무 값은 가정 금지 */
+function confirmProblem(line) {
+  const quote = `"${line.slice(0, 50)}"`;
+  if (RESOLVED.test(line)) return [];
+  if (line.includes("(확인됨:")) return [`[확인 필요] "(확인됨: …)"에 사람 답이 비었습니다 — ${quote}`];
+  if (UNRESOLVED.test(line)) return [`[확인 필요] 사람 답이 필요한 줄이 남아 있습니다 — ${quote}. 코드를 쓰기 전에 사용자에게 묻고, 답을 받으면 "(확인됨: 답)"으로 바꾸세요`];
+  if (BUSINESS_VALUE.test(line)) return [`[업무 값] 금액·비율·배율·끝수 처리는 (가정)으로 정할 수 없습니다 — ${quote}. "(확인 필요)"로 바꾸고 사용자에게 물으세요`];
+  return [];
 }
 
 export const SDD_REQUIRED = ["접근", "대안·트레이드오프", "검증 계획"];
