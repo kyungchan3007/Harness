@@ -18,11 +18,9 @@ const NOTION = /notion-(fetch|search)/;
  */
 export const CHECK_REQUEST = /체크.{0,40}(해\s*줘|해\s*주|해\s*야|채워|체워|안\s*해|안\s*했|확인\s*안|확인\s*해\s*줘)|(왜|안)\s*.{0,10}확인\s*안\s*해.{0,30}체크|check ?(the )?box(es)?.{0,20}(please|why)/i;
 
-/** 사람이 직접 친 부분만 — 셸 명령·출력, 시스템 안내, 붙여 넣은 글, 명령 태그를 걷어 낸다 (0031) */
-const NOT_TYPED = /<(bash-input|bash-stdout|bash-stderr|system-reminder|pasted_content|local-command-[a-z]+|command-[a-z]+|task-notification)\b[^>]*>[\s\S]*?<\/\1>|<[a-z-]+\/>/g;
-export function typedText(content) {
-  return String(content ?? "").replace(NOT_TYPED, " ").trim();
-}
+// 사람이 직접 친 부분만 (0031) — 확인됨 대조(0034)와 함께 쓰려고 hooks/lib/transcript.mjs로 옮김
+export { typedText } from "../hooks/lib/transcript.mjs";
+import { typedText } from "../hooks/lib/transcript.mjs";
 // 사유 표지는 hooks·완료 검사와 같은 기준을 쓴다
 export { REASON_MARK };
 

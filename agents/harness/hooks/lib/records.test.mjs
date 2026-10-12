@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { beforeEach, describe, expect, it } from "vitest";
 import { describeSession } from "../session-context.mjs";
-import { checkAssumptions, checkBeforeStop, checkPrd, checkSdd, checkTrace, decideEdit, decideRequest, decideRole, hasReadRequest, inspectTask, isFixBranch, isRecordPath, issueNumberOf, ownersOf, parseTaskId } from "./records.mjs";
+import { checkAssumptions, checkBeforeStop, checkConfirmations, checkPrd, checkSdd, checkTrace, decideEdit, decideRequest, decideRole, hasReadRequest, inspectTask, isFixBranch, isRecordPath, issueNumberOf, ownersOf, parseTaskId } from "./records.mjs";
 
 const TEMPLATES = join(dirname(fileURLToPath(import.meta.url)), "../../../intent/templates");
 const template = (name) => readFileSync(join(TEMPLATES, name), "utf8");
@@ -371,5 +371,34 @@ describe("업무 값 확인 (0032)", () => {
     expect(d.reason).toContain("[업무 값]");
     write(`${TASK}/prd.md`, prd(["묶음 배송 할인 — 50% (확인됨: 절반)"]));
     expect(decideEdit(repo, "src/a.ts").allow).toBe(true);
+  });
+});
+
+describe("확인됨 대조 (0034)", () => {
+  const user = (content) => JSON.stringify({ type: "user", uuid: Math.random().toString(36), message: { content } });
+  const prd = (line) => `# 0044 — x — PRD\n\n- **이슈:** #1\n\n## 애매한 곳·가정\n- ${line}\n\n## Acceptance\n- [ ] x\n`;
+  const asked = [user("배송비 기능 만들어 주세요"), user("도서산간은 3,000원입니다")];
+  it("사람이 답한 값이면 통과, 첫 요청에만 있거나 아무도 답하지 않았으면 문제", () => {
+    expect(checkConfirmations(prd("도서산간 추가 — 3,000원 (확인됨: 3,000원)"), asked, "0044")).toEqual([]);
+    expect(checkConfirmations(prd("도서산간 추가 — 5,000원 (확인됨: 5,000원)"), asked, "0044").join()).toContain("[확인 위조?]");
+    expect(checkConfirmations(prd("배송비 — (확인됨: 배송비 기능)"), [user("배송비 기능 만들어 주세요")], "0044").join()).toContain("[확인 위조?]");
+  });
+  it("0033 이하·사람 메시지 없는 기록·확인됨 없는 줄은 보지 않는다", () => {
+    expect(checkConfirmations(prd("x — 5,000원 (확인됨: 5,000원)"), asked, "0033")).toEqual([]);
+    expect(checkConfirmations(prd("x — 5,000원 (확인됨: 5,000원)"), [], "0044")).toEqual([]);
+    expect(checkConfirmations(prd("함수 위치 — src (가정)"), asked, "0044")).toEqual([]);
+  });
+  it("대화 기록을 받으면 위조된 확인됨으로는 코드 수정이 막힌다", () => {
+    git("checkout", "-qb", "task/0042-extra-shipping");
+    fillTask({ trace: false });
+    const forged = FILLED_PRD.replace("우편번호 목록 (가정)", "우편번호 목록 (확인됨: 우편번호 목록)");
+    write(`${TASK}/prd.md`, forged);
+    const tp = join(repo, "t.jsonl");
+    writeFileSync(tp, [user("배송비 기능 만들어 주세요")].join("\n"));
+    // 0042는 0034 이상이라 대조 대상
+    expect(decideEdit(repo, "src/a.ts", undefined, { transcriptPath: tp }).reason).toContain("[확인 위조?]");
+    writeFileSync(tp, [user("배송비 기능 만들어 주세요"), user("판별은 우편번호 목록으로 하세요")].join("\n"));
+    expect(decideEdit(repo, "src/a.ts", undefined, { transcriptPath: tp }).allow).toBe(true);
+    expect(decideEdit(repo, "src/a.ts").allow).toBe(true); // 대화 기록이 없으면(게이트 등) 대조하지 않음
   });
 });

@@ -14,7 +14,7 @@ if (isMain(import.meta.url)) {
 
     // 실행 번호: 보조 에이전트는 agent_id, 없으면(--agent 모드) 자동 기록과 같은 세션 번호 앞 8자리
     const executor = input.agent_id ? String(input.agent_id) : String(input.session_id ?? "").slice(0, 8);
-    const decision = decideEdit(projectDir, relative(projectDir, target), input.agent_type, { executor });
+    const decision = decideEdit(projectDir, relative(projectDir, target), input.agent_type, { executor, transcriptPath: input.transcript_path });
     if (decision.allow) process.exit(0);
     // 차단된 호출은 PostToolUse가 오지 않으므로 여기서 자동 기록에 남긴다
     try {

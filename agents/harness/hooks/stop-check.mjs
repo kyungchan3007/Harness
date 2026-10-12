@@ -7,7 +7,7 @@ import { isMain, projectDirOf, readHookInput, runHook } from "./lib/io.mjs";
 if (isMain(import.meta.url)) {
   runHook("stop-check", async () => {
     const input = await readHookInput();
-    const problems = checkBeforeStop(projectDirOf(input));
+    const problems = checkBeforeStop(projectDirOf(input), { transcriptPath: input.transcript_path });
     if (problems.length === 0) process.exit(0);
 
     // 이미 한 번 돌려보냈으면 다시 막지 않는다 (무한 반복 방지). 경고만 남긴다.
