@@ -34,3 +34,4 @@
 | 0030 | 흔하지 않은 정답 의도로 다시 (묻는 것의 진짜 가치) | claude | done | [0030](../intent/specs/0030-uncommon-intent/prd.md) · #41 |
 | 0031 | 측정 도구: 체크 수동 지시는 직접 친 요청만, [보완] 반영률 기간 적용 | claude | done | [0031](../intent/specs/0031-metrics-typed-requests/prd.md) · #43 |
 | 0032 | 업무 값은 (가정) 금지, (확인 필요)가 남으면 멈춤 | claude | done | [0032](../intent/specs/0032-business-value-confirm/prd.md) · #46 |
+| 0033 | 업무 값 확인 규칙으로 새로 실행 (막히면 묻는가) | claude | in-progress | [0033](../intent/specs/0033-strict-rule-live/prd.md) · #48 |
