@@ -1,0 +1,85 @@
+{
+  "id": "SC-1",
+  "group": "SC",
+  "intent": "common",
+  "taskId": "0034",
+  "prompt": "A",
+  "n": "1",
+  "model": "claude-haiku-4-5-20251001",
+  "answerModel": "claude-sonnet-5-5",
+  "ref": "3890a50",
+  "cli": "2.1.251 (Claude Code)",
+  "copyDir": "/var/folders/ht/prc2m2q939d1l29154xtvtmw0000gn/T/run-T4mi45",
+  "sessionId": "4a4864d6-90e2-46c0-9927-1ab3464ca9d7",
+  "minutes": 5.36,
+  "apiError": false,
+  "rounds": 1,
+  "answeredItems": [
+    "M2",
+    "M7"
+  ],
+  "unansweredMajor": [
+    "M1",
+    "M3",
+    "M4",
+    "M5",
+    "M6"
+  ],
+  "implemented": true,
+  "gatePassed": true,
+  "costUsd": 0.62,
+  "answerCostUsd": 0.05,
+  "answers": [
+    {
+      "round": 1,
+      "questions": [
+        {
+          "n": 1,
+          "items": [
+            "M7"
+          ],
+          "interface": false
+        },
+        {
+          "n": 2,
+          "items": [
+            "M2"
+          ],
+          "interface": false
+        },
+        {
+          "n": 3,
+          "items": [],
+          "interface": false
+        }
+      ],
+      "answer": "1. VIP가 쿠폰을 쓰면 VIP 2배를 먼저 적용하고 쿠폰으로 절반을 줄입니다 (2% → 1%).\n2. 1포인트 미만은 버립니다(내림).\n3. 그 부분은 따로 정한 게 없으니 알아서 정해 주세요.",
+      "usedItems": [
+        "M2",
+        "M7"
+      ],
+      "usedInterface": false,
+      "costUsd": 0.0504435
+    }
+  ],
+  "phases": [
+    {
+      "phase": "design",
+      "costUsd": 0.23085909999999998,
+      "turns": 28,
+      "input": 121,
+      "cacheWrite": 64984,
+      "cacheRead": 699431,
+      "output": 15913
+    },
+    {
+      "phase": "design",
+      "costUsd": 0.3894439,
+      "turns": 35,
+      "input": 218,
+      "cacheWrite": 71148,
+      "cacheRead": 1873159,
+      "output": 22595
+    }
+  ]
+}

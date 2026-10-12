@@ -1,0 +1,18 @@
+export type MemberGrade = "normal" | "vip";
+
+export function calculatePoints(
+  total: number,
+  memberGrade: MemberGrade,
+  usedCoupon: boolean
+): number {
+  let rate = memberGrade === "vip" ? 2.0 : 1.0;
+
+  if (usedCoupon) {
+    rate *= 0.5;
+  }
+
+  rate = Math.max(0, rate);
+
+  const points = Math.floor((total * rate) / 100);
+  return Math.max(0, points);
+}

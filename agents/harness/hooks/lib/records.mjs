@@ -3,6 +3,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { NEXT_LABEL, parseVerdict, ROLE_SPLIT_LINE, verdictStatus } from "./verdict.mjs";
+import { answerBacked, humanMessages, readTranscript } from "./transcript.mjs";
 
 export const SPECS_DIR = "agents/intent/specs";
 export const TASKS_FILE = "agents/orchestration/TASKS.md";
@@ -128,6 +129,31 @@ function confirmProblem(line) {
   return [];
 }
 
+// ── 확인됨 대조 (0034) ─────────────────────────────────────
+// 0033에서 AI가 묻지 않고 "(확인됨: …)"을 스스로 적어 통과 → 답이 대화의 사람 메시지에 있어야 한다
+
+/** 이 번호부터 "(확인됨: 답)"을 대화 기록과 대조 (대화 기록을 받는 hook에서만) */
+export const CONFIRM_SOURCE_FROM = "0034";
+const RESOLVED_ANSWER = /\(확인됨:\s*([^)]*\S)\s*\)/;
+
+/** 첫 요청 뒤의 사람 메시지에 답이 없는 "(확인됨: 답)" 줄마다 문제 하나 */
+export function checkConfirmations(prdText, transcriptLines, id = CONFIRM_SOURCE_FROM) {
+  if (id < CONFIRM_SOURCE_FROM) return [];
+  const section = assumptionSection(prdText ?? "");
+  if (section === undefined) return [];
+  const all = humanMessages(transcriptLines);
+  if (!all.length) return []; // 사람 메시지가 없는 기록(보조 에이전트 등)은 판단하지 않는다
+  const replies = all.slice(1); // 첫 메시지 = 원래 요청
+  return section
+    .split("\n")
+    .filter((l) => /^- \S/.test(l))
+    .flatMap((l) => {
+      const answer = RESOLVED_ANSWER.exec(l)?.[1];
+      if (!answer || answerBacked(answer, replies)) return [];
+      return [`[확인 위조?] "(확인됨: ${answer.slice(0, 40)})"의 답이 이 대화의 사람 메시지에 없습니다. 사용자에게 묻고, 받은 답을 그대로 적으세요 — "${l.slice(2, 52)}"`];
+    });
+}
+
 export const SDD_REQUIRED = ["접근", "대안·트레이드오프", "검증 계획"];
 
 export function checkSdd(text) {
@@ -184,7 +210,7 @@ export function hasTasksRow(tasksText, id) {
  * 태스크 폴더의 기록 상태. problems가 비어 있으면 통과.
  * @param {{ requireTrace?: boolean }} opts trace는 코드 수정 전에는 요구하지 않는다
  */
-export function inspectTask(projectDir, folder, { requireTrace = true } = {}) {
+export function inspectTask(projectDir, folder, { requireTrace = true, transcriptLines } = {}) {
   const id = folder.slice(0, 4);
   const dir = join(projectDir, SPECS_DIR, folder);
   const read = (name) => (existsSync(join(dir, name)) ? readFileSync(join(dir, name), "utf8") : undefined);
@@ -193,6 +219,7 @@ export function inspectTask(projectDir, folder, { requireTrace = true } = {}) {
   const prd = read("prd.md");
   if (prd === undefined) problems.push(`${SPECS_DIR}/${folder}/prd.md 가 없습니다 (템플릿: agents/intent/templates/prd.md)`);
   else problems.push(...checkPrd(prd, id).map((p) => `prd.md: ${p}`));
+  if (prd !== undefined && transcriptLines) problems.push(...checkConfirmations(prd, transcriptLines, id).map((p) => `prd.md: ${p}`));
 
   const sdd = read("sdd.md");
   if (sdd === undefined) problems.push(`${SPECS_DIR}/${folder}/sdd.md 가 없습니다 (템플릿: agents/intent/templates/sdd.md)`);
@@ -346,7 +373,7 @@ export function decideEdit(projectDir, relPath, role, ctx = {}) {
     };
   }
 
-  const problems = inspectTask(projectDir, folder, { requireTrace: false });
+  const problems = inspectTask(projectDir, folder, { requireTrace: false, transcriptLines: ctx.transcriptPath ? readTranscript(ctx.transcriptPath) : undefined });
   if (problems.length > 0) {
     return {
       allow: false,
@@ -368,7 +395,7 @@ export function changedFiles(projectDir) {
 }
 
 /** 응답 종료 전 기록 점검. 문제가 있으면 problems를 돌려준다 */
-export function checkBeforeStop(projectDir) {
+export function checkBeforeStop(projectDir, { transcriptPath } = {}) {
   const changed = changedFiles(projectDir);
   const codeChanged = changed.filter((f) => !isRecordPath(f));
   if (codeChanged.length === 0) return [];
@@ -380,7 +407,7 @@ export function checkBeforeStop(projectDir) {
   const folder = findTaskFolder(projectDir, id);
   if (!folder) return [`태스크 ${id} 폴더(${SPECS_DIR}/${id}-슬러그/)가 없습니다`];
 
-  const problems = inspectTask(projectDir, folder);
+  const problems = inspectTask(projectDir, folder, { transcriptLines: transcriptPath ? readTranscript(transcriptPath) : undefined });
   if (!changed.includes(`${SPECS_DIR}/${folder}/trace.md`)) {
     problems.push(`trace.md가 이번 태스크에서 갱신되지 않았습니다. 판단·이유·막힘·되돌림을 기록하세요`);
   }
