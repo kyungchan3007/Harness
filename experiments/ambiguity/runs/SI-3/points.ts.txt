@@ -1,0 +1,39 @@
+import type { Won } from "../money.js";
+
+/** 포인트 적립 옵션 */
+export interface PointsOptions {
+  /** 쿠폰 사용 여부 */
+  coupon?: boolean;
+  /** VIP 회원 여부 */
+  vip?: boolean;
+}
+
+/**
+ * 결제 금액에 따른 적립 포인트를 계산합니다.
+ *
+ * 규칙:
+ * 1. 기본 적립률은 결제 금액의 1%
+ * 2. 쿠폰 사용 시 적립률이 0.5%로 감소
+ * 3. VIP 회원의 적립 포인트는 2배 (다른 조건과 중복 가능)
+ * 4. 모든 계산은 내림(Math.floor)
+ *
+ * @param total 결제 금액 (원)
+ * @param options 포인트 옵션
+ * @returns 적립 포인트 (정수)
+ */
+export function calcPoints(total: Won, options: PointsOptions = {}): number {
+  const { coupon = false, vip = false } = options;
+
+  // 적립률 결정 (1% 또는 0.5%)
+  const rate = coupon ? 0.005 : 0.01;
+
+  // 기본 적립 포인트 계산 및 내림
+  let points = Math.floor(total * rate);
+
+  // VIP 회원이면 2배 적용 및 내림
+  if (vip) {
+    points = Math.floor(points * 2);
+  }
+
+  return points;
+}

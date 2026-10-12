@@ -55,7 +55,7 @@ const BUILD_FROM_DOCS = (spec, id = "0030") => `작업 번호 ${id}, 이슈 #1(�
 export function runInteractive({ n, model = "claude-haiku-4-5-20251001", rounds = 2, answerModel = "claude-sonnet-5-5", ref = "HEAD", buildModel, buildBin = "claude", intent: intentVariant, taskId = "0030", prompt = "Q", group: groupName }) {
   const INTENT = loadIntent(intentVariant);
   const { branch: BRANCH, spec: SPEC } = taskPaths(taskId);
-  const group = groupName ?? buildModel ? `MIX-${groupKey("x", model).slice(2) || "haiku"}-${groupKey("x", buildModel).slice(2) || "haiku"}` : groupKey("QI", model); // 0028: QI-sonnet처럼, 0029: MIX-opus-haiku
+  const group = groupName ?? (buildModel ? `MIX-${groupKey("x", model).slice(2) || "haiku"}-${groupKey("x", buildModel).slice(2) || "haiku"}` : groupKey("QI", model)); // 0028: QI-sonnet처럼, 0029: MIX-opus-haiku
   const id = `${group}${intentVariant ? `-${intentVariant}` : ""}-${n}`; // 0030: QI-uncommon-1처럼
   const out = join(HERE, "runs", id);
   if (existsSync(out)) throw new Error(`이미 결과가 있습니다: ${out}`);
