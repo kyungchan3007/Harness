@@ -1,0 +1,36 @@
+import { assertWon, type Won } from "../money.js";
+
+/**
+ * 주문의 결제 금액에 따라 포인트를 계산합니다.
+ * 도메인 규칙: agents/context/domain.md "포인트 규칙 (0034)"
+ *
+ * @param total - 결제 금액 (Won, 0 이상의 정수)
+ * @param hasCoupon - 쿠폰 사용 여부
+ * @param isVip - VIP 회원 여부
+ * @returns 적립 포인트 (0 이상의 정수, floor 적용)
+ *
+ * 적립률:
+ * - 기본: 1%
+ * - VIP: 2% (1% × 2배)
+ * - 쿠폰: 0.5% (1% × 절반)
+ * - VIP + 쿠폰: 1% (2% × 절반)
+ */
+export function calculatePoints(total: Won, hasCoupon: boolean, isVip: boolean): number {
+  assertWon(total, "total");
+
+  // 기본 적립률 1%
+  let rate = 0.01;
+
+  // VIP는 적립률 2배
+  if (isVip) {
+    rate *= 2;
+  }
+
+  // 쿠폰은 적립률 절반
+  if (hasCoupon) {
+    rate *= 0.5;
+  }
+
+  // 포인트는 정수 (floor 적용)
+  return Math.floor(total * rate);
+}
