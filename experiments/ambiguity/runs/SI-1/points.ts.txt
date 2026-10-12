@@ -1,0 +1,24 @@
+import { assertWon, type Won } from "../money.js";
+
+export interface PointsOptions {
+  /** VIP 회원 여부. true면 적립 포인트 2배 (domain.md 규칙 5) */
+  isVip?: boolean;
+}
+
+/** 포인트. 1포인트 단위의 정수 (domain.md 규칙 1) */
+export type Points = number;
+
+/**
+ * 포인트 적립액 계산 (domain.md 포인트 규칙)
+ * @param subtotalMinusDiscount 할인 후 상품 금액 (subtotal - discount, 배송비 제외)
+ * @param options 옵션 (VIP 여부)
+ * @returns 적립 포인트 (1포인트 단위)
+ */
+export function calculatePoints(subtotalMinusDiscount: Won, options: PointsOptions = {}): Points {
+  assertWon(subtotalMinusDiscount, "subtotalMinusDiscount");
+
+  const { isVip = false } = options;
+
+  const basePoints = Math.floor(subtotalMinusDiscount * 0.01);
+  return isVip ? basePoints * 2 : basePoints;
+}

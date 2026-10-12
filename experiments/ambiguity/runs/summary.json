@@ -98,5 +98,15 @@
     "clearAsked": 1,
     "implemented": 0,
     "stoppedToAsk": 3
+  },
+  "SI": {
+    "runs": 3,
+    "asked": 0,
+    "assumed": 2,
+    "silent": 19,
+    "majorSilent": 13,
+    "clearAsked": 0,
+    "implemented": 3,
+    "stoppedToAsk": 0
   }
 }

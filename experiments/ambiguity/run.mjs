@@ -18,12 +18,15 @@ const IMPL = "src/pricing/points.ts";
 const ALLOWED_TOOLS = ["Read", "Write", "Edit", "MultiEdit", "Glob", "Grep", "Task", "Agent", "Bash(pnpm:*)", "Bash(git:*)", "Bash(node:*)", "Bash(ls:*)"];
 
 // 0016과 달리 "사람에게 되묻지 말고 끝까지 진행" 문장을 넣지 않는다 — 이 실험에선 그 문장이 결과를 정해 버린다
-const COMMON = `작업 번호 ${TASK_ID}, 이슈 #1(이미 있음), 브랜치 \`${BRANCH}\`(이미 체크아웃됨)입니다. 태스크 폴더는 \`${SPEC}/\`로 만드세요.`;
+/** 0033: 복사본 안 작업 번호를 바꿀 수 있게 (0032 규칙은 0032 이상에만 걸림) */
+export const taskPaths = (id = TASK_ID) => ({ id, branch: `task/${id}-points`, spec: `agents/intent/specs/${id}-points` });
+const commonFor = (id = TASK_ID) => { const t = taskPaths(id); return `작업 번호 ${id}, 이슈 #1(이미 있음), 브랜치 \`${t.branch}\`(이미 체크아웃됨)입니다. 태스크 폴더는 \`${t.spec}/\`로 만드세요.`; };
+const COMMON = commonFor();
 
 export const PROMPTS = {
-  A: (task) => `아래 요청을 이 저장소의 규칙(AGENTS.md)대로 처리해 주세요.\n${COMMON}\n\n---\n${task}`,
-  Q: (task) =>
-    `아래 요청을 이 저장소의 규칙(AGENTS.md)대로 처리해 주세요.\n${COMMON}\n요구사항이 모호하면 추측해서 구현하지 말고, 무엇이 모호한지 질문으로 정리해 사람의 답을 받으세요.\n\n---\n${task}`,
+  A: (task, id) => `아래 요청을 이 저장소의 규칙(AGENTS.md)대로 처리해 주세요.\n${commonFor(id)}\n\n---\n${task}`,
+  Q: (task, id) =>
+    `아래 요청을 이 저장소의 규칙(AGENTS.md)대로 처리해 주세요.\n${commonFor(id)}\n요구사항이 모호하면 추측해서 구현하지 말고, 무엇이 모호한지 질문으로 정리해 사람의 답을 받으세요.\n\n---\n${task}`,
   BR: (task) => `아래 요청을 이 저장소의 규칙(AGENTS.md)대로 **역할 분리 모드**로 처리해 주세요.
 ${COMMON}
 당신은 조율자입니다. **파일을 직접 고치지 말고** 보조 에이전트에게 차례로 맡기세요.

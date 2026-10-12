@@ -1,0 +1,26 @@
+import { assertWon, type Won } from "../money.js";
+
+const BASIC_RATE = 0.01; // 1%
+const COUPON_RATE = 0.005; // 0.5%
+const VIP_MULTIPLIER = 2;
+
+export type MemberType = "NORMAL" | "VIP";
+
+export function calculatePoints(
+  total: Won,
+  discount: Won = 0,
+  memberType: MemberType = "NORMAL"
+): number {
+  assertWon(total, "total");
+  assertWon(discount, "discount");
+
+  if (total === 0) return 0;
+
+  let rate = discount > 0 ? COUPON_RATE : BASIC_RATE;
+
+  if (memberType === "VIP") {
+    rate *= VIP_MULTIPLIER;
+  }
+
+  return Math.floor(total * rate);
+}
