@@ -1,0 +1,7 @@
+{
+  "identified": true,
+  "claims": 1,
+  "validClaims": 1,
+  "note": "판정서가 규칙 8의 상품 쿠폰 상품당 1장 제한이 `if (false)`로 무력화되어, 같은 SKU 상품 쿠폰 2장 이상이면 CouponError 없이 할인이 적용된다는 점을 정확히 짚었다. 다른 위반 주장은 없다.",
+  "costUsd": 0.0251143
+}

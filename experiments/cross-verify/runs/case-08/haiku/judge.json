@@ -1,0 +1,7 @@
+{
+  "identified": true,
+  "claims": 1,
+  "validClaims": 1,
+  "note": "판정서가 규칙 2 위반(정액 쿠폰이 기준 금액을 넘어 할인됨, 예: 기준 10,000원에 15,000원 쿠폰이면 15,000원 할인)을 짚었고, 이것이 심은 결함(Math.min(coupon.value, base) 누락)과 일치한다.",
+  "costUsd": 0.0243243
+}

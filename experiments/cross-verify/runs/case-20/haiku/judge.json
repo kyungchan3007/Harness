@@ -1,0 +1,7 @@
+{
+  "identified": true,
+  "claims": 2,
+  "validClaims": 2,
+  "note": "판정서가 규칙 3(maxDiscount 상한 미적용)을 `amount = amount` 줄과 함께 정액·정률 입력 예시로 정확히 짚었고, 두 주장 모두 같은 심은 결함에 해당하므로 유효.",
+  "costUsd": 0.024789299999999997
+}

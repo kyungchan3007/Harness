@@ -1,0 +1,7 @@
+{
+  "identified": true,
+  "claims": 1,
+  "validClaims": 1,
+  "note": "판정서는 규칙 4(subtotal이 minOrder 이상이면 적용)를 짚었습니다. subtotal이 minOrder와 정확히 같을 때 `<=` 때문에 할인이 0이 되는 조건과 위치(coupon.ts:38)까지 밝혔습니다. 위반 주장은 이 하나뿐이고 유효합니다.",
+  "costUsd": 0.0267368
+}

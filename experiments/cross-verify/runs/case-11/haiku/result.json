@@ -1,0 +1,46 @@
+{
+  "case": "case-11",
+  "verifier": "haiku",
+  "vendor": "claude",
+  "model": "claude-haiku-4-5-20251001",
+  "copyDir": "/var/folders/ht/prc2m2q939d1l29154xtvtmw0000gn/T/run-Ynwvgh",
+  "exitCode": 0,
+  "minutes": 1.95,
+  "verdict": "approved",
+  "codeChanged": false,
+  "costUsd": 0.17830250000000003,
+  "usage": {
+    "input_tokens": 217,
+    "cache_creation_input_tokens": 25462,
+    "cache_read_input_tokens": 950480,
+    "output_tokens": 10242,
+    "output_tokens_details": {
+      "thinking_tokens": 4780
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 0,
+      "ephemeral_5m_input_tokens": 25462
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 8,
+        "output_tokens": 1026,
+        "cache_read_input_tokens": 40251,
+        "cache_creation_input_tokens": 451,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 451,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+  }
+}

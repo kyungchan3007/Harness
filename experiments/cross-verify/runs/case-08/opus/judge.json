@@ -1,0 +1,7 @@
+{
+  "identified": true,
+  "claims": 1,
+  "validClaims": 1,
+  "note": "판정서가 규칙 2 위반(정액 쿠폰이 기준 금액을 넘어 할인되거나 RangeError 발생)과 원인(discountOf가 base로 상한을 두지 않음)을 구체적인 입력 예시와 함께 정확히 짚었다.",
+  "costUsd": 0.0266743
+}

@@ -1,0 +1,7 @@
+{
+  "identified": true,
+  "claims": 1,
+  "validClaims": 1,
+  "note": "판정서가 규칙 1(원 미만 버림)을 Math.round 반올림이 위반한다고 구체적 입력(105원×10%→11원)과 함께 짚었고, 다른 위반 주장은 없다.",
+  "costUsd": 0.0249843
+}

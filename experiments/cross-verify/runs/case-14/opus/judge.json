@@ -1,0 +1,7 @@
+{
+  "identified": true,
+  "claims": 1,
+  "validClaims": 1,
+  "note": "판정서가 규칙 8의 중복 상품 쿠폰 허용을 구체적인 입력(sku A 정액 쿠폰 두 장)과 `if (false)` 원인까지 짚었다. 다른 위반 주장은 없다.",
+  "costUsd": 0.0256293
+}

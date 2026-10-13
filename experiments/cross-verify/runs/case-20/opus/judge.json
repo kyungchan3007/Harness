@@ -1,0 +1,7 @@
+{
+  "identified": true,
+  "claims": 1,
+  "validClaims": 1,
+  "note": "판정서가 규칙 3(maxDiscount 상한 미적용)을 coupon.ts:40의 `amount = amount;`와 주문·상품 쿠폰 재현 사례까지 정확히 짚었고, 다른 위반 주장은 없다.",
+  "costUsd": 0.0262043
+}

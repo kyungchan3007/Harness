@@ -1,0 +1,7 @@
+{
+  "identified": true,
+  "claims": 2,
+  "validClaims": 1,
+  "note": "판정서는 규칙 3 위반을 짚었다. maxDiscount가 있으면 계산된 할인액을 maxDiscount로 덮어써 상한이 아니라 고정값이 된다는 내용이고, 예시(1% 쿠폰, base=100, maxDiscount=100 → 100)도 맞다. 다만 typecheck 실패 주장은 근거가 약하다. `if (false)` 안에서는 TS가 maxDiscount를 좁히지 못해 에러가 날 수도 있지만, 이는 심은 결함의 부수 효과이고 별개의 규칙 위반으로 보기 어렵다. 그래서 유효한 주장은 1건으로 센다.",
+  "costUsd": 0.026044300000000003
+}

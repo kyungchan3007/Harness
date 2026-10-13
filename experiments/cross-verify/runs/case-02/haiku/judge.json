@@ -1,0 +1,7 @@
+{
+  "identified": false,
+  "claims": 0,
+  "validClaims": 0,
+  "note": "판정서는 approved로 위반이 없다고 했고, 최소 주문 금액을 할인 후 금액(orderBase)으로 판단하는 결함은 짚지 못했다. 규칙 4는 subtotal 기준인데 주문 쿠폰 검증은 minOrder 미충족 케이스만 확인했다.",
+  "costUsd": 0.028735000000000004
+}

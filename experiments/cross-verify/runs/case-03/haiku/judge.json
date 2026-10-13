@@ -1,0 +1,7 @@
+{
+  "identified": true,
+  "claims": 1,
+  "validClaims": 1,
+  "note": "판정서가 규칙 4 위반을 짚었다. subtotal이 minOrder보다 작으면 할인 0원이 아니라 CouponError를 던진다는 점까지 입력 예시와 함께 설명했다.",
+  "costUsd": 0.024786799999999998
+}

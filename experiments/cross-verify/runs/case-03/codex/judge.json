@@ -1,0 +1,7 @@
+{
+  "identified": true,
+  "claims": 1,
+  "validClaims": 1,
+  "note": "판정서가 규칙 4(minOrder 미달 시 오류가 아니라 해당 쿠폰만 0원 처리)를 어기고 CouponError가 발생하는 조건과 재현 입력까지 정확히 짚었고, 그 외의 위반 주장은 없다.",
+  "costUsd": 0.0250493
+}

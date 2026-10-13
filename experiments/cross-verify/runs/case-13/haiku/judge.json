@@ -1,0 +1,7 @@
+{
+  "identified": true,
+  "claims": 1,
+  "validClaims": 1,
+  "note": "판정서가 shippingPolicy를 priceCart에 전달하지 않아 커스텀 배송비 정책이 무시되고 기본 정책(3000원)이 적용되는 문제를 규칙 10 위반으로 구체적 입력과 함께 정확히 짚음.",
+  "costUsd": 0.024546800000000004
+}
