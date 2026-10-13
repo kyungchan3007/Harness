@@ -46,19 +46,7 @@
 
 ### 지금까지 알게 된 것
 
-<sup>Claude Code · 따로 적지 않으면 Haiku 4.5 · 조건마다 3회 · NO를 누르면 PR</sup>
-
-| NO | 알게 된 것 | 전 → 후 |
-| --- | --- | --- |
-| [0009](https://github.com/kyungchan3007/Harness/pull/3) | 지시보다 **장치**로 강제해야 기록이 남는다 | 차단 안내만으로 스스로 기록 |
-| [0016](https://github.com/kyungchan3007/Harness/pull/23) · [0022](https://github.com/kyungchan3007/Harness/pull/25) | 요약하면 요구가 사라지고, **원문 고정**이 막는다 | 정답률 46% → **100%** |
-| [0024](https://github.com/kyungchan3007/Harness/pull/29) · [0025](https://github.com/kyungchan3007/Harness/pull/33) | 작은 모델은 빈칸을 몰래 채운다 | 몰래 지어냄 95% → **57%** |
-| [0026](https://github.com/kyungchan3007/Harness/pull/34) | 큰 모델은 스스로 빈칸을 드러낸다 | Haiku 95% · 큰 모델 **10%** |
-| [0027](https://github.com/kyungchan3007/Harness/pull/35) · [0028](https://github.com/kyungchan3007/Harness/pull/37) | **묻고 답을 받아야** 맞는다 | 27% → **87%** · 큰 모델 **100%** |
-| [0029](https://github.com/kyungchan3007/Harness/pull/39) | 작은 작업은 큰 모델 하나가 더 싸다 | 조합 \$1.35 · Opus만 **\$0.98** |
-| [0030](https://github.com/kyungchan3007/Harness/pull/42) | 추측의 점수는 착시다 | 흔한 의도 41% → 드문 의도 **4%** |
-| [0032](https://github.com/kyungchan3007/Harness/pull/47) · [0033](https://github.com/kyungchan3007/Harness/pull/49) · [0034](https://github.com/kyungchan3007/Harness/pull/51) | 장치만으로도 묻게 하고 위조를 막는다 | 물음 0/3 → **3/3** · 위조 **0** |
-| [0031](https://github.com/kyungchan3007/Harness/pull/44) | 측정 도구도 틀린다 | "체크해줘" 8회 → 실제 **0회** |
+👉 주제별 결과와 수치는 아래 **[실험별 상태](#실험별-상태)** 에 있습니다 — 역할 분리 · 애매한 요청 · 모델별 비용 · 장치로 묻게 하기 · 측정 · 실전 규칙
 
 ### 어떻게 실험하나
 
