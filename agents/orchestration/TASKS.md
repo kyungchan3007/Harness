@@ -36,3 +36,4 @@
 | 0032 | 업무 값은 (가정) 금지, (확인 필요)가 남으면 멈춤 | claude | done | [0032](../intent/specs/0032-business-value-confirm/prd.md) · #46 |
 | 0033 | 업무 값 확인 규칙으로 새로 실행 (막히면 묻는가) | claude | done | [0033](../intent/specs/0033-strict-rule-live/prd.md) · #48 |
 | 0034 | (확인됨: 답)을 대화 기록과 대조 | claude | done | [0034](../intent/specs/0034-confirm-source/prd.md) · #50 |
+| 0035 | README 최신화: 연구 질문·핵심 결과를 맨 위에 | claude | done | [0035](../intent/specs/0035-readme-research/prd.md) · #52 |
