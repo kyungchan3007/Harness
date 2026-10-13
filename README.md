@@ -37,28 +37,28 @@
 
 ### 무엇을 묻고 있나
 
-| 갈래 | 연구 질문 | 실험 |
+| 갈래 | 연구 질문 | NO |
 | --- | --- | --- |
-| 🛡️ 기록 강제 | 지시 대신 hook·게이트로 막으면 에이전트가 작업 과정을 남기는가 | 0008 · 0009 · 0017 · 0020 · 0021 |
-| 👥 역할 분리 | 설계자·구현자·검사자로 나누면 혼자 할 때보다 정확한가, 요구사항은 어디서 사라지나 | 0012~0016 · 0022 · 0023 |
-| ❓ 애매한 요청 | 요청에 빈칸이 있으면 AI는 묻는가 지어내는가, 장치로 묻게 할 수 있나 | 0024~0030 · 0032~0034 |
-| 📏 측정 | 하네스 효과를 재는 도구 자체는 믿을 만한가 | 0019 · 0031 |
+| 🛡️ 기록 강제 | 장치로 막으면 작업 과정을 남기는가 | 0008 · 0009 · 0017 · 0020 · 0021 |
+| 👥 역할 분리 | 역할을 나누면 혼자보다 정확한가 | 0012~0016 · 0022 · 0023 |
+| ❓ 애매한 요청 | 빈칸이 있으면 묻는가, 지어내는가 | 0024~0030 · 0032~0034 |
+| 📏 측정 | 효과를 재는 도구는 믿을 만한가 | 0019 · 0031 |
 
 ### 지금까지 알게 된 것
 
-<sup>Claude Code로 실행, 따로 적지 않으면 Haiku 4.5 · 조건마다 3회</sup>
+<sup>Claude Code · 따로 적지 않으면 Haiku 4.5 · 조건마다 3회 · NO를 누르면 PR</sup>
 
-| 실험 | 알게 된 것 | 전 → 후 | PR |
-| --- | --- | --- | --- |
-| 0009 | 기록은 지시가 아니라 **장치로** 강제해야 남는다 | 차단 안내만 보고 에이전트가 스스로 기록을 채움 | [#3](https://github.com/kyungchan3007/Harness/pull/3) |
-| 0016 · 0022 | 요약해서 넘기면 요구가 사라지고, **원문을 고정**하면 돌아온다 | 역할 분리 정답률 46% → **100%** | [#23](https://github.com/kyungchan3007/Harness/pull/23) · [#25](https://github.com/kyungchan3007/Harness/pull/25) |
-| 0024 · 0025 | 작은 모델은 빈칸을 몰래 채운다. **필수 칸**으로 일부가 드러난다 | 몰래 지어냄 95% → **57%** | [#29](https://github.com/kyungchan3007/Harness/pull/29) · [#33](https://github.com/kyungchan3007/Harness/pull/33) |
-| 0026 | 큰 모델은 시키지 않아도 빈칸을 드러낸다 | 몰래 지어냄 Haiku 95% · Sonnet·Opus **10%** | [#34](https://github.com/kyungchan3007/Harness/pull/34) |
-| 0027 · 0028 | 드러내는 것만으론 부족하다. **묻고 답을 받아야** 맞는다 | 숨겨진 테스트 27% → **87%** (Haiku) · **100%** (Sonnet·Opus) | [#35](https://github.com/kyungchan3007/Harness/pull/35) · [#37](https://github.com/kyungchan3007/Harness/pull/37) |
-| 0029 | 작은 작업은 큰 모델 하나로 끝까지 하는 게 싸다 | 설계 Opus + 구현 Haiku \$1.35 vs 전부 Opus **\$0.98** | [#39](https://github.com/kyungchan3007/Harness/pull/39) |
-| 0030 | 추측의 점수는 착시다. 흔한 의도라서 공짜로 맞았을 뿐 | 정답 의도를 바꾸자 추측 41% → **4%**, 대화형 Opus 100% 유지 | [#42](https://github.com/kyungchan3007/Harness/pull/42) |
-| 0032 · 0033 · 0034 | 업무 값 **가정 금지** + "확인됨"을 **대화 기록과 대조**하면 지시 없이도 묻고 위조가 막힌다 | 사람에게 물음 0/3 → **3/3** · 위조 통과 1 → **0** · 숨겨진 테스트 53% → **80%** | [#47](https://github.com/kyungchan3007/Harness/pull/47) · [#49](https://github.com/kyungchan3007/Harness/pull/49) · [#51](https://github.com/kyungchan3007/Harness/pull/51) |
-| 0031 | 측정 도구도 틀린다. 숫자가 결론을 바꿀 때는 원본을 직접 연다 | "체크해줘" 지시 도구 8회 → 실제 **0회** | [#44](https://github.com/kyungchan3007/Harness/pull/44) · [#45](https://github.com/kyungchan3007/Harness/pull/45) |
+| NO | 알게 된 것 | 전 → 후 |
+| --- | --- | --- |
+| [0009](https://github.com/kyungchan3007/Harness/pull/3) | 지시보다 **장치**로 강제해야 기록이 남는다 | 차단 안내만으로 스스로 기록 |
+| [0016](https://github.com/kyungchan3007/Harness/pull/23) · [0022](https://github.com/kyungchan3007/Harness/pull/25) | 요약하면 요구가 사라지고, **원문 고정**이 막는다 | 정답률 46% → **100%** |
+| [0024](https://github.com/kyungchan3007/Harness/pull/29) · [0025](https://github.com/kyungchan3007/Harness/pull/33) | 작은 모델은 빈칸을 몰래 채운다 | 몰래 지어냄 95% → **57%** |
+| [0026](https://github.com/kyungchan3007/Harness/pull/34) | 큰 모델은 스스로 빈칸을 드러낸다 | Haiku 95% · 큰 모델 **10%** |
+| [0027](https://github.com/kyungchan3007/Harness/pull/35) · [0028](https://github.com/kyungchan3007/Harness/pull/37) | **묻고 답을 받아야** 맞는다 | 27% → **87%** · 큰 모델 **100%** |
+| [0029](https://github.com/kyungchan3007/Harness/pull/39) | 작은 작업은 큰 모델 하나가 더 싸다 | 조합 \$1.35 · Opus만 **\$0.98** |
+| [0030](https://github.com/kyungchan3007/Harness/pull/42) | 추측의 점수는 착시다 | 흔한 의도 41% → 드문 의도 **4%** |
+| [0032](https://github.com/kyungchan3007/Harness/pull/47) · [0033](https://github.com/kyungchan3007/Harness/pull/49) · [0034](https://github.com/kyungchan3007/Harness/pull/51) | 장치만으로도 묻게 하고 위조를 막는다 | 물음 0/3 → **3/3** · 위조 **0** |
+| [0031](https://github.com/kyungchan3007/Harness/pull/44) | 측정 도구도 틀린다 | "체크해줘" 8회 → 실제 **0회** |
 
 ### 어떻게 실험하나
 
@@ -84,47 +84,52 @@
 
 | 영역 | 진행 |
 | --- | --- |
-| 🧪 하네스 실험 | **29개 완료** · 3개 대기 |
-| 🛡️ 강제 지점 | 세션 시작 · 요청 입력(복기) · 코드 수정 직전 · 응답 종료 · 커밋 · 게이트 **6곳 동작** |
-| ✅ 게이트 | 타입체크 · 단위 테스트 156개 · lockfile · 태스크 기록 · 실험 장치 자기 검사 **ALL PASS** |
-| 🛒 도메인 | 장바구니·금액 계산 **구현** (주문 상태 미구현) |
+| 🧪 실험 | **29개 완료** · 3개 대기 |
+| 🛡️ 강제 지점 | **6곳** — 시작 · 입력 · 수정 · 종료 · 커밋 · 게이트 |
+| ✅ 게이트 | **ALL PASS** — 타입 · 테스트 156개 · 기록 · 실험 장치 |
+| 🛒 도메인 | 장바구니·금액 계산 (주문 상태는 미구현) |
 
 ### 실험별 상태
 
-| 태스크 | 갈래 | 하네스 실험 | 상태 | PR |
+| NO | 갈래 | 하네스 실험 | 상태 | PR |
 | --- | --- | --- | --- | --- |
-| 0001 | 기반 | 4계층 뼈대 + 완료 게이트 | ✅ 완료 | - |
-| 0002 | 기반 | 도메인 규칙 번호 ↔ 테스트 이름 추적 | ✅ 완료 | [#1](https://github.com/kyungchan3007/Harness/pull/1) |
-| 0008 | 기록 강제 | PRD·SDD·Trace 분리 + hooks 자동 기록 | ✅ 완료 | [#2](https://github.com/kyungchan3007/Harness/pull/2) |
-| 0009 | 기록 강제 | 기록 강제 (PreToolUse·Stop·게이트) | ✅ 완료 | [#3](https://github.com/kyungchan3007/Harness/pull/3) |
-| 0010 · 0011 · 0018 | 기반 | README·포트폴리오 정리 | ✅ 완료 | [#4](https://github.com/kyungchan3007/Harness/pull/4) · [#5](https://github.com/kyungchan3007/Harness/pull/5) · [#8](https://github.com/kyungchan3007/Harness/pull/8) |
-| 0012 | 역할 분리 | 역할 분리 실험 설계 | ✅ 완료 | [#6](https://github.com/kyungchan3007/Harness/pull/6) |
-| 0013 | 역할 분리 | 역할 식별 + 역할별 권한 강제 | ✅ 완료 | [#15](https://github.com/kyungchan3007/Harness/pull/15) |
-| 0014 | 역할 분리 | 검사자 판정 흐름 | ✅ 완료 | [#17](https://github.com/kyungchan3007/Harness/pull/17) |
-| 0015 | 역할 분리 | 실험 과제 + 숨겨진 테스트 | ✅ 완료 | [#19](https://github.com/kyungchan3007/Harness/pull/19) · [#22](https://github.com/kyungchan3007/Harness/pull/22) |
-| 0016 | 역할 분리 | 역할 분리 실험 실행 (혼자·요약 전달·원문 전달) | ✅ 완료 | [#23](https://github.com/kyungchan3007/Harness/pull/23) |
-| 0017 | 기록 강제 | 커밋에 허점·보완·토큰 기록 + 자동 집계 | ✅ 완료 | [#7](https://github.com/kyungchan3007/Harness/pull/7) |
-| 0019 | 측정 | 복기 참조·체크박스 측정 도구 + 기준선 | ✅ 완료 | [#9](https://github.com/kyungchan3007/Harness/pull/9) |
-| 0020 | 기록 강제 | 복기 주입 + 체크박스 한 곳 관리·동기화 | ✅ 완료 | [#13](https://github.com/kyungchan3007/Harness/pull/13) · [#20](https://github.com/kyungchan3007/Harness/pull/20) |
-| 0021 | 기록 강제 | 이슈·브랜치 연결 규칙 | ✅ 완료 | [#11](https://github.com/kyungchan3007/Harness/pull/11) |
-| 0022 | 역할 분리 | 원문 고정 강제 | ✅ 완료 | [#25](https://github.com/kyungchan3007/Harness/pull/25) |
-| 0023 | 역할 분리 | 채점표 세 번째 입력값 + 재채점 | ✅ 완료 | [#27](https://github.com/kyungchan3007/Harness/pull/27) |
-| 0024 | 애매한 요청 | 모호한 요청에 되묻는가, 지어내는가 | ✅ 완료 | [#29](https://github.com/kyungchan3007/Harness/pull/29) |
-| 0025 | 애매한 요청 | "애매한 곳·가정" 필수 칸 | ✅ 완료 | [#33](https://github.com/kyungchan3007/Harness/pull/33) |
-| 0026 | 애매한 요청 | 같은 실험을 큰 모델(Sonnet·Opus)로 | ✅ 완료 | [#34](https://github.com/kyungchan3007/Harness/pull/34) |
-| 0027 | 애매한 요청 | 묻고 → 답 받고 → 이어 가기 (대화형) | ✅ 완료 | [#35](https://github.com/kyungchan3007/Harness/pull/35) · [#40](https://github.com/kyungchan3007/Harness/pull/40) |
-| 0028 | 애매한 요청 | 큰 모델 + 대화형 | ✅ 완료 | [#37](https://github.com/kyungchan3007/Harness/pull/37) |
-| 0029 | 애매한 요청 | 설계 Opus + 구현 Haiku 조합 | ✅ 완료 | [#39](https://github.com/kyungchan3007/Harness/pull/39) |
-| 0030 | 애매한 요청 | 흔하지 않은 정답 의도로 다시 | ✅ 완료 | [#42](https://github.com/kyungchan3007/Harness/pull/42) |
-| 0031 | 측정 | 측정 도구 정정 (직접 친 요청만) | ✅ 완료 | [#44](https://github.com/kyungchan3007/Harness/pull/44) · [#45](https://github.com/kyungchan3007/Harness/pull/45) |
-| 0032 | 애매한 요청 | 업무 값은 (가정) 금지, (확인 필요)가 남으면 멈춤 | ✅ 완료 | [#47](https://github.com/kyungchan3007/Harness/pull/47) |
-| 0033 | 애매한 요청 | 업무 값 확인 규칙으로 새로 실행 | ✅ 완료 | [#49](https://github.com/kyungchan3007/Harness/pull/49) |
-| 0034 | 애매한 요청 | (확인됨: 답)을 대화 기록과 대조 | ✅ 완료 | [#51](https://github.com/kyungchan3007/Harness/pull/51) |
-| 0005 | 측정 | 속성 기반 테스트 게이트 (주문 상태) | ⬜ 대기 | - |
-| 0006 | 역할 분리 | 서브에이전트 병렬 작업 | ⬜ 대기 | - |
-| 0007 | 기록 강제 | CI에서 게이트 실행 | ⬜ 대기 | - |
+| 0001 | 기반 | 4계층 뼈대 + 완료 게이트 | ✅ | - |
+| 0002 | 기반 | 도메인 규칙 번호 ↔ 테스트 이름 추적 | ✅ | [#1](https://github.com/kyungchan3007/Harness/pull/1) |
+| 0003 | 애매한 요청 | 쿠폰 규칙 (모호한 spec) — 0024로 대체 | 🔁 | - |
+| 0004 | 기록 강제 | "spec 없이 src 수정" 차단 — 0009로 대체 | 🔁 | - |
+| 0005 | 측정 | 속성 기반 테스트 게이트 (주문 상태) | ⬜ | - |
+| 0006 | 역할 분리 | 서브에이전트 병렬 작업 | ⬜ | - |
+| 0007 | 기록 강제 | CI에서 게이트 실행 | ⬜ | - |
+| 0008 | 기록 강제 | PRD·SDD·Trace 분리 + hooks 자동 기록 | ✅ | [#2](https://github.com/kyungchan3007/Harness/pull/2) |
+| 0009 | 기록 강제 | 기록 강제 (PreToolUse·Stop·게이트) | ✅ | [#3](https://github.com/kyungchan3007/Harness/pull/3) |
+| 0010 | 기반 | README 정리 | ✅ | [#4](https://github.com/kyungchan3007/Harness/pull/4) |
+| 0011 | 기반 | 포트폴리오 README + trace 누락 표기 | ✅ | [#5](https://github.com/kyungchan3007/Harness/pull/5) |
+| 0012 | 역할 분리 | 역할 분리 실험 설계 | ✅ | [#6](https://github.com/kyungchan3007/Harness/pull/6) |
+| 0013 | 역할 분리 | 역할 식별 + 역할별 권한 강제 | ✅ | [#15](https://github.com/kyungchan3007/Harness/pull/15) |
+| 0014 | 역할 분리 | 검사자 판정 흐름 | ✅ | [#17](https://github.com/kyungchan3007/Harness/pull/17) |
+| 0015 | 역할 분리 | 실험 과제 + 숨겨진 테스트 | ✅ | [#19](https://github.com/kyungchan3007/Harness/pull/19) · [#22](https://github.com/kyungchan3007/Harness/pull/22) |
+| 0016 | 역할 분리 | 역할 분리 실험 실행 (혼자·요약 전달·원문 전달) | ✅ | [#23](https://github.com/kyungchan3007/Harness/pull/23) |
+| 0017 | 기록 강제 | 커밋에 허점·보완·토큰 기록 + 자동 집계 | ✅ | [#7](https://github.com/kyungchan3007/Harness/pull/7) |
+| 0018 | 기반 | README 작업 루프 다이어그램 가독성 | ✅ | [#8](https://github.com/kyungchan3007/Harness/pull/8) |
+| 0019 | 측정 | 복기 참조·체크박스 측정 도구 + 기준선 | ✅ | [#9](https://github.com/kyungchan3007/Harness/pull/9) |
+| 0020 | 기록 강제 | 복기 주입 + 체크박스 한 곳 관리·동기화 | ✅ | [#13](https://github.com/kyungchan3007/Harness/pull/13) · [#20](https://github.com/kyungchan3007/Harness/pull/20) |
+| 0021 | 기록 강제 | 이슈·브랜치 연결 규칙 | ✅ | [#11](https://github.com/kyungchan3007/Harness/pull/11) |
+| 0022 | 역할 분리 | 원문 고정 강제 | ✅ | [#25](https://github.com/kyungchan3007/Harness/pull/25) |
+| 0023 | 역할 분리 | 채점표 세 번째 입력값 + 재채점 | ✅ | [#27](https://github.com/kyungchan3007/Harness/pull/27) |
+| 0024 | 애매한 요청 | 모호한 요청에 되묻는가, 지어내는가 | ✅ | [#29](https://github.com/kyungchan3007/Harness/pull/29) |
+| 0025 | 애매한 요청 | "애매한 곳·가정" 필수 칸 | ✅ | [#33](https://github.com/kyungchan3007/Harness/pull/33) |
+| 0026 | 애매한 요청 | 같은 실험을 큰 모델(Sonnet·Opus)로 | ✅ | [#34](https://github.com/kyungchan3007/Harness/pull/34) |
+| 0027 | 애매한 요청 | 묻고 → 답 받고 → 이어 가기 (대화형) | ✅ | [#35](https://github.com/kyungchan3007/Harness/pull/35) · [#40](https://github.com/kyungchan3007/Harness/pull/40) |
+| 0028 | 애매한 요청 | 큰 모델 + 대화형 | ✅ | [#37](https://github.com/kyungchan3007/Harness/pull/37) |
+| 0029 | 애매한 요청 | 설계 Opus + 구현 Haiku 조합 | ✅ | [#39](https://github.com/kyungchan3007/Harness/pull/39) |
+| 0030 | 애매한 요청 | 흔하지 않은 정답 의도로 다시 | ✅ | [#42](https://github.com/kyungchan3007/Harness/pull/42) |
+| 0031 | 측정 | 측정 도구 정정 (직접 친 요청만) | ✅ | [#44](https://github.com/kyungchan3007/Harness/pull/44) · [#45](https://github.com/kyungchan3007/Harness/pull/45) |
+| 0032 | 애매한 요청 | 업무 값은 (가정) 금지, (확인 필요)가 남으면 멈춤 | ✅ | [#47](https://github.com/kyungchan3007/Harness/pull/47) |
+| 0033 | 애매한 요청 | 업무 값 확인 규칙으로 새로 실행 | ✅ | [#49](https://github.com/kyungchan3007/Harness/pull/49) |
+| 0034 | 애매한 요청 | (확인됨: 답)을 대화 기록과 대조 | ✅ | [#51](https://github.com/kyungchan3007/Harness/pull/51) |
+| 0035 | 기반 | README 최신화 — 연구 질문·핵심 결과를 맨 위에 | ✅ | [#53](https://github.com/kyungchan3007/Harness/pull/53) |
 
-<sup>범례: ✅ 완료 · ⬜ 대기 · 0003·0004는 0024·0009로 대체</sup>
+<sup>범례: ✅ 완료 · ⬜ 대기 · 🔁 다른 태스크로 대체</sup>
 
 ---
 
@@ -132,10 +137,10 @@
 
 | 문제 | 이 저장소의 답 |
 | --- | --- |
-| 에이전트 작업 과정이 **블랙박스**다 | 태스크마다 `prd` · `sdd` · `trace` + hooks **자동 기록** |
-| 기록 규칙을 문서에 써도 **건너뛴다** | hooks와 게이트로 **기록 없이는 수정·종료·완료 선언 불가** |
-| 실제 프로젝트에서 실험하면 **작업 루프가 흔들린다** | 하네스만 따로 떼어 실험하는 **연구용 샌드박스** |
-| 쉬운 도메인에선 에이전트가 **틀리지 않는다** | 함정이 많은 **쇼핑몰 할인·주문 엔진**을 실험 대상으로 |
+| 작업 과정이 **블랙박스**다 | 태스크마다 prd · sdd · trace + **자동 기록** |
+| 기록 규칙을 써도 **건너뛴다** | 기록 없으면 수정·종료·완료 **불가** |
+| 실제 프로젝트에선 루프가 흔들린다 | 하네스만 떼어 낸 **연구용 샌드박스** |
+| 쉬운 도메인에선 **틀리지 않는다** | 함정 많은 **쇼핑몰 할인·주문 엔진** |
 
 ---
 
@@ -211,12 +216,14 @@ flowchart TD
 
 > **한 줄 요약** — 네 지점에서 기록을 확인합니다. 판정 기준은 [`records.mjs`](agents/harness/hooks/lib/records.mjs) 한 곳에 있어 hook과 게이트가 어긋나지 않습니다.
 
-| 지점 | 장치 | 확인하는 것 | 위반 시 |
-| --- | --- | --- | --- |
-| 🔔 세션 시작 · 날짜/브랜치 변경 | `session-context.mjs` · `recall-hook.mjs` | - | 현재 작업 상태 + **미처리 `[보완]`·최근 일지(복기)**를 에이전트에게 주입 |
-| 🛑 코드 수정 직전 | `guard.mjs` (PreToolUse) | 태스크 브랜치 + TASKS 행 + 채워진 prd·sdd | **수정 차단** + 해야 할 일 안내 |
-| ↩️ 응답 종료 | `stop-check.mjs` (Stop) | 코드를 바꿨으면 trace.md 갱신 | **1회 돌려보냄** |
-| ✅ 완료 선언 | `check-task-records.mjs` (게이트) | 모든 태스크의 기록 + 타입·테스트 | **`pnpm check` FAIL** |
+| 지점 | 장치 | 하는 일 |
+| --- | --- | --- |
+| 🔔 세션 시작 | `session-context` · `recall-hook` | 작업 상태 + 지난 `[보완]` 주입 |
+| 🛑 수정 직전 | `guard` | 기록이 없으면 **수정 차단** |
+| ↩️ 응답 종료 | `stop-check` | trace가 없으면 **돌려보냄** |
+| ✅ 완료 선언 | `check-task-records` | 기록·타입·테스트 **FAIL** |
+
+<sub>수정 직전에 보는 것: 태스크 브랜치 · TASKS 행 · 채워진 prd·sdd · 애매한 곳 칸 · 확인 표시 대조</sub>
 
 ### 실제로 에이전트가 겪는 흐름
 
@@ -256,12 +263,13 @@ sequenceDiagram
 
 태스크마다 `agents/intent/specs/NNNN-슬러그/` 폴더 하나에 네 가지 기록이 남습니다.
 
-| 파일 | 질문 | 누가 | 언제 |
-| --- | --- | --- | --- |
-| `prd.md` | 왜, 무엇을 만드나 · Acceptance | ✍️ 에이전트 | 착수 전 |
-| `sdd.md` | 어떻게 · 대안과 트레이드오프 · **계획과 달라진 점** · 검증 결과 | ✍️ 에이전트 | 착수 전 + 완료 시 |
-| `trace.md` | 실제로 무슨 일이 있었나 (판단 · 막힘 · 되돌림) | ✍️ 에이전트 | 작업 내내 |
-| `trace.auto.jsonl` | 무엇을 호출했나 (프롬프트 · 도구 · 성공/실패 · **차단**) | 🤖 Claude Code hooks | 도구 호출마다 |
+| 파일 | 담는 것 | 누가 |
+| --- | --- | --- |
+| `request.md` | 이슈 본문 원문 (고정) | 🤖 명령 |
+| `prd.md` | 왜 · 무엇을 · 애매한 곳 · Acceptance | ✍️ 에이전트 |
+| `sdd.md` | 어떻게 · 대안 · **달라진 점** · 결과 | ✍️ 에이전트 |
+| `trace.md` | 판단 · 막힘 · 되돌림 | ✍️ 에이전트 |
+| `trace.auto.jsonl` | 도구 호출 · 성공/실패 · **차단** | 🤖 hooks |
 
 ### 자동 기록 예시
 
@@ -315,16 +323,16 @@ hooks가 남긴 실제 기록입니다. **차단된 순간**도 남습니다.
 
 | # | 발견 | 조치 |
 | --- | --- | --- |
-| 1 | 쉬운 도메인(메모 CRUD)에선 에이전트가 틀리지 않아 **하네스 효과를 관찰할 수 없다** | 함정 많은 쇼핑몰 도메인으로 전환 |
-| 2 | 게이트가 **있는 폴더만** 검사해서, 폴더를 아예 안 만들면 통과했다 | 태스크 브랜치면 폴더 존재부터 검사 |
-| 3 | 차단된 호출에는 PostToolUse가 오지 않아 **가장 중요한 "막힘"이 기록에서 빠졌다** | hook이 차단할 때 직접 `blocked` 기록 |
-| 4 | 에이전트는 **차단 메시지의 안내만 보고** 필요한 기록을 스스로 채웠다 | 차단 메시지에 "무엇을 하면 풀리는지"를 구체적으로 |
-| 5 | 사후에 재구성한 trace는 **결과에 꿰맞춘 서술**이 된다 | 재구성 대신 누락 사실만 표기, 제도 도입 전 태스크에만 허용 |
-| 6 | (0016) 조율자가 요구사항을 **요약해서 넘기면** 설계자가 규칙을 지어내고, 검사자도 그 기준으로 통과시켰다 | 요청 원문 파일(`request.md`)을 고정하고 모든 역할이 먼저 읽게 강제 (0022) |
-| 7 | (0020) 이슈와 prd에 체크박스를 따로 쓰면 **만든 당일에 이미 어긋났다** | prd를 원본으로, 이슈는 동기화 명령으로 맞춤 |
-| 8 | (0024) "결제 금액"처럼 **흔한 말의 숨은 뜻**은 작은 모델이 9번 모두 못 봤다 | 큰 모델(0026)·묻고 답 받기(0027)로 비교 |
-| 9 | (0031) 측정 도구가 셸 출력·대화 요약·붙여 넣은 글까지 세서 **틀린 결론**을 냈다 | 사람이 직접 친 글만 세게 고침, 숫자가 결론을 바꾸면 원본 확인 |
-| 10 | (0033) 막히자 AI가 **"확인됨" 표시를 스스로 지어내** 통과했다 | 확인 표시를 대화 기록의 사람 답과 대조 (0034) |
+| 1 | 쉬운 도메인에선 에이전트가 **틀리지 않는다** | 함정 많은 쇼핑몰로 전환 |
+| 2 | 폴더를 안 만들면 게이트를 **통과했다** | 폴더 존재부터 검사 |
+| 3 | 막힌 순간이 **기록에서 빠졌다** | 차단 때 hook이 직접 기록 |
+| 4 | 차단 안내만 보고 **스스로 기록**했다 | 안내에 풀리는 방법을 구체적으로 |
+| 5 | 나중에 쓴 trace는 **결과에 꿰맞춘다** | 재구성 금지, 누락만 표기 |
+| 6 | (0016) 요약해서 넘기면 **규칙을 지어낸다** | 원문 고정 강제 (0022) |
+| 7 | (0020) 이슈·prd 체크박스가 **당일에 어긋남** | prd 원본 + 동기화 명령 |
+| 8 | (0024) 흔한 말의 **숨은 뜻**을 못 본다 | 큰 모델·묻고 답 받기로 비교 |
+| 9 | (0031) 측정 도구가 **엉뚱한 글까지** 셌다 | 직접 친 글만 세게 정정 |
+| 10 | (0033) 막히자 **확인 표시를 지어냈다** | 대화 기록과 대조 (0034) |
 
 ---
 
@@ -381,10 +389,10 @@ harness-lab/
 | 구분 | 기술 | 역할 |
 | --- | --- | --- |
 | 언어 | TypeScript (strict · ESM) | 도메인 코드 |
-| 런타임 | Node.js 22 | hooks · 게이트 스크립트 (의존성 없는 `.mjs`) |
-| 테스트 | Vitest | 도메인 규칙 · hook 판정 로직 (임시 git repo로 검증) |
+| 런타임 | Node.js 22 | hooks · 게이트 (의존성 없는 `.mjs`) |
+| 테스트 | Vitest | 도메인 규칙 · hook 판정 로직 |
 | 에이전트 | Claude Code · Codex | `AGENTS.md` 단일 진입점을 공유 |
-| 하네스 | Claude Code hooks | SessionStart · UserPromptSubmit · PreToolUse · PostToolUse · PostToolUseFailure · Stop |
+| 하네스 | Claude Code hooks | 6종 (SessionStart · PreToolUse · Stop 등) |
 | 패키지 | pnpm | 다른 lockfile은 게이트에서 차단 |
 
 ---
@@ -410,6 +418,22 @@ hooks는 **이 폴더에서 Claude Code 세션을 열면** 자동으로 동작�
 
 | # | 실험 | 계층 | 상태 |
 | --- | --- | --- | --- |
+| 1 | 4계층 뼈대 + 완료 게이트 | 전체 | ✅ |
+| 2 | 과정 기록 (prd·sdd·trace + 자동 기록) | Observability | ✅ |
+| 3 | 기록 강제 (수정·종료·커밋·게이트) | Guardrails | ✅ |
+| 4 | 역할 분리 + 원문 고정 (0012~0023) | Orchestration | ✅ |
+| 5 | 애매한 요청 실험 (0024~0030) | Intent | ✅ |
+| 6 | 애매한 요청을 장치로 (0032~0034) | Guardrails | ✅ |
+| 7 | 측정 도구와 정정 (0019·0031) | 검증 | ✅ |
+| 8 | 장치의 남은 구멍 (0034 후속) | Guardrails | 🔜 |
+| 9 | 속성 기반 테스트 게이트 | Eval | ⬜ |
+| 10 | 서브에이전트 병렬 작업 | Orchestration | ⬜ |
+| 11 | CI에서 게이트 실행 | Eval | ⬜ |
+| 12 | 기록 **내용 품질** 판정 | Eval | ⬜ |
+
+<sup>범례: ✅ 완료 · 🔜 다음 · ⬜ 대기</sup>
+
+--- | --- | --- | --- |
 | 1 | 4계층 뼈대 + 완료 게이트 (0001) | 전체 | ✅ 완료 |
 | 2 | 과정 기록 — PRD·SDD·Trace + hooks 자동 기록 (0008) | Observability | ✅ 완료 |
 | 3 | 기록 강제 — 수정 직전·종료·커밋·게이트 (0009·0017·0020·0021) | Guardrails · Eval | ✅ 완료 |
