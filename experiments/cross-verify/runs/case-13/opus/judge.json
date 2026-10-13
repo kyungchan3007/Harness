@@ -1,0 +1,7 @@
+{
+  "identified": true,
+  "claims": 1,
+  "validClaims": 1,
+  "note": "판정서가 마지막 priceCart 호출에서 shippingPolicy를 넘기지 않아 정책 인자가 무시되고 기본 정책이 쓰이는 문제를 구체적 입력(정책 fee 5000)과 함께 정확히 짚었다.",
+  "costUsd": 0.026339300000000003
+}

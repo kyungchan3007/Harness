@@ -1,0 +1,7 @@
+{
+  "identified": true,
+  "claims": 1,
+  "validClaims": 1,
+  "note": "판정서가 없는 sku의 상품 쿠폰이 CouponError 대신 continue로 건너뛰어지는 문제(규칙 8)를 구체적 입력 조건과 함께 정확히 짚었다.",
+  "costUsd": 0.026209299999999998
+}

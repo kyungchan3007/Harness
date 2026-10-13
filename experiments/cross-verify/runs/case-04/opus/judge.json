@@ -1,0 +1,7 @@
+{
+  "identified": true,
+  "claims": 1,
+  "validClaims": 1,
+  "note": "판정서가 규칙 9의 정률 정수 검사 누락을 짚었다. 정률 value 10.5가 CouponError 없이 통과한다는 입력과 결과까지 제시했고, 이것이 심은 결함이다. 그 밖의 위반 주장은 없다.",
+  "costUsd": 0.0262193
+}

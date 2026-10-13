@@ -1,0 +1,7 @@
+{
+  "identified": true,
+  "claims": 1,
+  "validClaims": 1,
+  "note": "판정서가 주문 쿠폰의 minOrder를 할인 전 subtotal이 아니라 상품 쿠폰 적용 후 orderBase와 비교하는 결함을 상품 쿠폰과 주문 쿠폰을 함께 쓰는 조건과 구체적 입력으로 정확히 짚었다.",
+  "costUsd": 0.030712500000000004
+}

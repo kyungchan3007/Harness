@@ -1,0 +1,7 @@
+{
+  "identified": false,
+  "claims": 0,
+  "validClaims": 0,
+  "note": "판정서는 approved이며 정률 value의 정수 검사 누락(소수 할인율 허용)을 짚지 않았다. 정률 검증은 0, 101만 확인했다.",
+  "costUsd": 0.0246218
+}

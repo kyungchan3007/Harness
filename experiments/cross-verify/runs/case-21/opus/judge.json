@@ -1,0 +1,7 @@
+{
+  "identified": true,
+  "claims": 1,
+  "validClaims": 1,
+  "note": "판정서가 세 번째 매개변수를 옵션 객체로 바꿔 shippingPolicy를 직접 넘기면 무시되고 기본 정책이 쓰이는 문제를 구체적 입력과 결과로 짚었고, 다른 위반 주장은 없다.",
+  "costUsd": 0.026821800000000003
+}

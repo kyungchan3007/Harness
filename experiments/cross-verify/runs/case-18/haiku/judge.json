@@ -1,0 +1,7 @@
+{
+  "identified": true,
+  "claims": 2,
+  "validClaims": 2,
+  "note": "판정서가 규칙 8(장바구니에 없는 상품의 상품 쿠폰은 CouponError)을 짚고, `continue`로 검증이 건너뛰어져 TypeError가 난다는 조건까지 밝혔다. 두 번째 주장은 같은 결함이 중복 sku 검사에도 미치는 영향이다. 이 경우에도 CouponError가 아니라 TypeError가 나므로 유효하다.",
+  "costUsd": 0.025929299999999995
+}

@@ -1,0 +1,7 @@
+{
+  "identified": true,
+  "claims": 1,
+  "validClaims": 1,
+  "note": "The report identified rule 4's boundary: when subtotal equals minOrder, the coupon must apply (>=), but the code returns 0 discount because it uses <=. It gave a concrete case (subtotal=10000, minOrder=10000) and made no other violation claims.",
+  "costUsd": 0.0242893
+}

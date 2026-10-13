@@ -1,0 +1,251 @@
+[
+  {
+    "id": "case-01",
+    "defect": "D01",
+    "name": "버림 대신 올림",
+    "expect": [
+      "T01"
+    ],
+    "find": "Math.floor((base * coupon.value) / 100)",
+    "replace": "Math.ceil((base * coupon.value) / 100)"
+  },
+  {
+    "id": "case-02",
+    "defect": "D11",
+    "name": "최소 주문 금액을 할인 후 금액으로 판단",
+    "expect": [
+      "T10"
+    ],
+    "find": "discountOf(c, orderBase, subtotal)",
+    "replace": "discountOf(c, orderBase, orderBase)"
+  },
+  {
+    "id": "case-03",
+    "defect": "D03",
+    "name": "최소 주문 금액 미달이면 오류",
+    "expect": [
+      "T09"
+    ],
+    "find": "if (coupon.minOrder !== undefined && subtotal < coupon.minOrder) return 0;",
+    "replace": "if (coupon.minOrder !== undefined && subtotal < coupon.minOrder) throw new CouponError(\"최소 주문 금액 미달\");"
+  },
+  {
+    "id": "case-04",
+    "defect": "D20",
+    "name": "소수 할인율 허용",
+    "expect": [
+      "T19"
+    ],
+    "find": "Number.isInteger(value) && value >= 1",
+    "replace": "value >= 1"
+  },
+  {
+    "id": "case-05",
+    "defect": "D09",
+    "name": "상한을 항상 적용",
+    "expect": [
+      "T07"
+    ],
+    "find": "if (coupon.maxDiscount !== undefined) amount",
+    "replace": "amount = coupon.maxDiscount ?? amount; if (false) amount"
+  },
+  {
+    "id": "case-06",
+    "defect": null,
+    "name": "정상 1",
+    "expect": []
+  },
+  {
+    "id": "case-07",
+    "defect": "D02",
+    "name": "상품 쿠폰을 주문 전체 금액에 적용",
+    "expect": [
+      "T04"
+    ],
+    "find": "itemDiscount += discountOf(c, line.unitPrice * line.quantity, subtotal);",
+    "replace": "itemDiscount += discountOf(c, subtotal, subtotal) + 0 * line.quantity;"
+  },
+  {
+    "id": "case-08",
+    "defect": "D07",
+    "name": "정액을 기준 금액으로 자르지 않음",
+    "expect": [
+      "T05"
+    ],
+    "find": "Math.min(coupon.value, base)",
+    "replace": "coupon.value"
+  },
+  {
+    "id": "case-09",
+    "defect": "D15",
+    "name": "배송비를 할인 전 금액으로",
+    "expect": [
+      "T13"
+    ],
+    "find": "return priceCart(items, { discount: itemDiscount + orderDiscount, shippingPolicy });",
+    "replace": "const r = priceCart(items, { shippingPolicy }); const d = itemDiscount + orderDiscount; return { ...r, discount: d, total: r.subtotal - d + r.shipping };"
+  },
+  {
+    "id": "case-10",
+    "defect": "D14",
+    "name": "목록 순서대로 적용",
+    "expect": [
+      "T12"
+    ],
+    "find": "const orderBase = subtotal - itemDiscount;",
+    "replace": "const firstItemAt = coupons.findIndex((c) => c.scope === \"item\"); const orderBase = coupons.findIndex((c) => c.scope === \"order\") < firstItemAt ? subtotal : subtotal - itemDiscount;"
+  },
+  {
+    "id": "case-11",
+    "defect": null,
+    "name": "정상 2",
+    "expect": []
+  },
+  {
+    "id": "case-12",
+    "defect": "D06",
+    "name": "버림 대신 반올림",
+    "expect": [
+      "T02"
+    ],
+    "find": "Math.floor((base * coupon.value) / 100)",
+    "replace": "Math.round((base * coupon.value) / 100)"
+  },
+  {
+    "id": "case-13",
+    "defect": "D21",
+    "name": "배송비 정책 인자를 무시하고 항상 기본 정책",
+    "expect": [
+      "T22"
+    ],
+    "find": "return priceCart(items, { discount: itemDiscount + orderDiscount, shippingPolicy });",
+    "replace": "return priceCart(items, { discount: itemDiscount + orderDiscount });"
+  },
+  {
+    "id": "case-14",
+    "defect": "D17",
+    "name": "중복 쿠폰 허용",
+    "expect": [
+      "T16"
+    ],
+    "find": "if (seen.has(sku)) throw",
+    "replace": "if (false) throw"
+  },
+  {
+    "id": "case-15",
+    "defect": "D16",
+    "name": "빈 장바구니에서도 쿠폰 검사",
+    "expect": [
+      "T15"
+    ],
+    "find": "if (items.length === 0) return priceCart(items, { shippingPolicy });\n",
+    "replace": ""
+  },
+  {
+    "id": "case-16",
+    "defect": "D12",
+    "name": "상품 쿠폰을 개당 계산",
+    "expect": [
+      "T03"
+    ],
+    "find": "itemDiscount += discountOf(c, line.unitPrice * line.quantity, subtotal);",
+    "replace": "itemDiscount += discountOf(c, line.unitPrice, subtotal) * line.quantity;"
+  },
+  {
+    "id": "case-17",
+    "defect": "D05",
+    "name": "할인율 100% 거부",
+    "expect": [
+      "T20"
+    ],
+    "find": "value >= 1 && value <= 100",
+    "replace": "value >= 1 && value < 100"
+  },
+  {
+    "id": "case-18",
+    "defect": "D19",
+    "name": "없는 상품 쿠폰 무시",
+    "expect": [
+      "T18"
+    ],
+    "find": "if (!items.some((i) => i.sku === sku)) throw new CouponError(`장바구니에 없는 상품입니다: ${sku}`);",
+    "replace": "if (!items.some((i) => i.sku === sku)) continue;"
+  },
+  {
+    "id": "case-19",
+    "defect": "D18",
+    "name": "주문 쿠폰 여러 장 허용",
+    "expect": [
+      "T17"
+    ],
+    "find": "if (orderCoupons.length > 1) throw",
+    "replace": "if (false) throw"
+  },
+  {
+    "id": "case-20",
+    "defect": "D08",
+    "name": "상한 무시",
+    "expect": [
+      "T06"
+    ],
+    "find": "amount = Math.min(amount, coupon.maxDiscount)",
+    "replace": "amount = amount"
+  },
+  {
+    "id": "case-21",
+    "defect": "D22",
+    "name": "세 번째 입력을 옵션 객체로 받음 (0016 B′-3 1차 구현과 같은 모양)",
+    "expect": [
+      "T22"
+    ],
+    "find": "  shippingPolicy: ShippingPolicy = DEFAULT_SHIPPING_POLICY,\n): PriceBreakdown {",
+    "replace": "  options: { shippingPolicy?: ShippingPolicy } = {},\n): PriceBreakdown {\n  const shippingPolicy = options.shippingPolicy ?? DEFAULT_SHIPPING_POLICY;"
+  },
+  {
+    "id": "case-22",
+    "defect": "D04",
+    "name": "무료배송을 초과(>)로 판단",
+    "expect": [
+      "T14"
+    ],
+    "find": "return priceCart(items, { discount: itemDiscount + orderDiscount, shippingPolicy });",
+    "replace": "const r = priceCart(items, { discount: itemDiscount + orderDiscount, shippingPolicy }); const after = r.subtotal - r.discount; const s = after > shippingPolicy.freeThreshold ? 0 : shippingPolicy.fee; return { ...r, shipping: s, total: after + s };"
+  },
+  {
+    "id": "case-23",
+    "defect": "D23",
+    "name": "입력 목록을 정렬해 바꿈",
+    "expect": [
+      "T21"
+    ],
+    "find": "coupons.forEach(validate);",
+    "replace": "(coupons as Coupon[]).sort((a, b) => (a.scope < b.scope ? -1 : 1)); coupons.forEach(validate);"
+  },
+  {
+    "id": "case-24",
+    "defect": null,
+    "name": "정상 3",
+    "expect": []
+  },
+  {
+    "id": "case-25",
+    "defect": "D10",
+    "name": "최소 주문 금액 초과(>)로 판단",
+    "expect": [
+      "T08"
+    ],
+    "find": "subtotal < coupon.minOrder",
+    "replace": "subtotal <= coupon.minOrder"
+  },
+  {
+    "id": "case-26",
+    "defect": "D13",
+    "name": "주문 쿠폰 기준을 할인 전 합계로",
+    "expect": [
+      "T11",
+      "T12"
+    ],
+    "find": "const orderBase = subtotal - itemDiscount;",
+    "replace": "const orderBase = subtotal;"
+  }
+]

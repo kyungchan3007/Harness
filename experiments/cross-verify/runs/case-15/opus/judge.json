@@ -1,0 +1,7 @@
+{
+  "identified": true,
+  "claims": 1,
+  "validClaims": 1,
+  "note": "판정서가 규칙 11 위반을 짚었다. 빈 장바구니에서 쿠폰 검증과 sku 존재 검사가 먼저 실행되어 CouponError가 나는 입력 예를 들었고, 이는 심은 결함과 일치한다.",
+  "costUsd": 0.0258843
+}

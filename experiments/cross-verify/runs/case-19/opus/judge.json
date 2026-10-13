@@ -1,0 +1,7 @@
+{
+  "identified": true,
+  "claims": 1,
+  "validClaims": 1,
+  "note": "판정서가 규칙 8의 주문 쿠폰 1장 제한이 `if (false) throw`로 무력화되어 주문 쿠폰 2장이 오류 없이 적용된다는 점을 입력 예시와 함께 정확히 짚었고, 그 밖의 위반 주장은 없다.",
+  "costUsd": 0.0265918
+}

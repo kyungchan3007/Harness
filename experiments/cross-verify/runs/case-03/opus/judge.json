@@ -1,0 +1,7 @@
+{
+  "identified": true,
+  "claims": 2,
+  "validClaims": 2,
+  "note": "판정서가 minOrder 미달 시 0원 대신 CouponError를 던지는 규칙 4 위반을 발생 조건(subtotal < minOrder)과 함께 정확히 짚었고, 두 근거는 같은 결함의 두 사례라 모두 유효하다.",
+  "costUsd": 0.0259093
+}

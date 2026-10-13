@@ -1,0 +1,7 @@
+{
+  "identified": true,
+  "claims": 1,
+  "validClaims": 1,
+  "note": "판정서가 규칙 6 위반(orderBase = subtotal, 상품 쿠폰 할인을 빼지 않음)을 정확히 짚었고 상품 쿠폰과 주문 쿠폰이 함께 쓰이는 조건의 예시도 들었다. 예시 속 RangeError는 코드로 확인되지 않지만 결함 식별에는 영향이 없다.",
+  "costUsd": 0.026601800000000002
+}

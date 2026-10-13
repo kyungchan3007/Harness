@@ -1,0 +1,7 @@
+{
+  "identified": true,
+  "claims": 1,
+  "validClaims": 1,
+  "note": "판정서가 규칙 9의 정률 value 100 거부(`value < 100`)를 재현 입력과 함께 정확히 짚었고, 다른 위반 주장은 없다.",
+  "costUsd": 0.0260068
+}

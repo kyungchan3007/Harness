@@ -1,0 +1,7 @@
+{
+  "identified": false,
+  "claims": 0,
+  "validClaims": 0,
+  "note": "판정서는 승인하며 빈 장바구니는 priceCart가 처리한다고 했지만, 쿠폰 검증이 그보다 먼저 실행되어 빈 장바구니에서도 잘못된 쿠폰이나 장바구니에 없는 상품 쿠폰에 CouponError가 나는 문제(규칙 11 위반)는 짚지 못했다.",
+  "costUsd": 0.0258143
+}

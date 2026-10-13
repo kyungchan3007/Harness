@@ -130,6 +130,20 @@
 | [0034](https://github.com/kyungchan3007/Harness/pull/51) | + 확인됨을 대화 기록과 대조 | **3/3** | **0** | **80%** |
 | [0027](https://github.com/kyungchan3007/Harness/pull/35) | "물어라" 지시 | 3/3 | - | 87% |
 
+#### 🔍 다른 회사 검사자 — 지금까지는 **회사보다 모델 능력** 차이
+
+<sup>결함 하나씩 심은 쿠폰 코드 23개 + 정상 코드 3개를 세 검사자에게 똑같이</sup>
+
+| NO | 검사자 | 짚은 결함 | 정상 코드 반려 | 1번 비용 |
+| --- | --- | --- | --- | --- |
+| [0036](https://github.com/kyungchan3007/Harness/pull/57) | Claude Opus | **23 / 23** | 0 / 3 | \$0.22 |
+| [0036](https://github.com/kyungchan3007/Harness/pull/57) | Claude Haiku | 20 / 23 | 0 / 3 | \$0.16 |
+| [0036](https://github.com/kyungchan3007/Harness/pull/57) | Codex (gpt-6-astra) | 12 / 12 · 14개만 | 2 / 2 | 구독 |
+
+- Haiku가 놓친 3개는 Opus·Codex 둘 다 짚음 — Opus·Codex 사이에 한쪽만 잡은 결함 0
+- Codex는 정상 코드도 반려 — 아주 큰 금액의 1원 정밀도 차이까지 위반으로 봄
+- 0016의 낮은 탐지(1/9)는 검사 능력보다 요약된 요구를 기준으로 받은 탓이 컸다
+
 #### 📏 측정과 기록
 
 | NO | 알게 된 것 | 근거 |

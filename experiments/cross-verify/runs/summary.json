@@ -1,0 +1,308 @@
+{
+  "scores": {
+    "codex": {
+      "planted": 12,
+      "rejected": 12,
+      "identified": 12,
+      "rejectedWrongReason": 0,
+      "approvedDefect": 0,
+      "clean": 2,
+      "cleanRejected": 2,
+      "cleanRejectedValid": 1,
+      "formatErrors": 0,
+      "claims": 23,
+      "precision": 91,
+      "meanCostUsd": null,
+      "meanMinutes": 2.043,
+      "codeChanged": 0
+    },
+    "haiku": {
+      "planted": 23,
+      "rejected": 20,
+      "identified": 20,
+      "rejectedWrongReason": 0,
+      "approvedDefect": 3,
+      "clean": 3,
+      "cleanRejected": 0,
+      "cleanRejectedValid": 0,
+      "formatErrors": 0,
+      "claims": 26,
+      "precision": 96,
+      "meanCostUsd": 0.157,
+      "meanMinutes": 1.986,
+      "codeChanged": 0
+    },
+    "opus": {
+      "planted": 23,
+      "rejected": 23,
+      "identified": 23,
+      "rejectedWrongReason": 0,
+      "approvedDefect": 0,
+      "clean": 3,
+      "cleanRejected": 0,
+      "cleanRejectedValid": 0,
+      "formatErrors": 0,
+      "claims": 29,
+      "precision": 100,
+      "meanCostUsd": 0.216,
+      "meanMinutes": 0.865,
+      "codeChanged": 0
+    }
+  },
+  "pairs": [
+    {
+      "a": "codex",
+      "b": "haiku",
+      "both": [
+        "D01",
+        "D03",
+        "D09",
+        "D02",
+        "D07",
+        "D15",
+        "D14",
+        "D06",
+        "D21"
+      ],
+      "onlyA": [
+        "D11",
+        "D20",
+        "D16"
+      ],
+      "onlyB": [],
+      "neither": []
+    },
+    {
+      "a": "codex",
+      "b": "opus",
+      "both": [
+        "D01",
+        "D11",
+        "D03",
+        "D20",
+        "D09",
+        "D02",
+        "D07",
+        "D15",
+        "D14",
+        "D06",
+        "D21",
+        "D16"
+      ],
+      "onlyA": [],
+      "onlyB": [],
+      "neither": []
+    },
+    {
+      "a": "haiku",
+      "b": "opus",
+      "both": [
+        "D01",
+        "D03",
+        "D09",
+        "D02",
+        "D07",
+        "D15",
+        "D14",
+        "D06",
+        "D21",
+        "D17",
+        "D12",
+        "D05",
+        "D19",
+        "D18",
+        "D08",
+        "D22",
+        "D04",
+        "D23",
+        "D10",
+        "D13"
+      ],
+      "onlyA": [],
+      "onlyB": [
+        "D11",
+        "D20",
+        "D16"
+      ],
+      "neither": []
+    }
+  ],
+  "perDefect": [
+    {
+      "defect": "D01",
+      "name": "버림 대신 올림",
+      "codex": true,
+      "haiku": true,
+      "opus": true
+    },
+    {
+      "defect": "D02",
+      "name": "상품 쿠폰을 주문 전체 금액에 적용",
+      "codex": true,
+      "haiku": true,
+      "opus": true
+    },
+    {
+      "defect": "D03",
+      "name": "최소 주문 금액 미달이면 오류",
+      "codex": true,
+      "haiku": true,
+      "opus": true
+    },
+    {
+      "defect": "D04",
+      "name": "무료배송을 초과(>)로 판단",
+      "codex": null,
+      "haiku": true,
+      "opus": true
+    },
+    {
+      "defect": "D05",
+      "name": "할인율 100% 거부",
+      "codex": null,
+      "haiku": true,
+      "opus": true
+    },
+    {
+      "defect": "D06",
+      "name": "버림 대신 반올림",
+      "codex": true,
+      "haiku": true,
+      "opus": true
+    },
+    {
+      "defect": "D07",
+      "name": "정액을 기준 금액으로 자르지 않음",
+      "codex": true,
+      "haiku": true,
+      "opus": true
+    },
+    {
+      "defect": "D08",
+      "name": "상한 무시",
+      "codex": null,
+      "haiku": true,
+      "opus": true
+    },
+    {
+      "defect": "D09",
+      "name": "상한을 항상 적용",
+      "codex": true,
+      "haiku": true,
+      "opus": true
+    },
+    {
+      "defect": "D10",
+      "name": "최소 주문 금액 초과(>)로 판단",
+      "codex": null,
+      "haiku": true,
+      "opus": true
+    },
+    {
+      "defect": "D11",
+      "name": "최소 주문 금액을 할인 후 금액으로 판단",
+      "codex": true,
+      "haiku": false,
+      "opus": true
+    },
+    {
+      "defect": "D12",
+      "name": "상품 쿠폰을 개당 계산",
+      "codex": null,
+      "haiku": true,
+      "opus": true
+    },
+    {
+      "defect": "D13",
+      "name": "주문 쿠폰 기준을 할인 전 합계로",
+      "codex": null,
+      "haiku": true,
+      "opus": true
+    },
+    {
+      "defect": "D14",
+      "name": "목록 순서대로 적용",
+      "codex": true,
+      "haiku": true,
+      "opus": true
+    },
+    {
+      "defect": "D15",
+      "name": "배송비를 할인 전 금액으로",
+      "codex": true,
+      "haiku": true,
+      "opus": true
+    },
+    {
+      "defect": "D16",
+      "name": "빈 장바구니에서도 쿠폰 검사",
+      "codex": true,
+      "haiku": false,
+      "opus": true
+    },
+    {
+      "defect": "D17",
+      "name": "중복 쿠폰 허용",
+      "codex": null,
+      "haiku": true,
+      "opus": true
+    },
+    {
+      "defect": "D18",
+      "name": "주문 쿠폰 여러 장 허용",
+      "codex": null,
+      "haiku": true,
+      "opus": true
+    },
+    {
+      "defect": "D19",
+      "name": "없는 상품 쿠폰 무시",
+      "codex": null,
+      "haiku": true,
+      "opus": true
+    },
+    {
+      "defect": "D20",
+      "name": "소수 할인율 허용",
+      "codex": true,
+      "haiku": false,
+      "opus": true
+    },
+    {
+      "defect": "D21",
+      "name": "배송비 정책 인자를 무시하고 항상 기본 정책",
+      "codex": true,
+      "haiku": true,
+      "opus": true
+    },
+    {
+      "defect": "D22",
+      "name": "세 번째 입력을 옵션 객체로 받음 (0016 B′-3 1차 구현과 같은 모양)",
+      "codex": null,
+      "haiku": true,
+      "opus": true
+    },
+    {
+      "defect": "D23",
+      "name": "입력 목록을 정렬해 바꿈",
+      "codex": null,
+      "haiku": true,
+      "opus": true
+    }
+  ],
+  "leaks": [],
+  "cleanFindings": [
+    {
+      "case": "case-06",
+      "verifier": "codex",
+      "valid": 1,
+      "note": "심은 결함은 없다. 판정서의 유일한 주장은 안전 정수 한계(9007199254740990원)에서 `base*value`가 정밀도를 잃어 정률 할인이 1~2원 모자란다는 것이다. 직접 계산해 보니 실제로 어긋나지만(결과는 ...988, 판정서의 ...989와 다름), 극단적인 입력이라 유효 여부는 애매하다. 규칙 1을 글자 그대로 읽으면 위반이라 유효로 판단했다."
+    },
+    {
+      "case": "case-11",
+      "verifier": "codex",
+      "valid": 0,
+      "note": "심은 결함이 없는 코드다. 판정서의 유일한 주장은 약 1e14원짜리 상품에 정률 쿠폰을 적용할 때 곱셈이 2^53을 넘어 1원 오차가 난다는 것이다. 현실적인 금액 범위 밖의 극단 입력이고, 이 코드는 원문 규칙을 모두 지키는 구현으로 주어졌으므로 유효한 위반으로 보지 않는다."
+    }
+  ]
+}
