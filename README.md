@@ -103,14 +103,12 @@
 | 0008 | 기록 강제 | PRD·SDD·Trace 분리 + hooks 자동 기록 | ✅ | [#2](https://github.com/kyungchan3007/Harness/pull/2) |
 | 0009 | 기록 강제 | 기록 강제 (PreToolUse·Stop·게이트) | ✅ | [#3](https://github.com/kyungchan3007/Harness/pull/3) |
 | 0010 | 기반 | README 정리 | ✅ | [#4](https://github.com/kyungchan3007/Harness/pull/4) |
-| 0011 | 기반 | 포트폴리오 README + trace 누락 표기 | ✅ | [#5](https://github.com/kyungchan3007/Harness/pull/5) |
 | 0012 | 역할 분리 | 역할 분리 실험 설계 | ✅ | [#6](https://github.com/kyungchan3007/Harness/pull/6) |
 | 0013 | 역할 분리 | 역할 식별 + 역할별 권한 강제 | ✅ | [#15](https://github.com/kyungchan3007/Harness/pull/15) |
 | 0014 | 역할 분리 | 검사자 판정 흐름 | ✅ | [#17](https://github.com/kyungchan3007/Harness/pull/17) |
 | 0015 | 역할 분리 | 실험 과제 + 숨겨진 테스트 | ✅ | [#19](https://github.com/kyungchan3007/Harness/pull/19) · [#22](https://github.com/kyungchan3007/Harness/pull/22) |
 | 0016 | 역할 분리 | 역할 분리 실험 실행 (혼자·요약 전달·원문 전달) | ✅ | [#23](https://github.com/kyungchan3007/Harness/pull/23) |
 | 0017 | 기록 강제 | 커밋에 허점·보완·토큰 기록 + 자동 집계 | ✅ | [#7](https://github.com/kyungchan3007/Harness/pull/7) |
-| 0018 | 기반 | README 작업 루프 다이어그램 가독성 | ✅ | [#8](https://github.com/kyungchan3007/Harness/pull/8) |
 | 0019 | 측정 | 복기 참조·체크박스 측정 도구 + 기준선 | ✅ | [#9](https://github.com/kyungchan3007/Harness/pull/9) |
 | 0020 | 기록 강제 | 복기 주입 + 체크박스 한 곳 관리·동기화 | ✅ | [#13](https://github.com/kyungchan3007/Harness/pull/13) · [#20](https://github.com/kyungchan3007/Harness/pull/20) |
 | 0021 | 기록 강제 | 이슈·브랜치 연결 규칙 | ✅ | [#11](https://github.com/kyungchan3007/Harness/pull/11) |
@@ -127,9 +125,8 @@
 | 0032 | 애매한 요청 | 업무 값은 (가정) 금지, (확인 필요)가 남으면 멈춤 | ✅ | [#47](https://github.com/kyungchan3007/Harness/pull/47) |
 | 0033 | 애매한 요청 | 업무 값 확인 규칙으로 새로 실행 | ✅ | [#49](https://github.com/kyungchan3007/Harness/pull/49) |
 | 0034 | 애매한 요청 | (확인됨: 답)을 대화 기록과 대조 | ✅ | [#51](https://github.com/kyungchan3007/Harness/pull/51) |
-| 0035 | 기반 | README 최신화 — 연구 질문·핵심 결과를 맨 위에 | ✅ | [#53](https://github.com/kyungchan3007/Harness/pull/53) |
 
-<sup>범례: ✅ 완료 · ⬜ 대기 · 🔁 다른 태스크로 대체</sup>
+<sup>범례: ✅ 완료 · ⬜ 대기 · 🔁 다른 태스크로 대체 · 문서 정리 태스크(0011·0018·0035)는 제외</sup>
 
 ---
 
