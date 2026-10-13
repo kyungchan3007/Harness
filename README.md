@@ -91,42 +91,73 @@
 
 ### 실험별 상태
 
-| NO | 갈래 | 하네스 실험 | 상태 | PR |
-| --- | --- | --- | --- | --- |
-| 0001 | 기반 | 4계층 뼈대 + 완료 게이트 | ✅ | - |
-| 0002 | 기반 | 도메인 규칙 번호 ↔ 테스트 이름 추적 | ✅ | [#1](https://github.com/kyungchan3007/Harness/pull/1) |
-| 0003 | 애매한 요청 | 쿠폰 규칙 (모호한 spec) — 0024로 대체 | 🔁 | - |
-| 0004 | 기록 강제 | "spec 없이 src 수정" 차단 — 0009로 대체 | 🔁 | - |
-| 0005 | 측정 | 속성 기반 테스트 게이트 (주문 상태) | ⬜ | - |
-| 0006 | 역할 분리 | 서브에이전트 병렬 작업 | ⬜ | - |
-| 0007 | 기록 강제 | CI에서 게이트 실행 | ⬜ | - |
-| 0008 | 기록 강제 | PRD·SDD·Trace 분리 + hooks 자동 기록 | ✅ | [#2](https://github.com/kyungchan3007/Harness/pull/2) |
-| 0009 | 기록 강제 | 기록 강제 (PreToolUse·Stop·게이트) | ✅ | [#3](https://github.com/kyungchan3007/Harness/pull/3) |
-| 0010 | 기반 | README 정리 | ✅ | [#4](https://github.com/kyungchan3007/Harness/pull/4) |
-| 0012 | 역할 분리 | 역할 분리 실험 설계 | ✅ | [#6](https://github.com/kyungchan3007/Harness/pull/6) |
-| 0013 | 역할 분리 | 역할 식별 + 역할별 권한 강제 | ✅ | [#15](https://github.com/kyungchan3007/Harness/pull/15) |
-| 0014 | 역할 분리 | 검사자 판정 흐름 | ✅ | [#17](https://github.com/kyungchan3007/Harness/pull/17) |
-| 0015 | 역할 분리 | 실험 과제 + 숨겨진 테스트 | ✅ | [#19](https://github.com/kyungchan3007/Harness/pull/19) · [#22](https://github.com/kyungchan3007/Harness/pull/22) |
-| 0016 | 역할 분리 | 역할 분리 실험 실행 (혼자·요약 전달·원문 전달) | ✅ | [#23](https://github.com/kyungchan3007/Harness/pull/23) |
-| 0017 | 기록 강제 | 커밋에 허점·보완·토큰 기록 + 자동 집계 | ✅ | [#7](https://github.com/kyungchan3007/Harness/pull/7) |
-| 0019 | 측정 | 복기 참조·체크박스 측정 도구 + 기준선 | ✅ | [#9](https://github.com/kyungchan3007/Harness/pull/9) |
-| 0020 | 기록 강제 | 복기 주입 + 체크박스 한 곳 관리·동기화 | ✅ | [#13](https://github.com/kyungchan3007/Harness/pull/13) · [#20](https://github.com/kyungchan3007/Harness/pull/20) |
-| 0021 | 기록 강제 | 이슈·브랜치 연결 규칙 | ✅ | [#11](https://github.com/kyungchan3007/Harness/pull/11) |
-| 0022 | 역할 분리 | 원문 고정 강제 | ✅ | [#25](https://github.com/kyungchan3007/Harness/pull/25) |
-| 0023 | 역할 분리 | 채점표 세 번째 입력값 + 재채점 | ✅ | [#27](https://github.com/kyungchan3007/Harness/pull/27) |
-| 0024 | 애매한 요청 | 모호한 요청에 되묻는가, 지어내는가 | ✅ | [#29](https://github.com/kyungchan3007/Harness/pull/29) |
-| 0025 | 애매한 요청 | "애매한 곳·가정" 필수 칸 | ✅ | [#33](https://github.com/kyungchan3007/Harness/pull/33) |
-| 0026 | 애매한 요청 | 같은 실험을 큰 모델(Sonnet·Opus)로 | ✅ | [#34](https://github.com/kyungchan3007/Harness/pull/34) |
-| 0027 | 애매한 요청 | 묻고 → 답 받고 → 이어 가기 (대화형) | ✅ | [#35](https://github.com/kyungchan3007/Harness/pull/35) · [#40](https://github.com/kyungchan3007/Harness/pull/40) |
-| 0028 | 애매한 요청 | 큰 모델 + 대화형 | ✅ | [#37](https://github.com/kyungchan3007/Harness/pull/37) |
-| 0029 | 애매한 요청 | 설계 Opus + 구현 Haiku 조합 | ✅ | [#39](https://github.com/kyungchan3007/Harness/pull/39) |
-| 0030 | 애매한 요청 | 흔하지 않은 정답 의도로 다시 | ✅ | [#42](https://github.com/kyungchan3007/Harness/pull/42) |
-| 0031 | 측정 | 측정 도구 정정 (직접 친 요청만) | ✅ | [#44](https://github.com/kyungchan3007/Harness/pull/44) · [#45](https://github.com/kyungchan3007/Harness/pull/45) |
-| 0032 | 애매한 요청 | 업무 값은 (가정) 금지, (확인 필요)가 남으면 멈춤 | ✅ | [#47](https://github.com/kyungchan3007/Harness/pull/47) |
-| 0033 | 애매한 요청 | 업무 값 확인 규칙으로 새로 실행 | ✅ | [#49](https://github.com/kyungchan3007/Harness/pull/49) |
-| 0034 | 애매한 요청 | (확인됨: 답)을 대화 기록과 대조 | ✅ | [#51](https://github.com/kyungchan3007/Harness/pull/51) |
+<sup>Claude Code · 따로 적지 않으면 Haiku 4.5 · 조건마다 3회 · NO를 누르면 PR</sup>
 
-<sup>범례: ✅ 완료 · ⬜ 대기 · 🔁 다른 태스크로 대체 · 문서 정리 태스크(0011·0018·0035)는 제외</sup>
+#### 👥 역할 분리 — 나누는 것보다 **원문을 그대로 넘기는 것**이 핵심
+
+| NO | 방식 | 숨겨진 테스트 | 비고 |
+| --- | --- | --- | --- |
+| [0016](https://github.com/kyungchan3007/Harness/pull/23) | 혼자 | 20.3 / 21 | 기준 |
+| [0016](https://github.com/kyungchan3007/Harness/pull/23) | 역할 분리 + 요약 전달 | **9.7** / 21 | 요구가 사라짐 |
+| [0016](https://github.com/kyungchan3007/Harness/pull/23) | 역할 분리 + 원문 전달 | 21 / 21 | 시간 2.5배 · 비용 2.2배 |
+| [0022](https://github.com/kyungchan3007/Harness/pull/25) | 역할 분리 + 원문 고정 장치 | 21 · 21 · 21 | 요약 전달보다 싸고 빠름 |
+
+- 요약해서 넘기면 설계 AI가 규칙을 지어내고, 검사 AI도 그 기준으로 통과시킨다 (결함 16~17개 놓침)
+- 검사 AI가 실제로 잡은 결함은 9번 중 1건
+- 원문 고정의 차단은 한 번도 걸리지 않음 — 효과는 원문 파일과 "먼저 읽어라", 차단은 안전망
+
+#### ❓ 애매한 요청 — 작은 모델은 빈칸을 몰래 채운다, **묻고 답을 받아야** 맞는다
+
+| NO | 조건 | 결과 |
+| --- | --- | --- |
+| [0024](https://github.com/kyungchan3007/Harness/pull/29) | 평소 | 애매한 곳의 **95%를 몰래 정함** |
+| [0024](https://github.com/kyungchan3007/Harness/pull/29) | "모호하면 물어라" 한 줄 | 86% 되물음 · 비용 1/4 |
+| [0025](https://github.com/kyungchan3007/Harness/pull/33) | 필수 칸 | 몰래 정함 95% → 57% |
+| [0026](https://github.com/kyungchan3007/Harness/pull/34) | 큰 모델 | Sonnet·Opus 10%, Opus는 시키지 않아도 물음 |
+| [0027](https://github.com/kyungchan3007/Harness/pull/35) | 묻고 → 답 → 이어 가기 | 숨겨진 테스트 27% → **87%** |
+| [0028](https://github.com/kyungchan3007/Harness/pull/37) | 큰 모델 + 대화형 | **100%** (Sonnet·Opus) |
+| [0030](https://github.com/kyungchan3007/Harness/pull/42) | 흔하지 않은 정답 의도 | 추측 41% → **4%** · 대화형 Opus 100% |
+
+- "결제 금액에 배송비 포함?" 같은 흔한 말의 숨은 뜻 — Haiku 9번 모두 놓침, 큰 모델 15번 모두 짚음
+- 추측의 점수는 착시 — 정답 의도가 흔해서 맞았을 뿐
+
+#### 💰 모델별 비용 — 큰 모델이 꼭 비싸지 않다, 비용은 **단가 × 쓴 양**
+
+| NO | 조건 (대화형) | 1번 비용 | 요청 수 |
+| --- | --- | --- | --- |
+| [0027](https://github.com/kyungchan3007/Harness/pull/35) | Haiku | 약 \$0.41 | 26번 |
+| [0028](https://github.com/kyungchan3007/Harness/pull/37) | Sonnet | \$1.41 | 12~16번 |
+| [0028](https://github.com/kyungchan3007/Harness/pull/37) | **Opus** | **\$0.98** | 10번 |
+| [0029](https://github.com/kyungchan3007/Harness/pull/39) | 설계 Opus + 구현 Haiku | \$1.35 | - |
+
+- 조합은 정확도 100%로 같지만 전부 Opus보다 약 1.4배 비쌈
+- 비싼 건 구현(Haiku \$0.28)이 아니라 넘길 문서 쓰기(Opus \$0.73) — 작은 작업은 큰 모델 하나로 끝까지
+
+#### 🛡️ 장치로 묻게 하기 — 장치는 지시를 대신하지 못하지만 **위조는 막는다**
+
+| NO | 방식 | 사람에게 물음 | 위조 통과 | 숨겨진 테스트 |
+| --- | --- | --- | --- | --- |
+| [0025](https://github.com/kyungchan3007/Harness/pull/33) | 필수 칸만 | 0/3 | - | 53% |
+| [0033](https://github.com/kyungchan3007/Harness/pull/49) | 업무 값 가정 금지 | 2/3 | 1 | 73% |
+| [0034](https://github.com/kyungchan3007/Harness/pull/51) | + 확인됨을 대화 기록과 대조 | **3/3** | **0** | **80%** |
+| [0027](https://github.com/kyungchan3007/Harness/pull/35) | "물어라" 지시 | 3/3 | - | 87% |
+
+#### 📏 측정과 기록
+
+| NO | 알게 된 것 | 근거 |
+| --- | --- | --- |
+| [0009](https://github.com/kyungchan3007/Harness/pull/3) | 기록은 지시보다 **장치**로 강제해야 남는다 | 차단 안내만으로 스스로 기록 |
+| [0031](https://github.com/kyungchan3007/Harness/pull/44) | 측정 도구도 틀린다 | "체크해줘" 도구 8회 → 실제 0회 |
+
+#### 🧭 실전 규칙으로 줄이면
+
+1. 작은 작업은 **Opus 하나로 끝까지**
+2. 요청이 애매하면 **묻고 답을 받은 뒤** 구현 — 작은 모델이면 지시 + 장치 함께
+3. 역할을 나눌 땐 요약 말고 **원문을 고정**해서 넘기기
+4. "확인됨" 같은 자기 신고 표시는 **원본(대화 기록)과 대조**
+5. 측정 숫자가 이상하면 **원본 몇 건을 직접** 열기
+
+<sup>작업 번호별 전체 목록: [agents/orchestration/TASKS.md](agents/orchestration/TASKS.md) · 실험별 가설·결과: [LEARNINGS.md](LEARNINGS.md)</sup>
 
 ---
 
