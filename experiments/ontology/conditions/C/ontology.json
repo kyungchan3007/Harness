@@ -1,0 +1,629 @@
+{
+  "note": "요청 원문 규칙(R1~R8)을 기계가 읽는 형태로 다시 정리한 것. 새 규칙 없음. 원문과 다르면 원문이 기준. source = 출처 규칙 번호. 검사: pnpm onto:check",
+  "concepts": [
+    {
+      "id": "Location",
+      "def": "용기가 놓인 곳. 처음 목록에만 존재",
+      "key": "locationId",
+      "source": [
+        "R1-1"
+      ]
+    },
+    {
+      "id": "Container",
+      "def": "시료를 담는 그릇. 장소 하나에 고정, 용량 있음",
+      "key": "containerId",
+      "source": [
+        "R1-1",
+        "R5-1"
+      ]
+    },
+    {
+      "id": "Custodian",
+      "def": "시료를 관리하는 주체. 처음 목록에만 존재",
+      "key": "custodianId",
+      "source": [
+        "R1-1",
+        "R6"
+      ]
+    },
+    {
+      "id": "Sample",
+      "def": "용기에 담긴 액체. 양은 정수 μL",
+      "key": "sampleId",
+      "source": [
+        "대상",
+        "R1-5"
+      ]
+    },
+    {
+      "id": "RootSample",
+      "def": "receive로 만든 시료. 계보의 시작",
+      "isA": "Sample",
+      "rule": "parentId == null && rootId == sampleId",
+      "source": [
+        "R2-1"
+      ]
+    },
+    {
+      "id": "ChildSample",
+      "def": "split으로 부모에서 나눠 담은 시료",
+      "isA": "Sample",
+      "rule": "parentId == 부모 && rootId == 부모.rootId",
+      "source": [
+        "R2-2"
+      ]
+    },
+    {
+      "id": "Reservation",
+      "def": "시료의 일정량을 쓰겠다고 잡아 둔 것",
+      "key": "reservationId",
+      "source": [
+        "R3"
+      ]
+    },
+    {
+      "id": "Event",
+      "def": "성공한 명령 하나의 기록",
+      "key": "eventId",
+      "source": [
+        "R7",
+        "R8"
+      ]
+    },
+    {
+      "id": "Receipt",
+      "def": "성공한 명령이 돌려주는 { eventId, seq }",
+      "source": [
+        "R8-1"
+      ]
+    }
+  ],
+  "quantities": [
+    {
+      "id": "remaining",
+      "def": "용기에 실제로 남은 양",
+      "source": [
+        "R2-2",
+        "R3-4"
+      ]
+    },
+    {
+      "id": "reserved",
+      "def": "그 시료의 ACTIVE 예약 양의 합",
+      "source": [
+        "R3-1"
+      ]
+    },
+    {
+      "id": "available",
+      "def": "remaining - reserved (저장하지 않음)",
+      "derived": true,
+      "source": [
+        "R3-1"
+      ]
+    },
+    {
+      "id": "consumedQty",
+      "def": "consume으로 쓴 양의 누적",
+      "source": [
+        "R3-4"
+      ]
+    },
+    {
+      "id": "discardedQty",
+      "def": "discard로 버린 양의 누적",
+      "source": [
+        "R4-3"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "from": "Container",
+      "to": "Location",
+      "card": "1:1",
+      "mutable": false,
+      "source": [
+        "대상",
+        "R5-1"
+      ]
+    },
+    {
+      "from": "Sample(ACTIVE)",
+      "to": "Container",
+      "card": "1:1, Container 1 : Sample 0..1",
+      "mutable": "move",
+      "source": [
+        "R1-2",
+        "R5-2"
+      ]
+    },
+    {
+      "from": "Sample(DEPLETED|DISCARDED)",
+      "to": "Container",
+      "card": "none (containerId null)",
+      "source": [
+        "R4-5"
+      ]
+    },
+    {
+      "from": "Sample",
+      "to": "Location",
+      "derived": "Container를 거쳐",
+      "source": [
+        "R5-1"
+      ]
+    },
+    {
+      "from": "Sample",
+      "to": "Custodian",
+      "card": "1:1",
+      "mutable": "transferCustody (그 시료만)",
+      "source": [
+        "R6"
+      ]
+    },
+    {
+      "from": "ChildSample",
+      "to": "Sample(parent)",
+      "card": "1:1",
+      "mutable": false,
+      "source": [
+        "R2-2"
+      ]
+    },
+    {
+      "from": "Sample",
+      "to": "RootSample",
+      "card": "1:1",
+      "mutable": false,
+      "source": [
+        "R2-1",
+        "R2-2"
+      ]
+    },
+    {
+      "from": "Reservation",
+      "to": "Sample",
+      "card": "1:1, Sample 1 : Reservation 0..n",
+      "mutable": false,
+      "source": [
+        "R3"
+      ]
+    }
+  ],
+  "states": {
+    "Sample": {
+      "initial": "ACTIVE",
+      "terminal": [
+        "DEPLETED",
+        "DISCARDED"
+      ],
+      "transitions": [
+        {
+          "from": "ACTIVE",
+          "to": "DEPLETED",
+          "by": [
+            "split",
+            "consume"
+          ],
+          "when": "remaining == 0",
+          "source": [
+            "R4-2"
+          ]
+        },
+        {
+          "from": "ACTIVE",
+          "to": "DISCARDED",
+          "by": [
+            "discard"
+          ],
+          "source": [
+            "R4-3"
+          ]
+        }
+      ]
+    },
+    "Reservation": {
+      "initial": "ACTIVE",
+      "terminal": [
+        "CANCELED",
+        "CONSUMED"
+      ],
+      "transitions": [
+        {
+          "from": "ACTIVE",
+          "to": "CANCELED",
+          "by": [
+            "cancel"
+          ],
+          "source": [
+            "R3-3"
+          ]
+        },
+        {
+          "from": "ACTIVE",
+          "to": "CONSUMED",
+          "by": [
+            "consume"
+          ],
+          "source": [
+            "R3-4"
+          ]
+        }
+      ],
+      "onTerminal": {
+        "cancel": "RESERVATION_CLOSED",
+        "consume": "RESERVATION_CLOSED"
+      }
+    }
+  },
+  "commands": {
+    "receive": {
+      "requires": [
+        [
+          "qty 1..1000000 정수",
+          "INVALID_INPUT"
+        ],
+        [
+          "sampleId 새것",
+          "ID_TAKEN"
+        ],
+        [
+          "용기 있음",
+          "UNKNOWN_CONTAINER"
+        ],
+        [
+          "책임자 있음",
+          "UNKNOWN_CUSTODIAN"
+        ],
+        [
+          "용기 비어 있음",
+          "CONTAINER_OCCUPIED"
+        ],
+        [
+          "qty <= 용량",
+          "CAPACITY_EXCEEDED"
+        ]
+      ],
+      "effects": [
+        "RootSample 생성",
+        "용기 점유"
+      ],
+      "args": "input",
+      "source": [
+        "R1",
+        "R2-1"
+      ]
+    },
+    "split": {
+      "requires": [
+        [
+          "자식 1개 이상, 각 qty 범위",
+          "INVALID_INPUT"
+        ],
+        [
+          "부모 있음",
+          "UNKNOWN_SAMPLE"
+        ],
+        [
+          "부모 ACTIVE",
+          "NOT_ACTIVE"
+        ],
+        [
+          "자식 sampleId 새것·서로 다름",
+          "ID_TAKEN"
+        ],
+        [
+          "자식 용기 있음",
+          "UNKNOWN_CONTAINER"
+        ],
+        [
+          "자식 용기: 시작 시점에 비어 있고 서로 다름",
+          "CONTAINER_OCCUPIED"
+        ],
+        [
+          "각 qty <= 용량",
+          "CAPACITY_EXCEEDED"
+        ],
+        [
+          "합 <= 부모 available",
+          "INSUFFICIENT"
+        ]
+      ],
+      "effects": [
+        "ChildSample 생성 (rootId·custodianId 이어받음)",
+        "부모 remaining -= 합",
+        "remaining 0이면 DEPLETED"
+      ],
+      "args": "{ parentId, children }",
+      "atomic": true,
+      "source": [
+        "R2",
+        "R5-3",
+        "R6-1",
+        "R8-2"
+      ]
+    },
+    "reserve": {
+      "requires": [
+        [
+          "qty 범위",
+          "INVALID_INPUT"
+        ],
+        [
+          "reservationId 새것",
+          "ID_TAKEN"
+        ],
+        [
+          "시료 있음",
+          "UNKNOWN_SAMPLE"
+        ],
+        [
+          "시료 ACTIVE",
+          "NOT_ACTIVE"
+        ],
+        [
+          "qty <= available",
+          "INSUFFICIENT"
+        ]
+      ],
+      "effects": [
+        "reserved += qty (remaining 그대로)"
+      ],
+      "args": "input",
+      "source": [
+        "R3-2"
+      ]
+    },
+    "cancel": {
+      "requires": [
+        [
+          "예약 있음",
+          "UNKNOWN_RESERVATION"
+        ],
+        [
+          "예약 ACTIVE",
+          "RESERVATION_CLOSED"
+        ]
+      ],
+      "effects": [
+        "CANCELED",
+        "reserved -= qty"
+      ],
+      "args": "{ reservationId }",
+      "source": [
+        "R3-3"
+      ]
+    },
+    "consume": {
+      "requires": [
+        [
+          "예약 있음",
+          "UNKNOWN_RESERVATION"
+        ],
+        [
+          "예약 ACTIVE",
+          "RESERVATION_CLOSED"
+        ]
+      ],
+      "effects": [
+        "예약 qty 전체: remaining -= qty, reserved -= qty, consumedQty += qty",
+        "CONSUMED",
+        "remaining 0이면 DEPLETED"
+      ],
+      "args": "{ reservationId }",
+      "source": [
+        "R3-4"
+      ]
+    },
+    "discard": {
+      "requires": [
+        [
+          "시료 있음",
+          "UNKNOWN_SAMPLE"
+        ],
+        [
+          "시료 ACTIVE",
+          "NOT_ACTIVE"
+        ],
+        [
+          "ACTIVE 예약 없음",
+          "HAS_RESERVATION"
+        ]
+      ],
+      "effects": [
+        "discardedQty += remaining",
+        "remaining = 0",
+        "DISCARDED",
+        "용기 비움"
+      ],
+      "args": "{ sampleId }",
+      "source": [
+        "R4-3"
+      ]
+    },
+    "move": {
+      "requires": [
+        [
+          "시료 있음",
+          "UNKNOWN_SAMPLE"
+        ],
+        [
+          "시료 ACTIVE",
+          "NOT_ACTIVE"
+        ],
+        [
+          "용기 있음",
+          "UNKNOWN_CONTAINER"
+        ],
+        [
+          "용기 비어 있음 (지금 용기 포함)",
+          "CONTAINER_OCCUPIED"
+        ],
+        [
+          "remaining <= 용량",
+          "CAPACITY_EXCEEDED"
+        ]
+      ],
+      "effects": [
+        "containerId만 바뀜 (양·예약·계보·책임자 그대로)"
+      ],
+      "args": "{ sampleId, targetContainerId }",
+      "source": [
+        "R5-2",
+        "R5-4"
+      ]
+    },
+    "transferCustody": {
+      "requires": [
+        [
+          "시료 있음",
+          "UNKNOWN_SAMPLE"
+        ],
+        [
+          "시료 ACTIVE",
+          "NOT_ACTIVE"
+        ],
+        [
+          "책임자 있음",
+          "UNKNOWN_CUSTODIAN"
+        ]
+      ],
+      "effects": [
+        "그 시료의 custodianId만 바뀜"
+      ],
+      "args": "{ sampleId, custodianId }",
+      "source": [
+        "R6-2",
+        "R6-3"
+      ]
+    }
+  },
+  "invariants": [
+    {
+      "id": "I1",
+      "rule": "계보마다: 시작 시료가 받은 양 == Σ(remaining + consumedQty + discardedQty)",
+      "source": [
+        "R2-4"
+      ]
+    },
+    {
+      "id": "I2",
+      "rule": "ACTIVE 시료는 용기 하나, 용기 하나엔 ACTIVE 시료 최대 하나, 끝난 시료는 containerId null",
+      "source": [
+        "R1-2",
+        "R4-5"
+      ]
+    },
+    {
+      "id": "I3",
+      "rule": "remaining <= 담긴 용기 용량, 0 <= reserved <= remaining",
+      "source": [
+        "R1-3",
+        "R3-1"
+      ]
+    },
+    {
+      "id": "I4",
+      "rule": "reserved == 그 시료의 ACTIVE 예약 qty 합",
+      "source": [
+        "R3-1"
+      ]
+    },
+    {
+      "id": "I5",
+      "rule": "끝난 시료·예약은 다시 ACTIVE가 되지 않는다",
+      "source": [
+        "R3-5",
+        "R4-4"
+      ]
+    },
+    {
+      "id": "I6",
+      "rule": "parentId·rootId는 바뀌지 않고, 자식 rootId == 부모 rootId",
+      "source": [
+        "R2-2"
+      ]
+    },
+    {
+      "id": "I7",
+      "rule": "events[i].seq == i+1, 이벤트 수 == 성공한 새 명령 수",
+      "source": [
+        "R8-1"
+      ]
+    },
+    {
+      "id": "I8",
+      "rule": "실패한 명령 뒤 snapshot == 명령 전 snapshot",
+      "source": [
+        "R8-2"
+      ]
+    },
+    {
+      "id": "I9",
+      "rule": "성공한 eventId에 같은 op·args(키 순서 무시, 배열 순서 구별) → 처음 Receipt, 상태 그대로 / 다르면 EVENT_CONFLICT / 실패한 eventId는 기록 안 됨",
+      "source": [
+        "R7"
+      ]
+    },
+    {
+      "id": "I10",
+      "rule": "sampleId·reservationId는 끝난 뒤에도 다시 못 씀, ID는 종류마다 따로 고유",
+      "source": [
+        "R1-4"
+      ]
+    }
+  ],
+  "confusables": [
+    [
+      "sampleId",
+      "containerId",
+      "담긴 것 / 그릇. 같은 글자여도 다른 대상",
+      "R1-4"
+    ],
+    [
+      "parentId",
+      "rootId",
+      "바로 위 분취 출처 / 계보의 시작",
+      "R2-1, R2-2"
+    ],
+    [
+      "remaining",
+      "available",
+      "실제로 남은 양 / 예약을 뺀 양",
+      "R3-1"
+    ],
+    [
+      "reserve",
+      "consume",
+      "쓸 권리를 잡음(양 그대로) / 실제로 줄어듦",
+      "R3-2, R3-4"
+    ],
+    [
+      "split",
+      "consume",
+      "계보 안에서 옮김(I1 보존) / 계보 밖으로 나감",
+      "R2-4"
+    ],
+    [
+      "location",
+      "custodian",
+      "물리적 위치(용기에서 도출) / 관리 주체",
+      "R5-1, R6"
+    ],
+    [
+      "DEPLETED",
+      "DISCARDED",
+      "분취·소비로 0 / discard로 버림",
+      "R4-2, R4-3"
+    ],
+    [
+      "eventId",
+      "reservationId",
+      "명령 재전송 식별 / 예약 식별",
+      "R7, R3"
+    ]
+  ]
+}
