@@ -368,3 +368,114 @@ describe("R8 원자성·이력", () => {
     expect(s(l, "A").discardedQty).toBe(10);
   });
 });
+
+describe("R1 참조·수용 (조합 추가)", () => {
+  it("R1c3 시료 ID가 예약 ID·eventId와 같은 글자여도 된다", () => {
+    const l = lab();
+    ok(l.receive("Q5", { sampleId: "Q5", containerId: "K1", custodianId: "P1", qty: 50 }));
+    ok(l.reserve(e(), { reservationId: "Q5", sampleId: "Q5", qty: 10 }));
+    ok(l.split(e(), "Q5", [{ sampleId: "K4", containerId: "K2", qty: 5 }]));
+    expect(s(l, "K4")).toMatchObject({ parentId: "Q5", containerId: "K2" });
+    expect(code(l.reserve(e(), { reservationId: "Q5", sampleId: "K4", qty: 1 }))).toBe("ID_TAKEN");
+  });
+});
+
+describe("R2 계보·수량 보존 (조합 추가)", () => {
+  it("R2c4 3대 계보에서 이동·책임자 변경·폐기를 섞어도 보존식", () => {
+    const l = lab();
+    recv(l, "A", "K1", 480, "P2");
+    ok(l.split(e(), "A", [{ sampleId: "B", containerId: "K2", qty: 200 }, { sampleId: "C", containerId: "K3", qty: 100 }]));
+    ok(l.move(e(), "B", "K4"));
+    ok(l.split(e(), "B", [{ sampleId: "D", containerId: "K2", qty: 70 }]));
+    ok(l.transferCustody(e(), "D", "P3"));
+    ok(l.reserve(e(), { reservationId: "Q1", sampleId: "D", qty: 70 }));
+    ok(l.consume(e(), "Q1"));
+    ok(l.discard(e(), "C"));
+    ok(l.split(e(), "A", [{ sampleId: "E", containerId: "K3", qty: 180 }]));
+    const all = l.snapshot().samples;
+    expect(all.reduce((a, x) => a + x.remaining + x.consumedQty + x.discardedQty, 0)).toBe(480);
+    expect(s(l, "D")).toMatchObject({ rootId: "A", parentId: "B", status: "DEPLETED", containerId: null, custodianId: "P3" });
+    expect(s(l, "E")).toMatchObject({ containerId: "K3", rootId: "A", custodianId: "P2" });
+    expect(s(l, "A")).toMatchObject({ remaining: 0, status: "DEPLETED" });
+  });
+  it("R2c5 예약이 있으면 이용 가능량 전부를 나눠도 부모는 남는다", () => {
+    const l = lab();
+    recv(l, "A", "K1", 100);
+    ok(l.reserve(e(), { reservationId: "Q1", sampleId: "A", qty: 30 }));
+    ok(l.split(e(), "A", [{ sampleId: "B", containerId: "K2", qty: 70 }]));
+    expect(s(l, "A")).toMatchObject({ remaining: 30, reserved: 30, status: "ACTIVE", containerId: "K1" });
+    ok(l.consume(e(), "Q1"));
+    expect(s(l, "A")).toMatchObject({ remaining: 0, status: "DEPLETED", consumedQty: 30 });
+  });
+});
+
+describe("R3 예약·소비 (조합 추가)", () => {
+  it("R3c4 이용 가능량과 같은 양은 예약할 수 있고, 하나 더는 안 된다", () => {
+    const l = lab();
+    recv(l, "A", "K1", 60);
+    ok(l.reserve(e(), { reservationId: "Q1", sampleId: "A", qty: 25 }));
+    ok(l.reserve(e(), { reservationId: "Q2", sampleId: "A", qty: 35 }));
+    expect(code(l.reserve(e(), { reservationId: "Q3", sampleId: "A", qty: 1 }))).toBe("INSUFFICIENT");
+    ok(l.cancel(e(), "Q1"));
+    ok(l.consume(e(), "Q2"));
+    expect(s(l, "A")).toMatchObject({ remaining: 25, reserved: 0, consumedQty: 35, status: "ACTIVE" });
+  });
+});
+
+describe("R4 상태·폐기 (조합 추가)", () => {
+  it("R4c4 끝난 시료가 비운 용기를 같은 흐름에서 바로 다른 시료가 쓴다", () => {
+    const l = lab();
+    recv(l, "A", "K1", 40);
+    recv(l, "B", "K2", 40);
+    ok(l.discard(e(), "A"));
+    ok(l.move(e(), "B", "K1"));
+    ok(l.split(e(), "B", [{ sampleId: "C", containerId: "K2", qty: 40 }]));
+    expect(s(l, "B")).toMatchObject({ status: "DEPLETED", containerId: null });
+    expect(s(l, "C").containerId).toBe("K2");
+    recv(l, "D", "K1", 1);
+  });
+});
+
+describe("R5 용기·장소 (조합 추가)", () => {
+  it("R5c3 이동 용량은 지금 남은 양으로 판단한다", () => {
+    const l = lab();
+    recv(l, "A", "K1", 100);
+    expect(code(l.move(e(), "A", "KS"))).toBe("CAPACITY_EXCEEDED");
+    ok(l.reserve(e(), { reservationId: "Q1", sampleId: "A", qty: 80 }));
+    ok(l.consume(e(), "Q1"));
+    ok(l.move(e(), "A", "KS"));
+    expect(s(l, "A")).toMatchObject({ remaining: 20, containerId: "KS" });
+  });
+});
+
+describe("R6 보관 책임 (조합 추가)", () => {
+  it("R6c3 손자는 분취하는 순간의 바로 위 부모 책임자를 받는다", () => {
+    const l = lab();
+    recv(l, "A", "K1", 300, "P1");
+    ok(l.split(e(), "A", [{ sampleId: "B", containerId: "K2", qty: 100 }]));
+    ok(l.transferCustody(e(), "B", "P2"));
+    ok(l.transferCustody(e(), "A", "P3"));
+    ok(l.split(e(), "B", [{ sampleId: "C", containerId: "K3", qty: 10 }]));
+    expect(s(l, "C").custodianId).toBe("P2");
+    ok(l.move(e(), "C", "K4"));
+    expect(s(l, "C").custodianId).toBe("P2");
+  });
+});
+
+describe("R7 같은 명령 다시 보내기 (조합 추가)", () => {
+  it("R7c5 분취 재전송: 부모가 이미 바닥났어도 처음 결과, 자식은 두 번 안 생김", () => {
+    const l = lab();
+    recv(l, "A", "K1", 50);
+    const first = ok(l.split("s1", "A", [{ sampleId: "B", containerId: "K2", qty: 50 }]));
+    expect(ok(l.split("s1", "A", [{ sampleId: "B", containerId: "K2", qty: 50 }]))).toEqual(first);
+    expect(l.snapshot().samples).toHaveLength(2);
+    expect(l.snapshot().events).toHaveLength(2);
+  });
+  it("R7c6 같은 eventId에 다른 인자면 지금 상태 검사보다 EVENT_CONFLICT가 먼저", () => {
+    const l = lab();
+    recv(l, "A", "K1", 50);
+    ok(l.reserve("r1", { reservationId: "Q1", sampleId: "A", qty: 10 }));
+    expect(code(l.reserve("r1", { reservationId: "Q1", sampleId: "A", qty: 999 }))).toBe("EVENT_CONFLICT");
+    expect(code(l.consume("r1", "Q1"))).toBe("EVENT_CONFLICT");
+  });
+});

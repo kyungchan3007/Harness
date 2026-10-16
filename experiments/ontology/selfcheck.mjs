@@ -20,8 +20,10 @@ export function runSelfcheck({ log = console.log } = {}) {
 
     writeFileSync(join(dir, IMPL_PATH), reference);
     const ref = scoreLab(dir);
-    log(`  기준 구현: ${ref.passed}/${ref.total}`);
+    log(`  기준 구현: ${ref.passed}/${ref.total} · 대조 ${ref.diff.passed}/${ref.diff.total}`);
     if (ref.passed !== ref.total) problems.push(`기준 구현이 숨겨진 테스트 실패: ${ref.failed.join(" ")}`);
+    if (ref.diff.passed !== ref.diff.total) problems.push(`기준 구현이 무작위 대조 실패: ${ref.diff.firstFailures.join(" / ")}`);
+    if (empty.diff.passed !== 0) problems.push(`구현이 없는데 무작위 대조 ${empty.diff.passed}개 통과`);
 
     mkdirSync(join(dir, ONTO_DIR), { recursive: true });
     cpSync(CHECK_FILE, join(dir, ONTO_DIR, "check.test.ts"));
@@ -39,7 +41,7 @@ export function runSelfcheck({ log = console.log } = {}) {
       if (missed.length) problems.push(`"${m.name}"이 ${missed.join(" ")}에서 안 걸림`);
       const c = runCheck(dir);
       if (!c.passed) caughtByCheck++;
-      log(`  ${missed.length ? "❌" : "✅"} ${m.name}: 숨겨진 ${r.passed}/${r.total} · C 검사 ${c.passed ? "통과(못 잡음)" : `잡음 ${c.failed.join(",")}`}`);
+      log(`  ${missed.length ? "❌" : "✅"} ${m.name}: 숨겨진 ${r.passed}/${r.total} · 대조 ${r.diff.passed}/20 · C 검사 ${c.passed ? "통과(못 잡음)" : `잡음 ${c.failed.join(",")}`}`);
     }
     log(`  C 검사가 잡은 틀린 구현: ${caughtByCheck}/${MUTANTS.length} (참고)`);
   } finally {

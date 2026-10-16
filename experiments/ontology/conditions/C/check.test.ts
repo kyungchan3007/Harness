@@ -187,6 +187,15 @@ function explore(seed: number) {
     successes++;
     if (res.value.seq !== successes || res.value.eventId !== call.eventId) note("I7", `Receipt ${JSON.stringify(res.value)} (seq ${successes}여야) ${where}`);
     done.push({ call, receipt: res.value });
+    // I11: 넘긴 객체를 호출한 쪽이 고쳐도 이력 args는 그대로여야 한다 (확인 뒤 되돌린다)
+    const recorded = JSON.stringify(after.events.at(-1)?.args);
+    const backup = JSON.stringify(call.args);
+    for (const a of call.args) {
+      if (Array.isArray(a)) { a.push({ sampleId: "zz", containerId: "v1", qty: 1 }); if (a[0] && typeof a[0] === "object") (a[0] as { qty: number }).qty += 1000; }
+      else if (a && typeof a === "object") (a as { qty?: number }).qty = 987654;
+    }
+    if (JSON.stringify(lab.snapshot().events.at(-1)?.args) !== recorded) note("I11", `${call.op} 뒤 넘긴 객체를 고치자 이력 args가 바뀜 ${where}`);
+    call.args = JSON.parse(backup);
     if (call.op === "receive") {
       const a = call.args[0] as { sampleId: string; qty: number };
       if (retired.includes(a.sampleId) || before.samples.some((x) => x.sampleId === a.sampleId)) note("I10", `이미 쓴 sampleId ${a.sampleId}로 receive 성공 ${where}`);

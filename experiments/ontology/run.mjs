@@ -14,7 +14,8 @@ export const MODEL = "claude-haiku-4-5-20251001";
 export const TASK_ID = "0040";
 export const BRANCH = `task/${TASK_ID}-lab`;
 export const SPEC = `agents/intent/specs/${TASK_ID}-lab`;
-const TOOLS = ["Read", "Write", "Edit", "MultiEdit", "Glob", "Grep", "Task", "Agent", "Bash(pnpm:*)", "Bash(git:*)", "Bash(node:*)", "Bash(ls:*)"];
+// 파일럿: 보조 에이전트(Task·Agent)를 백그라운드로 띄우고 대기로 끝내면 `claude -p` 종료로 함께 끊김(B 2/3) → 세 조건 모두 제외
+const TOOLS = ["Read", "Write", "Edit", "MultiEdit", "Glob", "Grep", "Bash(pnpm:*)", "Bash(git:*)", "Bash(node:*)", "Bash(ls:*)"];
 const CLAUDE_BIN = process.env.CLAUDE_BIN || "claude";
 /** 세 조건 같은 지시 (0033 A — "모호하면 물어라" 없음). 온톨로지는 저장소에만 있다 */
 export const prompt = (task) =>
@@ -33,8 +34,10 @@ const edit = (file, fn) => writeFileSync(file, fn(readFileSync(file, "utf8")));
 /** 바탕을 같게 만든 뒤 조건 자료를 넣고, 커밋을 하나로 합친다 */
 export function setupCondition(dir, cond) {
   rmSync(join(dir, "agents/context/domain.md"), { force: true });
+  // 파일럿: 링크만 두면 B·C 모두 온톨로지를 한 번도 안 읽음(0/5) → 세 조건 같은 지시 한 줄 (A는 architecture만 읽게 됨)
   edit(join(dir, "AGENTS.md"), (t) =>
-    t.replace(/ 실험 대상 도메인은[^\n]*입니다\./, "").replace(/\| Context \| [^\n]*\|/, `| Context | ${CONTEXT_ROW[cond]} |`));
+    t.replace(/ 실험 대상 도메인은[^\n]*입니다\./, "").replace(/\| Context \| [^\n]*\|/, `| Context | ${CONTEXT_ROW[cond]} |`)
+      .replace("## 2. 계층\n", "## 2. 계층\n\n작업을 시작하기 전에 아래 표의 **Context 문서를 모두 읽는다.**\n"));
   edit(join(dir, "agents/context/architecture.md"), (t) => t.split("\n").filter((l) => !l.includes("domain.md")).join("\n"));
   mkdirSync(join(dir, LAB_DIR), { recursive: true });
   cpSync(TYPES_FILE, join(dir, LAB_DIR, "types.ts"));
@@ -140,6 +143,7 @@ export function runOnce({ cond, n, phase = "pilot", budget = 1.5, timeoutMin = 4
     asked, implemented,
     gatePassed: spawnSync("bash", ["agents/harness/evals/checks.sh"], { cwd: dir }).status === 0,
     hidden: { passed: hidden.passed, total: hidden.total, groupWeighted: hidden.groupWeighted, basic: hidden.basic, combo: hidden.combo, groups: hidden.groups, failed: hidden.failed },
+    diff: hidden.diff,
     invariants: { passed: invariants.passed, failed: invariants.failed },
     stopBlocks: stopLog.filter((s) => s.blocked).length, stopChecks: stopLog.length, endedBlocked: stopLog.length > 0 && stopLog.at(-1).blocked,
     tamper: tamper ? tamper.split("\n") : [],
@@ -155,5 +159,5 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const cond = arg("cond"), n = arg("n");
   if (!["A", "B", "C"].includes(cond) || !n) { console.error("사용법: node experiments/ontology/run.mjs --cond A|B|C --n 1 [--phase pilot|main]"); process.exit(2); }
   const r = runOnce({ cond, n, phase: arg("phase", "pilot"), budget: Number(arg("budget", 1.5)), timeoutMin: Number(arg("timeout", 40)) });
-  console.log(`${r.phase}/${r.id}: 숨겨진 ${r.hidden.passed}/${r.hidden.total} (규칙군 ${r.hidden.groupWeighted}%) · 불변식 ${r.invariants.passed ? "통과" : r.invariants.failed.join(",") || "-"} · 질문 ${r.asked} · 차단 ${r.stopBlocks} · ${r.minutes}분 · $${r.costUsd}${r.tamper.length ? ` · ⚠️ 변경 ${r.tamper.join(",")}` : ""}${r.outsideAccess.length ? " · ⚠️ 밖 접근" : ""}`);
+  console.log(`${r.phase}/${r.id}: 숨겨진 ${r.hidden.passed}/${r.hidden.total} (규칙군 ${r.hidden.groupWeighted}%) · 대조 ${r.diff.passed}/${r.diff.total} · 불변식 ${r.invariants.passed ? "통과" : r.invariants.failed.join(",") || "-"} · 질문 ${r.asked} · 차단 ${r.stopBlocks} · ${r.minutes}분 · $${r.costUsd}${r.tamper.length ? ` · ⚠️ 변경 ${r.tamper.join(",")}` : ""}${r.outsideAccess.length ? " · ⚠️ 밖 접근" : ""}`);
 }

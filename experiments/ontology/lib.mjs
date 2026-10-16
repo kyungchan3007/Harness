@@ -9,6 +9,7 @@ export const REPO_ROOT = join(HERE, "../..");
 export const TYPES_FILE = join(HERE, "types.ts");
 export const REFERENCE_FILE = join(HERE, "reference/lab.ts");
 export const ORACLE_FILE = join(HERE, "oracle/lab.oracle.ts");
+export const DIFF_FILE = join(HERE, "oracle/lab.diff.ts");
 export const ONTO_MD = join(HERE, "conditions/B/ontology.md");
 export const ONTO_JSON = join(HERE, "conditions/C/ontology.json");
 export const CHECK_FILE = join(HERE, "conditions/C/check.test.ts");
@@ -64,14 +65,26 @@ function vitestJson(root, target) {
   }
 }
 
-/** root/src/lab에 숨겨진 테스트를 잠깐 넣고 돌린다 (root는 node_modules가 닿는 곳) */
+/** vitest JSON → 무작위 대조 시드별 통과 (D01 …) */
+export function summarizeDiff(vitestJson) {
+  const seeds = {};
+  for (const file of vitestJson?.testResults ?? []) for (const t of file.assertionResults ?? []) {
+    const id = /^(D\d{2}) /.exec(t.title)?.[1];
+    if (id) seeds[id] = { passed: t.status === "passed", why: (t.failureMessages ?? [])[0]?.split("\n").find((l) => l.includes("시드"))?.trim().slice(0, 200) };
+  }
+  const ids = Object.keys(seeds);
+  return { passed: ids.filter((id) => seeds[id].passed).length, total: 20, firstFailures: ids.filter((id) => !seeds[id].passed).slice(0, 3).map((id) => `${id} ${seeds[id].why ?? ""}`) };
+}
+
+/** root/src/lab에 숨겨진 테스트(시나리오 + 무작위 대조·기준 구현)를 잠깐 넣고 돌린다 (root는 node_modules가 닿는 곳) */
 export function scoreLab(root, labDir = LAB_DIR) {
-  const target = join(root, labDir, "lab.oracle.test.ts");
-  cpSync(ORACLE_FILE, target);
+  const files = { "lab.oracle.test.ts": ORACLE_FILE, "lab.diff.test.ts": DIFF_FILE, "__ref.ts": REFERENCE_FILE };
+  for (const [name, src] of Object.entries(files)) cpSync(src, join(root, labDir, name));
   try {
-    return { implemented: existsSync(join(root, labDir, "lab.ts")), ...summarize(vitestJson(root, relative(root, target)), trapIds()) };
+    const json = vitestJson(root, labDir);
+    return { implemented: existsSync(join(root, labDir, "lab.ts")), ...summarize(json, trapIds()), diff: summarizeDiff(json) };
   } finally {
-    rmSync(target, { force: true });
+    for (const name of Object.keys(files)) rmSync(join(root, labDir, name), { force: true });
   }
 }
 
