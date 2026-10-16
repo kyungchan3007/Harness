@@ -32,7 +32,11 @@ const CONTEXT_ROW = {
 const edit = (file, fn) => writeFileSync(file, fn(readFileSync(file, "utf8")));
 
 /** 바탕을 같게 만든 뒤 조건 자료를 넣고, 커밋을 하나로 합친다 */
-export function setupCondition(dir, cond) {
+/** 본 실험 뒤 추가(0037): BI·CI = B·C와 같되 CLAUDE.md가 온톨로지를 @import — AGENTS.md처럼 항상 맥락에 들어간다 (지시만으론 0/16 안 읽음) */
+export const INJECT = { BI: "@agents/context/ontology.md", CI: "@agents/ontology/ontology.json" };
+
+export function setupCondition(dir, condName) {
+  const cond = condName[0];
   rmSync(join(dir, "agents/context/domain.md"), { force: true });
   // 파일럿: 링크만 두면 B·C 모두 온톨로지를 한 번도 안 읽음(0/5) → 세 조건 같은 지시 한 줄 (A는 architecture만 읽게 됨)
   edit(join(dir, "AGENTS.md"), (t) =>
@@ -54,6 +58,7 @@ export function setupCondition(dir, cond) {
       return JSON.stringify(s, null, 2) + "\n";
     });
   }
+  if (INJECT[condName]) edit(join(dir, "CLAUDE.md"), (t) => `${t.trimEnd()}\n${INJECT[condName]}\n`);
   const git = (args) => spawnSync("git", args, { cwd: dir, encoding: "utf8" });
   git(["add", "-A"]);
   git(["-c", "core.hooksPath=/dev/null", "commit", "-q", "--amend", "-m", "initial"]);
@@ -148,6 +153,8 @@ export function runOnce({ cond, n, phase = "pilot", budget = 1.5, timeoutMin = 4
     stopBlocks: stopLog.filter((s) => s.blocked).length, stopChecks: stopLog.length, endedBlocked: stopLog.length > 0 && stopLog.at(-1).blocked,
     tamper: tamper ? tamper.split("\n") : [],
     outsideAccess: outsideHits(toolInputs(lines), dir).slice(0, 5),
+    // 파일럿: trace.auto는 태스크 폴더 생성 전 읽기를 못 남김 → 대화 기록에서 온톨로지 파일 Read를 직접 센다
+    ontoReads: toolInputs(lines).split("\n").filter((l) => /"file_path":"[^"]*ontology/.test(l)).length,
     usage: usageSummary(extractRequests(lines)),
   };
   writeFileSync(join(out, "result.json"), JSON.stringify(result, null, 2) + "\n");
@@ -157,7 +164,7 @@ export function runOnce({ cond, n, phase = "pilot", budget = 1.5, timeoutMin = 4
 if (import.meta.url === `file://${process.argv[1]}`) {
   const arg = (k, d) => { const i = process.argv.indexOf(`--${k}`); return i >= 0 ? process.argv[i + 1] : d; };
   const cond = arg("cond"), n = arg("n");
-  if (!["A", "B", "C"].includes(cond) || !n) { console.error("사용법: node experiments/ontology/run.mjs --cond A|B|C --n 1 [--phase pilot|main]"); process.exit(2); }
+  if (!["A", "B", "C", "BI", "CI"].includes(cond) || !n) { console.error("사용법: node experiments/ontology/run.mjs --cond A|B|C|BI|CI --n 1 [--phase pilot|main]"); process.exit(2); }
   const r = runOnce({ cond, n, phase: arg("phase", "pilot"), budget: Number(arg("budget", 1.5)), timeoutMin: Number(arg("timeout", 40)) });
   console.log(`${r.phase}/${r.id}: 숨겨진 ${r.hidden.passed}/${r.hidden.total} (규칙군 ${r.hidden.groupWeighted}%) · 대조 ${r.diff.passed}/${r.diff.total} · 불변식 ${r.invariants.passed ? "통과" : r.invariants.failed.join(",") || "-"} · 질문 ${r.asked} · 차단 ${r.stopBlocks} · ${r.minutes}분 · $${r.costUsd}${r.tamper.length ? ` · ⚠️ 변경 ${r.tamper.join(",")}` : ""}${r.outsideAccess.length ? " · ⚠️ 밖 접근" : ""}`);
 }

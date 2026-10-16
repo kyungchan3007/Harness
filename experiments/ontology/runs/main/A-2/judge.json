@@ -1,0 +1,43 @@
+{
+  "pairs": {
+    "P1": {
+      "label": "구별",
+      "quote": "ID는 종류마다 고유 (시료 ID ≠ 용기 ID 강제 아님)"
+    },
+    "P2": {
+      "label": "구별",
+      "quote": "parentId: parentId,\n          rootId: parent.rootId,"
+    },
+    "P3": {
+      "label": "구별",
+      "quote": "function getAvailableQty(sample: SampleRecord): Qty {\n    return sample.remaining - sample.reserved;"
+    },
+    "P4": {
+      "label": "구별",
+      "quote": "sample.reserved += input.qty;"
+    },
+    "P5": {
+      "label": "구별",
+      "quote": "parent.remaining -= totalChildQty;"
+    },
+    "P6": {
+      "label": "구별",
+      "quote": "시료의 장소 = 지금 담긴 용기의 장소 (따로 저장 안 함)"
+    },
+    "P7": {
+      "label": "구별",
+      "quote": "sample.discardedQty += sample.remaining;\n      sample.remaining = 0;\n      sample.status = \"DISCARDED\";"
+    },
+    "P8": {
+      "label": "구별",
+      "quote": "if (reservations.has(input.reservationId))\n        return { ok: false, code: \"ID_TAKEN\" };"
+    }
+  },
+  "assumptions": {
+    "total": 1,
+    "assumed": 0,
+    "needConfirm": 0,
+    "none": true
+  },
+  "costUsd": 0.1419185
+}

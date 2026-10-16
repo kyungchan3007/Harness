@@ -7,7 +7,7 @@ const mean = (xs) => (xs.length ? Math.round((xs.reduce((a, b) => a + b, 0) / xs
 
 export function aggregate(rows) {
   const out = {};
-  for (const cond of ["A", "B", "C"]) {
+  for (const cond of ["A", "B", "C", "BI", "CI"]) {
     const rs = rows.filter((r) => r.cond === cond);
     if (!rs.length) continue;
     const groups = {};
@@ -24,6 +24,9 @@ export function aggregate(rows) {
       basic: mean(rs.map((r) => (r.hidden.basic ?? 0) * 100)),
       combo: mean(rs.map((r) => (r.hidden.combo ?? 0) * 100)),
       groups: Object.fromEntries(Object.entries(groups).sort().map(([g, xs]) => [g, mean(xs.map((x) => x * 100))])),
+      diff: rs.map((r) => r.diff?.passed ?? null),
+      diffMean: mean(rs.map((r) => r.diff?.passed ?? 0)),
+      ontoReads: rs.map((r) => r.ontoReads ?? null),
       invariantsPassed: rs.filter((r) => r.invariants.passed).length,
       asked: rs.map((r) => r.asked),
       assumptions: rs.map((r) => r.judge?.assumptions?.total ?? null),
@@ -53,8 +56,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   });
   const s = aggregate(rows);
   writeFileSync(join(base, "summary.json"), JSON.stringify(s, null, 2) + "\n");
-  console.log("| 조건 | 실행 | 구현 | 숨겨진(36) | 규칙군 평균 | 만점 | 기본 | 조합 | 불변식 통과 | 질문 | 가정 줄 | 비용 | 분 | 차단 | 한도 종료 |");
-  console.log("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |");
-  for (const [c, v] of Object.entries(s)) console.log(`| ${c} | ${v.runs} | ${v.implemented} | ${v.hiddenPassed.join("·")} | ${v.groupWeighted}% | ${v.allPass} | ${v.basic}% | ${v.combo}% | ${v.invariantsPassed} | ${v.asked.join("·")} | ${v.assumptions.join("·")} | $${v.costUsd} | ${v.minutes} | ${v.stopBlocks.join("·")} | ${v.budgetHit} |`);
+  console.log("| 조건 | 실행 | 숨겨진(45) | 규칙군 평균 | 만점 | 기본 | 조합 | 대조(20) | 불변식 통과 | 온톨로지 읽기 | 질문 | 가정 줄 | 비용 | 분 | 차단 | 한도 종료 |");
+  console.log("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |");
+  for (const [c, v] of Object.entries(s)) console.log(`| ${c} | ${v.runs} | ${v.hiddenPassed.join("·")} | ${v.groupWeighted}% | ${v.allPass} | ${v.basic}% | ${v.combo}% | ${v.diff.join("·")} (평균 ${v.diffMean}) | ${v.invariantsPassed} | ${v.ontoReads.join("·")} | ${v.asked.join("·")} | ${v.assumptions.join("·")} | $${v.costUsd} | ${v.minutes} | ${v.stopBlocks.join("·")} | ${v.budgetHit} |`);
   for (const [c, v] of Object.entries(s)) console.log(`${c} 규칙군: ${JSON.stringify(v.groups)} · 용어: ${JSON.stringify(v.confusion)}${v.tamper.length ? ` · ⚠️ 변경 ${v.tamper}` : ""}${v.outside.length ? ` · ⚠️ 밖 접근 ${v.outside}` : ""}`);
 }

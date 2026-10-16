@@ -1,0 +1,43 @@
+{
+  "pairs": {
+    "P1": {
+      "label": "구별",
+      "quote": "if (state.usedSampleIds.has(input.sampleId)) return fail(\"ID_TAKEN\"); ... if (state.samplesByContainer.has(input.containerId)) return fail(\"CONTAINER_OCCUPIED\");"
+    },
+    "P2": {
+      "label": "구별",
+      "quote": "parentId,\n          rootId: parent.rootId,"
+    },
+    "P3": {
+      "label": "구별",
+      "quote": "const availableQty = sample.remaining - sample.reserved;"
+    },
+    "P4": {
+      "label": "구별",
+      "quote": "sample.reserved += input.qty;  (reserve) vs  sample.remaining -= reservation.qty; sample.reserved -= reservation.qty; sample.consumedQty += reservation.qty; (consume)"
+    },
+    "P5": {
+      "label": "구별",
+      "quote": "parent.remaining -= totalSplitQty;  (split: 자식에 remaining: child.qty, rootId 유지, consumedQty 변동 없음) vs sample.consumedQty += reservation.qty; (consume)"
+    },
+    "P6": {
+      "label": "구별",
+      "quote": "sample.custodianId = custodianId;  (transferCustody) vs sample.containerId = targetContainerId;  (move)"
+    },
+    "P7": {
+      "label": "구별",
+      "quote": "sample.discardedQty += sample.remaining;\n      sample.remaining = 0;\n      sample.status = \"DISCARDED\";  (discard) vs if (sample.remaining === 0) { sample.status = \"DEPLETED\";  (consume/split)"
+    },
+    "P8": {
+      "label": "구별",
+      "quote": "if (state.usedReservationIds.has(input.reservationId)) return fail(\"ID_TAKEN\");  (reservationId) vs const eventKey = getEventKey(eventId, args); if (state.eventByIdAndArgs.has(eventKey)) (eventId)"
+    }
+  },
+  "assumptions": {
+    "total": 4,
+    "assumed": 4,
+    "needConfirm": 0,
+    "none": false
+  },
+  "costUsd": 0.1139435
+}

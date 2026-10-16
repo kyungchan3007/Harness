@@ -1,0 +1,105 @@
+{
+  "id": "B-5",
+  "cond": "B",
+  "n": "5",
+  "phase": "main",
+  "model": "claude-haiku-4-5-20251001",
+  "cli": "2.1.251 (Claude Code)",
+  "copyDir": "/var/folders/ht/prc2m2q939d1l29154xtvtmw0000gn/T/run-EEPv43",
+  "sessionId": "fe7caa3f-d5d9-472b-b6c8-921b2487473b",
+  "minutes": 6.24,
+  "costUsd": 0.567,
+  "budget": 1.5,
+  "turns": 39,
+  "endings": [
+    {
+      "subtype": "success",
+      "isError": false,
+      "timedOut": false
+    }
+  ],
+  "budgetHit": false,
+  "apiError": false,
+  "asked": 0,
+  "implemented": true,
+  "gatePassed": true,
+  "hidden": {
+    "passed": 41,
+    "total": 45,
+    "groupWeighted": 92,
+    "basic": 0.9285714285714286,
+    "combo": 0.9032258064516129,
+    "groups": {
+      "R1": {
+        "passed": 6,
+        "total": 6
+      },
+      "R2": {
+        "passed": 7,
+        "total": 7
+      },
+      "R3": {
+        "passed": 6,
+        "total": 6
+      },
+      "R4": {
+        "passed": 3,
+        "total": 6
+      },
+      "R5": {
+        "passed": 5,
+        "total": 5
+      },
+      "R6": {
+        "passed": 4,
+        "total": 4
+      },
+      "R7": {
+        "passed": 6,
+        "total": 7
+      },
+      "R8": {
+        "passed": 4,
+        "total": 4
+      }
+    },
+    "failed": [
+      "R4b1",
+      "R4c2",
+      "R7c3",
+      "R4c4"
+    ]
+  },
+  "diff": {
+    "passed": 16,
+    "total": 20,
+    "firstFailures": [
+      "D02 AssertionError: expected '시드 2 단계 35 receive([\"d35\",{\"sampleId\"…' to be null",
+      "D17 AssertionError: expected '시드 17 단계 44 receive([\"d44\",{\"sampleId…' to be null",
+      "D18 AssertionError: expected '시드 18 단계 41 move([\"d41\",\"n31\",\"t1\"]):…' to be null"
+    ]
+  },
+  "invariants": {
+    "passed": true,
+    "failed": []
+  },
+  "stopBlocks": 0,
+  "stopChecks": 0,
+  "endedBlocked": false,
+  "tamper": [],
+  "outsideAccess": [],
+  "usage": {
+    "requests": 30,
+    "sessions": 1,
+    "models": [
+      "claude-haiku-4-5-20251001"
+    ],
+    "input": 241,
+    "cacheWrite": 107738,
+    "cacheRead": 2322099,
+    "output": 39901,
+    "maxContext": 107746,
+    "lastContext": 107746
+  },
+  "ontoReads": 0
+}

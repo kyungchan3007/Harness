@@ -1,0 +1,43 @@
+{
+  "pairs": {
+    "P1": {
+      "label": "구별",
+      "quote": "containers: Map<ID, ID | null>;  // containerId → sampleId (또는 null)"
+    },
+    "P2": {
+      "label": "구별",
+      "quote": "parentId,\n        rootId: parent.rootId,"
+    },
+    "P3": {
+      "label": "구별",
+      "quote": "const available = sample.remaining - sample.reserved;"
+    },
+    "P4": {
+      "label": "구별",
+      "quote": "sample.reserved += qty;"
+    },
+    "P5": {
+      "label": "구별",
+      "quote": "parent.remaining -= totalQty;"
+    },
+    "P6": {
+      "label": "구별",
+      "quote": "시료의 \"위치\"는 담긴 용기의 위치 (R5) (가정)"
+    },
+    "P7": {
+      "label": "구별",
+      "quote": "sample.discardedQty += sample.remaining;\n    sample.remaining = 0;\n    sample.status = \"DISCARDED\";"
+    },
+    "P8": {
+      "label": "구별",
+      "quote": "if (this.usedReservationIds.has(reservationId)) return { ok: false, code: \"ID_TAKEN\" };"
+    }
+  },
+  "assumptions": {
+    "total": 3,
+    "assumed": 3,
+    "needConfirm": 0,
+    "none": false
+  },
+  "costUsd": 0.1267935
+}

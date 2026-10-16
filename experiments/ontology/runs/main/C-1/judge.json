@@ -1,0 +1,43 @@
+{
+  "pairs": {
+    "P1": {
+      "label": "구별",
+      "quote": "this.containerStatus.set(input.containerId, { occupied: true, occupiedBy: input.sampleId });"
+    },
+    "P2": {
+      "label": "구별",
+      "quote": "parentId: parent.sampleId,\n        rootId: parent.rootId,"
+    },
+    "P3": {
+      "label": "구별",
+      "quote": "const availableQty = sample.remaining - sample.reserved;"
+    },
+    "P4": {
+      "label": "구별",
+      "quote": "this.reservations.set(input.reservationId, reservation);\n    sample.reserved += input.qty;"
+    },
+    "P5": {
+      "label": "구별",
+      "quote": "parent.remaining -= totalChildQty;"
+    },
+    "P6": {
+      "label": "구별",
+      "quote": "sample.custodianId = custodianId;"
+    },
+    "P7": {
+      "label": "구별",
+      "quote": "sample.discardedQty += qty;\n    sample.remaining = 0;\n    sample.status = \"DISCARDED\";"
+    },
+    "P8": {
+      "label": "구별",
+      "quote": "if (this.reservations.has(input.reservationId)) {\n      return { ok: false, code: \"ID_TAKEN\" };"
+    }
+  },
+  "assumptions": {
+    "total": 1,
+    "assumed": 0,
+    "needConfirm": 0,
+    "none": true
+  },
+  "costUsd": 0.145106
+}

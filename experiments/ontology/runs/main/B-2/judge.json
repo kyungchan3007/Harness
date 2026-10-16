@@ -1,0 +1,43 @@
+{
+  "pairs": {
+    "P1": {
+      "label": "구별",
+      "quote": "if (this.samples.has(sampleId)) {\n      return { ok: false, code: \"ID_TAKEN\" };\n    }\n\n    if (!this.containers.has(containerId)) {\n      return { ok: false, code: \"UNKNOWN_CONTAINER\" };"
+    },
+    "P2": {
+      "label": "구별",
+      "quote": "parentId: parent.sampleId,\n        rootId: parent.rootId,"
+    },
+    "P3": {
+      "label": "구별",
+      "quote": "const availableQty = sample.remaining - sample.reserved;"
+    },
+    "P4": {
+      "label": "구별",
+      "quote": "this.reservations.set(reservationId, reservation);\n    sample.reserved += qty;"
+    },
+    "P5": {
+      "label": "구별",
+      "quote": "parent.remaining -= totalQty;"
+    },
+    "P6": {
+      "label": "구별",
+      "quote": "sample.custodianId = custodianId;"
+    },
+    "P7": {
+      "label": "구별",
+      "quote": "sample.discardedQty += sample.remaining;\n    sample.remaining = 0;\n    sample.status = \"DISCARDED\";"
+    },
+    "P8": {
+      "label": "구별",
+      "quote": "if (this.eventIdToReceipt.has(eventId)) {"
+    }
+  },
+  "assumptions": {
+    "total": 1,
+    "assumed": 0,
+    "needConfirm": 0,
+    "none": true
+  },
+  "costUsd": 0.12182475000000001
+}

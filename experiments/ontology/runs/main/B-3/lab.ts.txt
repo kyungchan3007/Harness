@@ -1,0 +1,332 @@
+import {
+  ID,
+  Qty,
+  ErrorCode,
+  Result,
+  Receipt,
+  SampleStatus,
+  ReservationStatus,
+  SampleView,
+  ReservationView,
+  EventView,
+  Snapshot,
+  Catalog,
+  Lab,
+} from "./types.js";
+
+interface LabState {
+  catalog: Catalog;
+  samples: Map<ID, SampleView>;
+  reservations: Map<ID, ReservationView>;
+  events: EventView[];
+  samplesByContainer: Map<ID, ID>;
+  containersByLocation: Map<ID, ID[]>;
+  eventByIdAndArgs: Map<string, Receipt>;
+  childrenBySampleId: Map<ID, ID[]>;
+  usedSampleIds: Set<ID>;
+  usedReservationIds: Set<ID>;
+  seq: number;
+}
+
+export function createLab(catalog: Catalog): Lab {
+  const state: LabState = {
+    catalog: { ...catalog, containers: catalog.containers.map((c: { containerId: ID; locationId: ID; capacity: Qty }) => ({ ...c })) },
+    samples: new Map(),
+    reservations: new Map(),
+    events: [],
+    samplesByContainer: new Map(),
+    containersByLocation: new Map(),
+    eventByIdAndArgs: new Map(),
+    childrenBySampleId: new Map(),
+    usedSampleIds: new Set(),
+    usedReservationIds: new Set(),
+    seq: 0,
+  };
+
+  const copyInput = (input: unknown): unknown => {
+    if (input === null || typeof input !== "object") return input;
+    return JSON.parse(JSON.stringify(input));
+  };
+
+  const validateQty = (qty: unknown): qty is Qty => {
+    return typeof qty === "number" && Number.isInteger(qty) && qty >= 1 && qty <= 1000000;
+  };
+
+  const getEventKey = (eventId: ID, args: unknown): string => {
+    return `${eventId}:${JSON.stringify(args)}`;
+  };
+
+  const fail = <T>(code: ErrorCode): Result<T> => ({ ok: false, code });
+
+  const success = (value: Receipt): Result<Receipt> => ({ ok: true, value });
+
+  const recordEvent = (eventId: ID, op: EventView["op"], args: unknown): Receipt => {
+    state.seq++;
+    const receipt: Receipt = { eventId, seq: state.seq };
+    state.events.push({ seq: state.seq, eventId, op, args });
+    state.eventByIdAndArgs.set(getEventKey(eventId, args), receipt);
+    return receipt;
+  };
+
+  const lab: Lab = {
+    receive(eventId: ID, input: { sampleId: ID; containerId: ID; custodianId: ID; qty: Qty }): Result<Receipt> {
+      const args = copyInput(input);
+      const eventKey = getEventKey(eventId, args);
+
+      if (state.eventByIdAndArgs.has(eventKey)) {
+        return success(state.eventByIdAndArgs.get(eventKey)!);
+      }
+
+      if (!validateQty(input.qty)) return fail("INVALID_INPUT");
+      if (state.usedSampleIds.has(input.sampleId)) return fail("ID_TAKEN");
+      if (!state.catalog.custodianIds.includes(input.custodianId)) return fail("UNKNOWN_CUSTODIAN");
+
+      const container = state.catalog.containers.find((c: { containerId: ID; locationId: ID; capacity: Qty }) => c.containerId === input.containerId);
+      if (!container) return fail("UNKNOWN_CONTAINER");
+      if (state.samplesByContainer.has(input.containerId)) return fail("CONTAINER_OCCUPIED");
+      if (input.qty > container.capacity) return fail("CAPACITY_EXCEEDED");
+
+      const sample: SampleView = {
+        sampleId: input.sampleId,
+        parentId: null,
+        rootId: input.sampleId,
+        remaining: input.qty,
+        reserved: 0,
+        consumedQty: 0,
+        discardedQty: 0,
+        status: "ACTIVE",
+        containerId: input.containerId,
+        custodianId: input.custodianId,
+      };
+
+      state.samples.set(input.sampleId, sample);
+      state.samplesByContainer.set(input.containerId, input.sampleId);
+      state.usedSampleIds.add(input.sampleId);
+
+      return success(recordEvent(eventId, "receive", args));
+    },
+
+    split(eventId: ID, parentId: ID, children: Array<{ sampleId: ID; containerId: ID; qty: Qty }>): Result<Receipt> {
+      const args = copyInput({ parentId, children });
+      const eventKey = getEventKey(eventId, args);
+
+      if (state.eventByIdAndArgs.has(eventKey)) {
+        return success(state.eventByIdAndArgs.get(eventKey)!);
+      }
+
+      if (!Array.isArray(children) || children.length === 0) return fail("INVALID_INPUT");
+
+      const parent = state.samples.get(parentId);
+      if (!parent) return fail("UNKNOWN_SAMPLE");
+      if (parent.status !== "ACTIVE") return fail("NOT_ACTIVE");
+
+      const totalSplitQty = children.reduce((sum, child) => sum + child.qty, 0);
+      if (!children.every((c) => validateQty(c.qty))) return fail("INVALID_INPUT");
+
+      const availableQty = parent.remaining - parent.reserved;
+      if (totalSplitQty > availableQty) return fail("INSUFFICIENT");
+
+      const usedContainers = new Set<ID>();
+      for (const child of children) {
+        if (state.usedSampleIds.has(child.sampleId)) return fail("ID_TAKEN");
+        if (usedContainers.has(child.containerId)) return fail("CONTAINER_OCCUPIED");
+        if (state.samplesByContainer.has(child.containerId)) return fail("CONTAINER_OCCUPIED");
+
+        const targetContainer = state.catalog.containers.find((c: { containerId: ID; locationId: ID; capacity: Qty }) => c.containerId === child.containerId);
+        if (!targetContainer) return fail("UNKNOWN_CONTAINER");
+        if (child.qty > targetContainer.capacity) return fail("CAPACITY_EXCEEDED");
+
+        usedContainers.add(child.containerId);
+      }
+
+      for (const child of children) {
+        const childSample: SampleView = {
+          sampleId: child.sampleId,
+          parentId,
+          rootId: parent.rootId,
+          remaining: child.qty,
+          reserved: 0,
+          consumedQty: 0,
+          discardedQty: 0,
+          status: "ACTIVE",
+          containerId: child.containerId,
+          custodianId: parent.custodianId,
+        };
+        state.samples.set(child.sampleId, childSample);
+        state.samplesByContainer.set(child.containerId, child.sampleId);
+        state.usedSampleIds.add(child.sampleId);
+
+        if (!state.childrenBySampleId.has(parentId)) {
+          state.childrenBySampleId.set(parentId, []);
+        }
+        state.childrenBySampleId.get(parentId)!.push(child.sampleId);
+      }
+
+      parent.remaining -= totalSplitQty;
+      if (parent.remaining === 0) {
+        parent.status = "DEPLETED";
+        parent.containerId = null;
+        state.samplesByContainer.delete(parent.containerId!);
+      }
+
+      return success(recordEvent(eventId, "split", args));
+    },
+
+    reserve(eventId: ID, input: { reservationId: ID; sampleId: ID; qty: Qty }): Result<Receipt> {
+      const args = copyInput(input);
+      const eventKey = getEventKey(eventId, args);
+
+      if (state.eventByIdAndArgs.has(eventKey)) {
+        return success(state.eventByIdAndArgs.get(eventKey)!);
+      }
+
+      if (!validateQty(input.qty)) return fail("INVALID_INPUT");
+      if (state.usedReservationIds.has(input.reservationId)) return fail("ID_TAKEN");
+
+      const sample = state.samples.get(input.sampleId);
+      if (!sample) return fail("UNKNOWN_SAMPLE");
+      if (sample.status !== "ACTIVE") return fail("NOT_ACTIVE");
+
+      const availableQty = sample.remaining - sample.reserved;
+      if (input.qty > availableQty) return fail("INSUFFICIENT");
+
+      const reservation: ReservationView = {
+        reservationId: input.reservationId,
+        sampleId: input.sampleId,
+        qty: input.qty,
+        status: "ACTIVE",
+      };
+
+      state.reservations.set(input.reservationId, reservation);
+      sample.reserved += input.qty;
+      state.usedReservationIds.add(input.reservationId);
+
+      return success(recordEvent(eventId, "reserve", args));
+    },
+
+    cancel(eventId: ID, reservationId: ID): Result<Receipt> {
+      const args = copyInput({ reservationId });
+      const eventKey = getEventKey(eventId, args);
+
+      if (state.eventByIdAndArgs.has(eventKey)) {
+        return success(state.eventByIdAndArgs.get(eventKey)!);
+      }
+
+      const reservation = state.reservations.get(reservationId);
+      if (!reservation) return fail("UNKNOWN_RESERVATION");
+      if (reservation.status !== "ACTIVE") return fail("RESERVATION_CLOSED");
+
+      const sample = state.samples.get(reservation.sampleId);
+      if (!sample) return fail("UNKNOWN_SAMPLE");
+
+      sample.reserved -= reservation.qty;
+      reservation.status = "CANCELED";
+
+      return success(recordEvent(eventId, "cancel", args));
+    },
+
+    consume(eventId: ID, reservationId: ID): Result<Receipt> {
+      const args = copyInput({ reservationId });
+      const eventKey = getEventKey(eventId, args);
+
+      if (state.eventByIdAndArgs.has(eventKey)) {
+        return success(state.eventByIdAndArgs.get(eventKey)!);
+      }
+
+      const reservation = state.reservations.get(reservationId);
+      if (!reservation) return fail("UNKNOWN_RESERVATION");
+      if (reservation.status !== "ACTIVE") return fail("RESERVATION_CLOSED");
+
+      const sample = state.samples.get(reservation.sampleId);
+      if (!sample) return fail("UNKNOWN_SAMPLE");
+
+      sample.remaining -= reservation.qty;
+      sample.reserved -= reservation.qty;
+      sample.consumedQty += reservation.qty;
+      reservation.status = "CONSUMED";
+
+      if (sample.remaining === 0) {
+        sample.status = "DEPLETED";
+        sample.containerId = null;
+        state.samplesByContainer.delete(sample.containerId!);
+      }
+
+      return success(recordEvent(eventId, "consume", args));
+    },
+
+    discard(eventId: ID, sampleId: ID): Result<Receipt> {
+      const args = copyInput({ sampleId });
+      const eventKey = getEventKey(eventId, args);
+
+      if (state.eventByIdAndArgs.has(eventKey)) {
+        return success(state.eventByIdAndArgs.get(eventKey)!);
+      }
+
+      const sample = state.samples.get(sampleId);
+      if (!sample) return fail("UNKNOWN_SAMPLE");
+      if (sample.status !== "ACTIVE") return fail("NOT_ACTIVE");
+      if (sample.reserved > 0) return fail("HAS_RESERVATION");
+
+      sample.discardedQty += sample.remaining;
+      sample.remaining = 0;
+      sample.status = "DISCARDED";
+      sample.containerId = null;
+      state.samplesByContainer.delete(sample.containerId!);
+
+      return success(recordEvent(eventId, "discard", args));
+    },
+
+    move(eventId: ID, sampleId: ID, targetContainerId: ID): Result<Receipt> {
+      const args = copyInput({ sampleId, targetContainerId });
+      const eventKey = getEventKey(eventId, args);
+
+      if (state.eventByIdAndArgs.has(eventKey)) {
+        return success(state.eventByIdAndArgs.get(eventKey)!);
+      }
+
+      const sample = state.samples.get(sampleId);
+      if (!sample) return fail("UNKNOWN_SAMPLE");
+      if (sample.status !== "ACTIVE") return fail("NOT_ACTIVE");
+
+      const targetContainer = state.catalog.containers.find((c: { containerId: ID; locationId: ID; capacity: Qty }) => c.containerId === targetContainerId);
+      if (!targetContainer) return fail("UNKNOWN_CONTAINER");
+      if (state.samplesByContainer.has(targetContainerId)) return fail("CONTAINER_OCCUPIED");
+      if (sample.remaining > targetContainer.capacity) return fail("CAPACITY_EXCEEDED");
+
+      const oldContainerId = sample.containerId;
+      sample.containerId = targetContainerId;
+      state.samplesByContainer.delete(oldContainerId!);
+      state.samplesByContainer.set(targetContainerId, sampleId);
+
+      return success(recordEvent(eventId, "move", args));
+    },
+
+    transferCustody(eventId: ID, sampleId: ID, custodianId: ID): Result<Receipt> {
+      const args = copyInput({ sampleId, custodianId });
+      const eventKey = getEventKey(eventId, args);
+
+      if (state.eventByIdAndArgs.has(eventKey)) {
+        return success(state.eventByIdAndArgs.get(eventKey)!);
+      }
+
+      const sample = state.samples.get(sampleId);
+      if (!sample) return fail("UNKNOWN_SAMPLE");
+      if (sample.status !== "ACTIVE") return fail("NOT_ACTIVE");
+      if (!state.catalog.custodianIds.includes(custodianId)) return fail("UNKNOWN_CUSTODIAN");
+
+      sample.custodianId = custodianId;
+
+      return success(recordEvent(eventId, "transferCustody", args));
+    },
+
+    snapshot(): Snapshot {
+      return {
+        samples: Array.from(state.samples.values()),
+        reservations: Array.from(state.reservations.values()),
+        events: state.events.map((e) => ({ ...e })),
+      };
+    },
+  };
+
+  return lab;
+}
