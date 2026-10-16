@@ -1,0 +1,43 @@
+{
+  "pairs": {
+    "P1": {
+      "label": "구별",
+      "quote": "private isValidContainerId(id: ID): boolean { return this.containers.has(id); } … private isValidSampleId(id: ID): boolean { return this.samples.has(id); }"
+    },
+    "P2": {
+      "label": "구별",
+      "quote": "parentId: null, rootId: sampleId, (receive) / parentId, rootId: parent.rootId, (split)"
+    },
+    "P3": {
+      "label": "구별",
+      "quote": "const availableQty = sample.remaining - sample.reserved;"
+    },
+    "P4": {
+      "label": "구별",
+      "quote": "sample.reserved += qty; (reserve, remaining은 그대로) / sample.remaining -= reservation.qty; sample.consumedQty += reservation.qty; (consume)"
+    },
+    "P5": {
+      "label": "구별",
+      "quote": "parent.remaining -= totalChildQty; (split, consumedQty는 건드리지 않음) vs sample.consumedQty += reservation.qty; (consume)"
+    },
+    "P6": {
+      "label": "구별",
+      "quote": "용기의 \"장소\"는 따로 저장하지 않음 — 용기의 locationId로만 추적 (가정) / sample.custodianId = custodianId;"
+    },
+    "P7": {
+      "label": "구별",
+      "quote": "sample.discardedQty += sample.remaining; sample.remaining = 0; sample.status = \"DISCARDED\"; (discard) vs if (sample.remaining === 0) { sample.status = \"DEPLETED\"; (consume)"
+    },
+    "P8": {
+      "label": "구별",
+      "quote": "const existing = this.eventLog.get(eventId); (재전송 식별) / if (this.checkIdTaken(reservationId, true)) → this.reservations.has(id) (예약 식별)"
+    }
+  },
+  "assumptions": {
+    "total": 4,
+    "assumed": 4,
+    "needConfirm": 0,
+    "none": false
+  },
+  "costUsd": 0.12689975
+}

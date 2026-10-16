@@ -1,0 +1,43 @@
+{
+  "pairs": {
+    "P1": {
+      "label": "구별",
+      "quote": "if (sampleIdTaken.has(input.sampleId)) {\n        return { ok: false, code: \"ID_TAKEN\" };\n      }\n\n      if (!containerMap.has(input.containerId)) {\n        return { ok: false, code: \"UNKNOWN_CONTAINER\" };"
+    },
+    "P2": {
+      "label": "구별",
+      "quote": "parentId: parentId,\n          rootId: parent.rootId,"
+    },
+    "P3": {
+      "label": "구별",
+      "quote": "const reserved = getReserved(input.sampleId);\n      const available = sample.remaining - reserved;"
+    },
+    "P4": {
+      "label": "구별",
+      "quote": "reservation.status = \"CONSUMED\";\n      sample.remaining -= reservation.qty;\n      sample.consumedQty += reservation.qty;"
+    },
+    "P5": {
+      "label": "구별",
+      "quote": "parent.remaining -= totalChildQty;\n      updateSampleStatus(parent);"
+    },
+    "P6": {
+      "label": "구별",
+      "quote": "seq++;\n      sample.custodianId = custodianId;"
+    },
+    "P7": {
+      "label": "구별",
+      "quote": "sample.discardedQty += sample.remaining;\n      sample.remaining = 0;\n      sample.status = \"DISCARDED\";"
+    },
+    "P8": {
+      "label": "구별",
+      "quote": "const existing = eventHistory.get(eventId);"
+    }
+  },
+  "assumptions": {
+    "total": 1,
+    "assumed": 0,
+    "needConfirm": 0,
+    "none": true
+  },
+  "costUsd": 0.130856
+}

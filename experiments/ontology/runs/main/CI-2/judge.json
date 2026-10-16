@@ -1,0 +1,43 @@
+{
+  "pairs": {
+    "P1": {
+      "label": "구별",
+      "quote": "if (state.usedSampleIds.has(input.sampleId)) { return err(\"ID_TAKEN\"); } ... if (state.containerToSample.has(input.containerId)) { return err(\"CONTAINER_OCCUPIED\"); }"
+    },
+    "P2": {
+      "label": "구별",
+      "quote": "parentId: parentId, rootId: parent.rootId,  (receive에서는 parentId: null, rootId: input.sampleId)"
+    },
+    "P3": {
+      "label": "구별",
+      "quote": "const available = parent.remaining - parent.reserved;"
+    },
+    "P4": {
+      "label": "구별",
+      "quote": "sample.reserved += input.qty; (reserve, remaining 불변) / sample.remaining -= reservation.qty; sample.consumedQty += reservation.qty; (consume)"
+    },
+    "P5": {
+      "label": "구별",
+      "quote": "parent.remaining -= totalQty; ... rootId: parent.rootId, (split은 consumedQty를 올리지 않고 같은 rootId 자식으로 옮김) / PRD: `split` | 시료를 여러 자식으로 나눔 (같은 계보)"
+    },
+    "P6": {
+      "label": "구별",
+      "quote": "sample.custodianId = custodianId; (transferCustody) / sample.containerId = targetContainerId; (move) / PRD: Location (장소): 용기가 놓인 위치"
+    },
+    "P7": {
+      "label": "구별",
+      "quote": "sample.discardedQty += sample.remaining; sample.remaining = 0; sample.status = \"DISCARDED\"; (discard) vs if (sample.remaining === 0) { sample.status = \"DEPLETED\";"
+    },
+    "P8": {
+      "label": "구별",
+      "quote": "eventIdToReceipt: Map<ID, { seq: number; args: unknown }>; (eventId) vs usedReservationIds: Set<ID>; (reservationId)"
+    }
+  },
+  "assumptions": {
+    "total": 4,
+    "assumed": 4,
+    "needConfirm": 0,
+    "none": false
+  },
+  "costUsd": 0.12427474999999999
+}

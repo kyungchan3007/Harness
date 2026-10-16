@@ -1,0 +1,43 @@
+{
+  "pairs": {
+    "P1": {
+      "label": "구별",
+      "quote": "if (state.samples.has(child.sampleId) || usedSampleIds.has(child.sampleId)) {  ...  if (usedContainerIds.has(child.containerId) || parent.containerId === child.containerId) {"
+    },
+    "P2": {
+      "label": "구별",
+      "quote": "parentId,\n        rootId: parent.rootId,"
+    },
+    "P3": {
+      "label": "구별",
+      "quote": "const available = sample.remaining - sample.reserved;"
+    },
+    "P4": {
+      "label": "구별",
+      "quote": "sample.reserved += input.qty;"
+    },
+    "P5": {
+      "label": "구별",
+      "quote": "parent.remaining -= totalQty;  (split은 consumedQty를 올리지 않고 자식에게 rootId: parent.rootId를 넘김) vs consume의 sample.consumedQty += reservation.qty;"
+    },
+    "P6": {
+      "label": "구별",
+      "quote": "**transferCustody(eventId, sampleId, custodianId)**: 책임자 변경\n   - 효과: 그 시료의 custodianId만 변경  /  **move** ... 효과: containerId만 변경 (양, 예약, 계보, 책임자 불변)"
+    },
+    "P7": {
+      "label": "구별",
+      "quote": "sample.discardedQty += sample.remaining;\n    sample.remaining = 0;\n    sample.status = \"DISCARDED\";  (consume/split에서는 if (sample.remaining === 0) { sample.status = \"DEPLETED\";)"
+    },
+    "P8": {
+      "label": "구별",
+      "quote": "const cached = state.events.get(eventId);  ...  if (state.reservations.has(input.reservationId)) { return getErrorResult(\"ID_TAKEN\"); }"
+    }
+  },
+  "assumptions": {
+    "total": 3,
+    "assumed": 3,
+    "needConfirm": 0,
+    "none": false
+  },
+  "costUsd": 0.132506
+}

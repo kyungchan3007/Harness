@@ -1,0 +1,380 @@
+{
+  "A": {
+    "runs": 5,
+    "implemented": 5,
+    "hiddenPassed": [
+      43,
+      44,
+      41,
+      39,
+      44
+    ],
+    "hiddenTotal": 45,
+    "groupWeighted": 93.7,
+    "allPass": 0,
+    "basic": 98.57,
+    "combo": 91.61,
+    "groups": {
+      "R1": 96.67,
+      "R2": 97.14,
+      "R3": 100,
+      "R4": 83.33,
+      "R5": 96,
+      "R6": 100,
+      "R7": 91.43,
+      "R8": 85
+    },
+    "diff": [
+      20,
+      20,
+      16,
+      14,
+      20
+    ],
+    "diffMean": 18,
+    "ontoReads": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "invariantsPassed": 1,
+    "asked": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "assumptions": [
+      1,
+      1,
+      5,
+      1,
+      1
+    ],
+    "confusion": {
+      "구별": 40
+    },
+    "costUsd": 0.97,
+    "minutes": 9.83,
+    "turns": 52.4,
+    "gatePassed": 4,
+    "stopBlocks": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "endedBlocked": 0,
+    "budgetHit": 1,
+    "apiError": 0,
+    "tamper": [],
+    "outside": []
+  },
+  "B": {
+    "runs": 5,
+    "implemented": 5,
+    "hiddenPassed": [
+      40,
+      44,
+      38,
+      45,
+      41
+    ],
+    "hiddenTotal": 45,
+    "groupWeighted": 92.86,
+    "allPass": 1,
+    "basic": 95.71,
+    "combo": 90.97,
+    "groups": {
+      "R1": 100,
+      "R2": 94.29,
+      "R3": 100,
+      "R4": 70,
+      "R5": 100,
+      "R6": 100,
+      "R7": 88.57,
+      "R8": 90
+    },
+    "diff": [
+      4,
+      20,
+      2,
+      20,
+      16
+    ],
+    "diffMean": 12.4,
+    "ontoReads": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "invariantsPassed": 2,
+    "asked": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "assumptions": [
+      4,
+      1,
+      4,
+      3,
+      1
+    ],
+    "confusion": {
+      "구별": 40
+    },
+    "costUsd": 0.76,
+    "minutes": 8.19,
+    "turns": 56,
+    "gatePassed": 5,
+    "stopBlocks": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "endedBlocked": 0,
+    "budgetHit": 0,
+    "apiError": 0,
+    "tamper": [],
+    "outside": []
+  },
+  "C": {
+    "runs": 5,
+    "implemented": 5,
+    "hiddenPassed": [
+      43,
+      41,
+      44,
+      45,
+      44
+    ],
+    "hiddenTotal": 45,
+    "groupWeighted": 96.84,
+    "allPass": 1,
+    "basic": 97.14,
+    "combo": 96.13,
+    "groups": {
+      "R1": 93.33,
+      "R2": 97.14,
+      "R3": 100,
+      "R4": 90,
+      "R5": 100,
+      "R6": 100,
+      "R7": 94.29,
+      "R8": 100
+    },
+    "diff": [
+      20,
+      4,
+      20,
+      20,
+      20
+    ],
+    "diffMean": 16.8,
+    "ontoReads": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "invariantsPassed": 4,
+    "asked": [
+      1,
+      0,
+      0,
+      0,
+      0
+    ],
+    "assumptions": [
+      1,
+      1,
+      4,
+      1,
+      1
+    ],
+    "confusion": {
+      "구별": 40
+    },
+    "costUsd": 1.1,
+    "minutes": 11.75,
+    "turns": 49.2,
+    "gatePassed": 4,
+    "stopBlocks": [
+      0,
+      0,
+      0,
+      0,
+      4
+    ],
+    "endedBlocked": 1,
+    "budgetHit": 1,
+    "apiError": 0,
+    "tamper": [],
+    "outside": []
+  },
+  "BI": {
+    "runs": 5,
+    "implemented": 5,
+    "hiddenPassed": [
+      41,
+      39,
+      40,
+      41,
+      44
+    ],
+    "hiddenTotal": 45,
+    "groupWeighted": 92.12,
+    "allPass": 0,
+    "basic": 97.14,
+    "combo": 88.39,
+    "groups": {
+      "R1": 93.33,
+      "R2": 94.29,
+      "R3": 100,
+      "R4": 80,
+      "R5": 100,
+      "R6": 100,
+      "R7": 74.29,
+      "R8": 95
+    },
+    "diff": [
+      15,
+      14,
+      18,
+      1,
+      19
+    ],
+    "diffMean": 13.4,
+    "ontoReads": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "invariantsPassed": 1,
+    "asked": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "assumptions": [
+      1,
+      3,
+      4,
+      4,
+      3
+    ],
+    "confusion": {
+      "구별": 40
+    },
+    "costUsd": 0.8,
+    "minutes": 9.54,
+    "turns": 40.2,
+    "gatePassed": 5,
+    "stopBlocks": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "endedBlocked": 0,
+    "budgetHit": 0,
+    "apiError": 0,
+    "tamper": [],
+    "outside": []
+  },
+  "CI": {
+    "runs": 5,
+    "implemented": 5,
+    "hiddenPassed": [
+      45,
+      45,
+      44,
+      44,
+      45
+    ],
+    "hiddenTotal": 45,
+    "groupWeighted": 99.14,
+    "allPass": 3,
+    "basic": 98.57,
+    "combo": 99.35,
+    "groups": {
+      "R1": 100,
+      "R2": 100,
+      "R3": 100,
+      "R4": 100,
+      "R5": 96,
+      "R6": 100,
+      "R7": 97.14,
+      "R8": 100
+    },
+    "diff": [
+      20,
+      20,
+      7,
+      20,
+      20
+    ],
+    "diffMean": 17.4,
+    "ontoReads": [
+      0,
+      0,
+      0,
+      0,
+      3
+    ],
+    "invariantsPassed": 5,
+    "asked": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "assumptions": [
+      1,
+      4,
+      3,
+      3,
+      5
+    ],
+    "confusion": {
+      "구별": 40
+    },
+    "costUsd": 0.86,
+    "minutes": 8.78,
+    "turns": 55.2,
+    "gatePassed": 5,
+    "stopBlocks": [
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    "endedBlocked": 0,
+    "budgetHit": 0,
+    "apiError": 0,
+    "tamper": [],
+    "outside": [
+      "CI-2",
+      "CI-3"
+    ]
+  }
+}

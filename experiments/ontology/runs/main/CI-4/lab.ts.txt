@@ -1,0 +1,485 @@
+import {
+  Catalog,
+  ErrorCode,
+  EventView,
+  ID,
+  Lab,
+  Qty,
+  Receipt,
+  ReservationStatus,
+  ReservationView,
+  Result,
+  SampleStatus,
+  SampleView,
+  Snapshot,
+} from "./types.js";
+
+interface InternalSample {
+  sampleId: ID;
+  rootId: ID;
+  parentId: ID | null;
+  remaining: Qty;
+  reserved: Qty;
+  consumedQty: Qty;
+  discardedQty: Qty;
+  status: SampleStatus;
+  containerId: ID | null;
+  custodianId: ID;
+}
+
+interface InternalReservation {
+  reservationId: ID;
+  sampleId: ID;
+  qty: Qty;
+  status: ReservationStatus;
+}
+
+interface CachedEvent {
+  seq: number;
+  op: string;
+  args: unknown;
+  receipt: Receipt;
+}
+
+export function createLab(catalog: Catalog): Lab {
+  const custodianSet = new Set(catalog.custodianIds);
+  const containerMap = new Map(
+    catalog.containers.map((c) => [c.containerId, c] as const)
+  ) as Map<ID, { containerId: ID; locationId: ID; capacity: Qty }>;
+
+  const samples = new Map<ID, InternalSample>();
+  const reservations = new Map<ID, InternalReservation>();
+  const usedSampleIds = new Set<ID>();
+  const usedReservationIds = new Set<ID>();
+  const containerIndex = new Map<ID, ID | null>();
+  const events: EventView[] = [];
+  const eventCache = new Map<ID, CachedEvent>();
+
+  for (const container of catalog.containers) {
+    containerIndex.set(container.containerId, null);
+  }
+
+  let seq = 0;
+
+  function fail<T>(code: ErrorCode): Result<T> {
+    return { ok: false, code };
+  }
+
+  function success<T>(value: T): Result<T> {
+    return { ok: true, value };
+  }
+
+  function argsEqual(args1: unknown, args2: unknown): boolean {
+    return JSON.stringify(args1) === JSON.stringify(args2);
+  }
+
+  function recordEvent(eventId: ID, op: string, args: unknown): Receipt {
+    const newSeq = ++seq;
+    const receipt = { eventId, seq: newSeq };
+    const copiedArgs = JSON.parse(JSON.stringify(args));
+    eventCache.set(eventId, { seq: newSeq, op, args: copiedArgs, receipt });
+    events.push({ seq: newSeq, eventId, op: op as any, args: copiedArgs });
+    return receipt;
+  }
+
+  const lab: Lab = {
+    receive(eventId: ID, input: { sampleId: ID; containerId: ID; custodianId: ID; qty: Qty }): Result<Receipt> {
+      if (eventCache.has(eventId)) {
+        const cached = eventCache.get(eventId)!;
+        if (cached.op === "receive" && argsEqual(cached.args, input)) {
+          return success(cached.receipt);
+        }
+        return fail("EVENT_CONFLICT");
+      }
+
+      const { sampleId, containerId, custodianId, qty } = input;
+
+      if (!Number.isInteger(qty) || qty < 1 || qty > 1000000) {
+        return fail("INVALID_INPUT");
+      }
+
+      if (usedSampleIds.has(sampleId)) {
+        return fail("ID_TAKEN");
+      }
+
+      if (!containerMap.has(containerId)) {
+        return fail("UNKNOWN_CONTAINER");
+      }
+
+      if (!custodianSet.has(custodianId)) {
+        return fail("UNKNOWN_CUSTODIAN");
+      }
+
+      if (containerIndex.get(containerId) !== null) {
+        return fail("CONTAINER_OCCUPIED");
+      }
+
+      const container = containerMap.get(containerId)!;
+      if (qty > container.capacity) {
+        return fail("CAPACITY_EXCEEDED");
+      }
+
+      const sample: InternalSample = {
+        sampleId,
+        rootId: sampleId,
+        parentId: null,
+        remaining: qty,
+        reserved: 0,
+        consumedQty: 0,
+        discardedQty: 0,
+        status: "ACTIVE",
+        containerId,
+        custodianId,
+      };
+
+      samples.set(sampleId, sample);
+      usedSampleIds.add(sampleId);
+      containerIndex.set(containerId, sampleId);
+
+      return success(recordEvent(eventId, "receive", input));
+    },
+
+    split(eventId: ID, parentId: ID, children: Array<{ sampleId: ID; containerId: ID; qty: Qty }>): Result<Receipt> {
+      if (eventCache.has(eventId)) {
+        const cached = eventCache.get(eventId)!;
+        const args = { parentId, children };
+        if (cached.op === "split" && argsEqual(cached.args, args)) {
+          return success(cached.receipt);
+        }
+        return fail("EVENT_CONFLICT");
+      }
+
+      if (!Array.isArray(children) || children.length === 0) {
+        return fail("INVALID_INPUT");
+      }
+
+      const parent = samples.get(parentId);
+      if (!parent) {
+        return fail("UNKNOWN_SAMPLE");
+      }
+
+      if (parent.status !== "ACTIVE") {
+        return fail("NOT_ACTIVE");
+      }
+
+      let totalQty = 0;
+      const childSampleIds = new Set<ID>();
+      const childContainerIds = new Set<ID>();
+
+      for (const child of children) {
+        const { sampleId, containerId, qty } = child;
+
+        if (!Number.isInteger(qty) || qty < 1 || qty > 1000000) {
+          return fail("INVALID_INPUT");
+        }
+
+        if (usedSampleIds.has(sampleId)) {
+          return fail("ID_TAKEN");
+        }
+
+        if (childSampleIds.has(sampleId)) {
+          return fail("ID_TAKEN");
+        }
+        childSampleIds.add(sampleId);
+
+        if (!containerMap.has(containerId)) {
+          return fail("UNKNOWN_CONTAINER");
+        }
+
+        if (containerIndex.get(containerId) !== null) {
+          return fail("CONTAINER_OCCUPIED");
+        }
+
+        if (containerId === parent.containerId) {
+          return fail("CONTAINER_OCCUPIED");
+        }
+
+        if (childContainerIds.has(containerId)) {
+          return fail("CONTAINER_OCCUPIED");
+        }
+        childContainerIds.add(containerId);
+
+        const container = containerMap.get(containerId)!;
+        if (qty > container.capacity) {
+          return fail("CAPACITY_EXCEEDED");
+        }
+
+        totalQty += qty;
+      }
+
+      const parentAvailable = parent.remaining - parent.reserved;
+      if (totalQty > parentAvailable) {
+        return fail("INSUFFICIENT");
+      }
+
+      parent.remaining -= totalQty;
+      if (parent.remaining === 0) {
+        parent.status = "DEPLETED";
+        containerIndex.set(parent.containerId!, null);
+        parent.containerId = null;
+      }
+
+      for (const child of children) {
+        const { sampleId, containerId, qty } = child;
+
+        const newSample: InternalSample = {
+          sampleId,
+          rootId: parent.rootId,
+          parentId,
+          remaining: qty,
+          reserved: 0,
+          consumedQty: 0,
+          discardedQty: 0,
+          status: "ACTIVE",
+          containerId,
+          custodianId: parent.custodianId,
+        };
+
+        samples.set(sampleId, newSample);
+        usedSampleIds.add(sampleId);
+        containerIndex.set(containerId, sampleId);
+      }
+
+      return success(recordEvent(eventId, "split", { parentId, children }));
+    },
+
+    reserve(eventId: ID, input: { reservationId: ID; sampleId: ID; qty: Qty }): Result<Receipt> {
+      if (eventCache.has(eventId)) {
+        const cached = eventCache.get(eventId)!;
+        if (cached.op === "reserve" && argsEqual(cached.args, input)) {
+          return success(cached.receipt);
+        }
+        return fail("EVENT_CONFLICT");
+      }
+
+      const { reservationId, sampleId, qty } = input;
+
+      if (!Number.isInteger(qty) || qty < 1 || qty > 1000000) {
+        return fail("INVALID_INPUT");
+      }
+
+      if (usedReservationIds.has(reservationId)) {
+        return fail("ID_TAKEN");
+      }
+
+      const sample = samples.get(sampleId);
+      if (!sample) {
+        return fail("UNKNOWN_SAMPLE");
+      }
+
+      if (sample.status !== "ACTIVE") {
+        return fail("NOT_ACTIVE");
+      }
+
+      const available = sample.remaining - sample.reserved;
+      if (qty > available) {
+        return fail("INSUFFICIENT");
+      }
+
+      const reservation: InternalReservation = {
+        reservationId,
+        sampleId,
+        qty,
+        status: "ACTIVE",
+      };
+
+      reservations.set(reservationId, reservation);
+      usedReservationIds.add(reservationId);
+      sample.reserved += qty;
+
+      return success(recordEvent(eventId, "reserve", input));
+    },
+
+    cancel(eventId: ID, reservationId: ID): Result<Receipt> {
+      if (eventCache.has(eventId)) {
+        const cached = eventCache.get(eventId)!;
+        const args = { reservationId };
+        if (cached.op === "cancel" && argsEqual(cached.args, args)) {
+          return success(cached.receipt);
+        }
+        return fail("EVENT_CONFLICT");
+      }
+
+      const reservation = reservations.get(reservationId);
+      if (!reservation) {
+        return fail("UNKNOWN_RESERVATION");
+      }
+
+      if (reservation.status !== "ACTIVE") {
+        return fail("RESERVATION_CLOSED");
+      }
+
+      const sample = samples.get(reservation.sampleId)!;
+      reservation.status = "CANCELED";
+      sample.reserved -= reservation.qty;
+
+      return success(recordEvent(eventId, "cancel", { reservationId }));
+    },
+
+    consume(eventId: ID, reservationId: ID): Result<Receipt> {
+      if (eventCache.has(eventId)) {
+        const cached = eventCache.get(eventId)!;
+        const args = { reservationId };
+        if (cached.op === "consume" && argsEqual(cached.args, args)) {
+          return success(cached.receipt);
+        }
+        return fail("EVENT_CONFLICT");
+      }
+
+      const reservation = reservations.get(reservationId);
+      if (!reservation) {
+        return fail("UNKNOWN_RESERVATION");
+      }
+
+      if (reservation.status !== "ACTIVE") {
+        return fail("RESERVATION_CLOSED");
+      }
+
+      const sample = samples.get(reservation.sampleId)!;
+
+      reservation.status = "CONSUMED";
+      sample.remaining -= reservation.qty;
+      sample.reserved -= reservation.qty;
+      sample.consumedQty += reservation.qty;
+
+      if (sample.remaining === 0) {
+        sample.status = "DEPLETED";
+        containerIndex.set(sample.containerId!, null);
+        sample.containerId = null;
+      }
+
+      return success(recordEvent(eventId, "consume", { reservationId }));
+    },
+
+    discard(eventId: ID, sampleId: ID): Result<Receipt> {
+      if (eventCache.has(eventId)) {
+        const cached = eventCache.get(eventId)!;
+        const args = { sampleId };
+        if (cached.op === "discard" && argsEqual(cached.args, args)) {
+          return success(cached.receipt);
+        }
+        return fail("EVENT_CONFLICT");
+      }
+
+      const sample = samples.get(sampleId);
+      if (!sample) {
+        return fail("UNKNOWN_SAMPLE");
+      }
+
+      if (sample.status !== "ACTIVE") {
+        return fail("NOT_ACTIVE");
+      }
+
+      if (sample.reserved > 0) {
+        return fail("HAS_RESERVATION");
+      }
+
+      sample.discardedQty += sample.remaining;
+      sample.remaining = 0;
+      sample.status = "DISCARDED";
+      containerIndex.set(sample.containerId!, null);
+      sample.containerId = null;
+
+      return success(recordEvent(eventId, "discard", { sampleId }));
+    },
+
+    move(eventId: ID, sampleId: ID, targetContainerId: ID): Result<Receipt> {
+      if (eventCache.has(eventId)) {
+        const cached = eventCache.get(eventId)!;
+        const args = { sampleId, targetContainerId };
+        if (cached.op === "move" && argsEqual(cached.args, args)) {
+          return success(cached.receipt);
+        }
+        return fail("EVENT_CONFLICT");
+      }
+
+      const sample = samples.get(sampleId);
+      if (!sample) {
+        return fail("UNKNOWN_SAMPLE");
+      }
+
+      if (sample.status !== "ACTIVE") {
+        return fail("NOT_ACTIVE");
+      }
+
+      if (!containerMap.has(targetContainerId)) {
+        return fail("UNKNOWN_CONTAINER");
+      }
+
+      if (containerIndex.get(targetContainerId) !== null) {
+        return fail("CONTAINER_OCCUPIED");
+      }
+
+      const targetContainer = containerMap.get(targetContainerId)!;
+
+      if (sample.remaining > targetContainer.capacity) {
+        return fail("CAPACITY_EXCEEDED");
+      }
+
+      const oldContainerId = sample.containerId!;
+      containerIndex.set(oldContainerId, null);
+      sample.containerId = targetContainerId;
+      containerIndex.set(targetContainerId, sampleId);
+
+      return success(recordEvent(eventId, "move", { sampleId, targetContainerId }));
+    },
+
+    transferCustody(eventId: ID, sampleId: ID, custodianId: ID): Result<Receipt> {
+      if (eventCache.has(eventId)) {
+        const cached = eventCache.get(eventId)!;
+        const args = { sampleId, custodianId };
+        if (cached.op === "transferCustody" && argsEqual(cached.args, args)) {
+          return success(cached.receipt);
+        }
+        return fail("EVENT_CONFLICT");
+      }
+
+      const sample = samples.get(sampleId);
+      if (!sample) {
+        return fail("UNKNOWN_SAMPLE");
+      }
+
+      if (sample.status !== "ACTIVE") {
+        return fail("NOT_ACTIVE");
+      }
+
+      if (!custodianSet.has(custodianId)) {
+        return fail("UNKNOWN_CUSTODIAN");
+      }
+
+      sample.custodianId = custodianId;
+
+      return success(recordEvent(eventId, "transferCustody", { sampleId, custodianId }));
+    },
+
+    snapshot(): Snapshot {
+      const sampleViews: SampleView[] = Array.from(samples.values()).map((s) => ({
+        sampleId: s.sampleId,
+        parentId: s.parentId,
+        rootId: s.rootId,
+        remaining: s.remaining,
+        reserved: s.reserved,
+        consumedQty: s.consumedQty,
+        discardedQty: s.discardedQty,
+        status: s.status,
+        containerId: s.containerId,
+        custodianId: s.custodianId,
+      }));
+
+      const reservationViews: ReservationView[] = Array.from(reservations.values()).map((r) => ({
+        reservationId: r.reservationId,
+        sampleId: r.sampleId,
+        qty: r.qty,
+        status: r.status,
+      }));
+
+      return {
+        samples: sampleViews,
+        reservations: reservationViews,
+        events,
+      };
+    },
+  };
+
+  return lab;
+}

@@ -1,0 +1,43 @@
+{
+  "pairs": {
+    "P1": {
+      "label": "구별",
+      "quote": "ID는 종류마다 따로 고유하다 — 시료 ID와 용기 ID가 같은 글자여도 된다. (코드: `const containerToSample = new Map<ID, ID>();`는 용기 ID를 키로 쓰고, 시료 ID 중복은 `usedIds`로 따로 검사한다.)"
+    },
+    "P2": {
+      "label": "구별",
+      "quote": "parentId,\n          rootId: parent.rootId,"
+    },
+    "P3": {
+      "label": "구별",
+      "quote": "if (totalChildQty > parent.remaining - parent.reserved)\n        return { ok: false, code: \"INSUFFICIENT\" };"
+    },
+    "P4": {
+      "label": "구별",
+      "quote": "sample.reserved += input.qty;  (reserve는 remaining을 건드리지 않음) / consume: sample.remaining -= reservation.qty;\n      sample.reserved -= reservation.qty;\n      sample.consumedQty += reservation.qty;"
+    },
+    "P5": {
+      "label": "구별",
+      "quote": "seq++;\n      parent.remaining -= totalChildQty;  (split은 consumedQty를 올리지 않고 자식 시료로 양을 옮긴다. 소비는 `sample.consumedQty += reservation.qty;`)"
+    },
+    "P6": {
+      "label": "구별",
+      "quote": "custodianId: parent.custodianId,  (자식은 부모 책임자를 이어받음) / transferCustody: sample.custodianId = custodianId;  (시료에 장소 필드는 없고 containerId만 저장해 장소는 용기에서 도출)"
+    },
+    "P7": {
+      "label": "구별",
+      "quote": "sample.discardedQty += sample.remaining;\n      sample.remaining = 0;\n      sample.status = \"DISCARDED\"; / consume: if (sample.remaining === 0) sample.status = \"DEPLETED\";"
+    },
+    "P8": {
+      "label": "구별",
+      "quote": "const eventLog = new Map<ID, StoredEvent>();  (eventId 멱등성 기록) / const reservations = new Map<ID, ReservationInternal>();  (reservationId 별도 관리)"
+    }
+  },
+  "assumptions": {
+    "total": 1,
+    "assumed": 0,
+    "needConfirm": 0,
+    "none": true
+  },
+  "costUsd": 0.14726225
+}

@@ -1,0 +1,448 @@
+import {
+  ID,
+  Qty,
+  ErrorCode,
+  Result,
+  Receipt,
+  SampleStatus,
+  ReservationStatus,
+  SampleView,
+  ReservationView,
+  EventView,
+  Snapshot,
+  Catalog,
+  Lab,
+} from "./types.js";
+
+interface SampleRecord extends SampleView {}
+interface ReservationRecord extends ReservationView {}
+
+interface LogEntry {
+  seq: number;
+  eventId: ID;
+  op: EventView["op"];
+  args: unknown;
+}
+
+interface LabState {
+  samples: Map<ID, SampleRecord>;
+  reservations: Map<ID, ReservationRecord>;
+  containerToSample: Map<ID, ID>;
+  usedSampleIds: Set<ID>;
+  usedReservationIds: Set<ID>;
+  eventLog: Map<ID, LogEntry>;
+  nextSeq: number;
+}
+
+function argsEqual(a: unknown, b: unknown): boolean {
+  if (typeof a !== typeof b) return false;
+  if (typeof a !== "object" || a === null || b === null) return a === b;
+  if (Array.isArray(a) && Array.isArray(b)) {
+    if (a.length !== b.length) return false;
+    return a.every((v, i) => argsEqual(v, b[i]));
+  }
+  if (Array.isArray(a) || Array.isArray(b)) return false;
+  const aKeys = Object.keys(a as object).sort();
+  const bKeys = Object.keys(b as object).sort();
+  if (aKeys.length !== bKeys.length) return false;
+  if (!aKeys.every((k, i) => k === bKeys[i])) return false;
+  return aKeys.every((k) => argsEqual((a as any)[k], (b as any)[k]));
+}
+
+function deepCopy(obj: unknown): unknown {
+  if (obj === null || typeof obj !== "object") return obj;
+  if (Array.isArray(obj)) return obj.map(deepCopy);
+  if (obj instanceof Date) return new Date(obj);
+  const copied: any = {};
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      copied[key] = deepCopy((obj as any)[key]);
+    }
+  }
+  return copied;
+}
+
+export function createLab(catalog: Catalog): Lab {
+  const state: LabState = {
+    samples: new Map(),
+    reservations: new Map(),
+    containerToSample: new Map(),
+    usedSampleIds: new Set(),
+    usedReservationIds: new Set(),
+    eventLog: new Map(),
+    nextSeq: 1,
+  };
+
+  const locationIds = new Set(catalog.locationIds);
+  const custodianIds = new Set(catalog.custodianIds);
+  const containerMap = new Map<ID, { containerId: ID; locationId: ID; capacity: Qty }>(
+    catalog.containers.map((c) => [c.containerId, c])
+  );
+  const containerIds = new Set(catalog.containers.map((c: { containerId: ID }) => c.containerId));
+
+  function recordEvent(
+    eventId: ID,
+    op: EventView["op"],
+    args: unknown
+  ): Receipt {
+    const seq = state.nextSeq++;
+    state.eventLog.set(eventId, { seq, eventId, op, args: deepCopy(args) });
+    return { eventId, seq };
+  }
+
+  function checkIdempotency(
+    eventId: ID,
+    op: EventView["op"],
+    args: unknown
+  ): Result<Receipt> | null {
+    const existing = state.eventLog.get(eventId);
+    if (existing) {
+      if (existing.op === op && argsEqual(existing.args, args)) {
+        return {
+          ok: true,
+          value: { eventId, seq: existing.seq },
+        };
+      }
+      return { ok: false, code: "EVENT_CONFLICT" };
+    }
+    return null;
+  }
+
+  const lab: Lab = {
+    receive(eventId: ID, input: { sampleId: ID; containerId: ID; custodianId: ID; qty: Qty }): Result<Receipt> {
+      const idempotent = checkIdempotency(eventId, "receive", input);
+      if (idempotent) return idempotent;
+
+      const { sampleId, containerId, custodianId, qty } = input;
+
+      if (typeof qty !== "number" || qty < 1 || qty > 1000000 || !Number.isInteger(qty)) {
+        return { ok: false, code: "INVALID_INPUT" };
+      }
+      if (state.usedSampleIds.has(sampleId)) {
+        return { ok: false, code: "ID_TAKEN" };
+      }
+      if (!containerIds.has(containerId)) {
+        return { ok: false, code: "UNKNOWN_CONTAINER" };
+      }
+      if (!custodianIds.has(custodianId)) {
+        return { ok: false, code: "UNKNOWN_CUSTODIAN" };
+      }
+
+      const container = containerMap.get(containerId)!;
+      if (state.containerToSample.has(containerId)) {
+        return { ok: false, code: "CONTAINER_OCCUPIED" };
+      }
+      if (qty > container.capacity) {
+        return { ok: false, code: "CAPACITY_EXCEEDED" };
+      }
+
+      const sample: SampleRecord = {
+        sampleId,
+        parentId: null,
+        rootId: sampleId,
+        remaining: qty,
+        reserved: 0,
+        consumedQty: 0,
+        discardedQty: 0,
+        status: "ACTIVE",
+        containerId,
+        custodianId,
+      };
+      state.samples.set(sampleId, sample);
+      state.containerToSample.set(containerId, sampleId);
+      state.usedSampleIds.add(sampleId);
+
+      return { ok: true, value: recordEvent(eventId, "receive", input) };
+    },
+
+    split(eventId: ID, parentId: ID, children: Array<{ sampleId: ID; containerId: ID; qty: Qty }>): Result<Receipt> {
+      const args = { parentId, children };
+      const idempotent = checkIdempotency(eventId, "split", args);
+      if (idempotent) return idempotent;
+
+      if (!Array.isArray(children) || children.length === 0) {
+        return { ok: false, code: "INVALID_INPUT" };
+      }
+
+      const parent = state.samples.get(parentId);
+      if (!parent) {
+        return { ok: false, code: "UNKNOWN_SAMPLE" };
+      }
+      if (parent.status !== "ACTIVE") {
+        return { ok: false, code: "NOT_ACTIVE" };
+      }
+
+      const childSampleIds = new Set<ID>();
+      const childContainerIds = new Set<ID>();
+      let totalQty = 0;
+
+      for (const child of children) {
+        if (typeof child.qty !== "number" || child.qty < 1 || child.qty > 1000000 || !Number.isInteger(child.qty)) {
+          return { ok: false, code: "INVALID_INPUT" };
+        }
+        if (state.usedSampleIds.has(child.sampleId)) {
+          return { ok: false, code: "ID_TAKEN" };
+        }
+        if (childSampleIds.has(child.sampleId)) {
+          return { ok: false, code: "ID_TAKEN" };
+        }
+        childSampleIds.add(child.sampleId);
+
+        if (!containerIds.has(child.containerId)) {
+          return { ok: false, code: "UNKNOWN_CONTAINER" };
+        }
+        if (childContainerIds.has(child.containerId)) {
+          return { ok: false, code: "CONTAINER_OCCUPIED" };
+        }
+        if (child.containerId === parent.containerId) {
+          return { ok: false, code: "CONTAINER_OCCUPIED" };
+        }
+        childContainerIds.add(child.containerId);
+
+        if (state.containerToSample.has(child.containerId)) {
+          return { ok: false, code: "CONTAINER_OCCUPIED" };
+        }
+
+        const container = containerMap.get(child.containerId)!;
+        if (child.qty > container.capacity) {
+          return { ok: false, code: "CAPACITY_EXCEEDED" };
+        }
+
+        totalQty += child.qty;
+      }
+
+      const available = parent.remaining - parent.reserved;
+      if (totalQty > available) {
+        return { ok: false, code: "INSUFFICIENT" };
+      }
+
+      for (const child of children) {
+        const newSample: SampleRecord = {
+          sampleId: child.sampleId,
+          parentId,
+          rootId: parent.rootId,
+          remaining: child.qty,
+          reserved: 0,
+          consumedQty: 0,
+          discardedQty: 0,
+          status: "ACTIVE",
+          containerId: child.containerId,
+          custodianId: parent.custodianId,
+        };
+        state.samples.set(child.sampleId, newSample);
+        state.containerToSample.set(child.containerId, child.sampleId);
+        state.usedSampleIds.add(child.sampleId);
+      }
+
+      parent.remaining -= totalQty;
+      if (parent.remaining === 0) {
+        parent.status = "DEPLETED";
+        state.containerToSample.delete(parent.containerId!);
+        parent.containerId = null;
+      }
+
+      return { ok: true, value: recordEvent(eventId, "split", args) };
+    },
+
+    reserve(eventId: ID, input: { reservationId: ID; sampleId: ID; qty: Qty }): Result<Receipt> {
+      const idempotent = checkIdempotency(eventId, "reserve", input);
+      if (idempotent) return idempotent;
+
+      const { reservationId, sampleId, qty } = input;
+
+      if (typeof qty !== "number" || qty < 1 || qty > 1000000 || !Number.isInteger(qty)) {
+        return { ok: false, code: "INVALID_INPUT" };
+      }
+      if (state.usedReservationIds.has(reservationId)) {
+        return { ok: false, code: "ID_TAKEN" };
+      }
+
+      const sample = state.samples.get(sampleId);
+      if (!sample) {
+        return { ok: false, code: "UNKNOWN_SAMPLE" };
+      }
+      if (sample.status !== "ACTIVE") {
+        return { ok: false, code: "NOT_ACTIVE" };
+      }
+
+      const available = sample.remaining - sample.reserved;
+      if (qty > available) {
+        return { ok: false, code: "INSUFFICIENT" };
+      }
+
+      const reservation: ReservationRecord = {
+        reservationId,
+        sampleId,
+        qty,
+        status: "ACTIVE",
+      };
+      state.reservations.set(reservationId, reservation);
+      sample.reserved += qty;
+      state.usedReservationIds.add(reservationId);
+
+      return { ok: true, value: recordEvent(eventId, "reserve", input) };
+    },
+
+    cancel(eventId: ID, reservationId: ID): Result<Receipt> {
+      const args = { reservationId };
+      const idempotent = checkIdempotency(eventId, "cancel", args);
+      if (idempotent) return idempotent;
+
+      const reservation = state.reservations.get(reservationId);
+      if (!reservation) {
+        return { ok: false, code: "UNKNOWN_RESERVATION" };
+      }
+      if (reservation.status !== "ACTIVE") {
+        return { ok: false, code: "RESERVATION_CLOSED" };
+      }
+
+      const sample = state.samples.get(reservation.sampleId);
+      if (!sample) {
+        return { ok: false, code: "UNKNOWN_SAMPLE" };
+      }
+
+      reservation.status = "CANCELED";
+      sample.reserved -= reservation.qty;
+
+      return { ok: true, value: recordEvent(eventId, "cancel", args) };
+    },
+
+    consume(eventId: ID, reservationId: ID): Result<Receipt> {
+      const args = { reservationId };
+      const idempotent = checkIdempotency(eventId, "consume", args);
+      if (idempotent) return idempotent;
+
+      const reservation = state.reservations.get(reservationId);
+      if (!reservation) {
+        return { ok: false, code: "UNKNOWN_RESERVATION" };
+      }
+      if (reservation.status !== "ACTIVE") {
+        return { ok: false, code: "RESERVATION_CLOSED" };
+      }
+
+      const sample = state.samples.get(reservation.sampleId);
+      if (!sample) {
+        return { ok: false, code: "UNKNOWN_SAMPLE" };
+      }
+
+      reservation.status = "CONSUMED";
+      sample.remaining -= reservation.qty;
+      sample.reserved -= reservation.qty;
+      sample.consumedQty += reservation.qty;
+
+      if (sample.remaining === 0) {
+        sample.status = "DEPLETED";
+        if (sample.containerId) {
+          state.containerToSample.delete(sample.containerId);
+        }
+        sample.containerId = null;
+      }
+
+      return { ok: true, value: recordEvent(eventId, "consume", args) };
+    },
+
+    discard(eventId: ID, sampleId: ID): Result<Receipt> {
+      const args = { sampleId };
+      const idempotent = checkIdempotency(eventId, "discard", args);
+      if (idempotent) return idempotent;
+
+      const sample = state.samples.get(sampleId);
+      if (!sample) {
+        return { ok: false, code: "UNKNOWN_SAMPLE" };
+      }
+      if (sample.status !== "ACTIVE") {
+        return { ok: false, code: "NOT_ACTIVE" };
+      }
+      if (sample.reserved > 0) {
+        return { ok: false, code: "HAS_RESERVATION" };
+      }
+
+      sample.discardedQty += sample.remaining;
+      sample.remaining = 0;
+      sample.status = "DISCARDED";
+      if (sample.containerId) {
+        state.containerToSample.delete(sample.containerId);
+      }
+      sample.containerId = null;
+
+      return { ok: true, value: recordEvent(eventId, "discard", args) };
+    },
+
+    move(eventId: ID, sampleId: ID, targetContainerId: ID): Result<Receipt> {
+      const args = { sampleId, targetContainerId };
+      const idempotent = checkIdempotency(eventId, "move", args);
+      if (idempotent) return idempotent;
+
+      const sample = state.samples.get(sampleId);
+      if (!sample) {
+        return { ok: false, code: "UNKNOWN_SAMPLE" };
+      }
+      if (sample.status !== "ACTIVE") {
+        return { ok: false, code: "NOT_ACTIVE" };
+      }
+
+      if (!containerIds.has(targetContainerId)) {
+        return { ok: false, code: "UNKNOWN_CONTAINER" };
+      }
+
+      if (targetContainerId === sample.containerId) {
+        return { ok: false, code: "CONTAINER_OCCUPIED" };
+      }
+
+      if (state.containerToSample.has(targetContainerId)) {
+        return { ok: false, code: "CONTAINER_OCCUPIED" };
+      }
+
+      const container = containerMap.get(targetContainerId)!;
+      if (sample.remaining > container.capacity) {
+        return { ok: false, code: "CAPACITY_EXCEEDED" };
+      }
+
+      if (sample.containerId) {
+        state.containerToSample.delete(sample.containerId);
+      }
+      sample.containerId = targetContainerId;
+      state.containerToSample.set(targetContainerId, sampleId);
+
+      return { ok: true, value: recordEvent(eventId, "move", args) };
+    },
+
+    transferCustody(eventId: ID, sampleId: ID, custodianId: ID): Result<Receipt> {
+      const args = { sampleId, custodianId };
+      const idempotent = checkIdempotency(eventId, "transferCustody", args);
+      if (idempotent) return idempotent;
+
+      const sample = state.samples.get(sampleId);
+      if (!sample) {
+        return { ok: false, code: "UNKNOWN_SAMPLE" };
+      }
+      if (sample.status !== "ACTIVE") {
+        return { ok: false, code: "NOT_ACTIVE" };
+      }
+
+      if (!custodianIds.has(custodianId)) {
+        return { ok: false, code: "UNKNOWN_CUSTODIAN" };
+      }
+
+      sample.custodianId = custodianId;
+
+      return { ok: true, value: recordEvent(eventId, "transferCustody", args) };
+    },
+
+    snapshot(): Snapshot {
+      const events = Array.from(state.eventLog.values()).sort((a, b) => a.seq - b.seq);
+      return {
+        samples: Array.from(state.samples.values()).map((s) => ({ ...s })),
+        reservations: Array.from(state.reservations.values()).map((r) => ({ ...r })),
+        events: events.map((e) => ({
+          seq: e.seq,
+          eventId: e.eventId,
+          op: e.op,
+          args: deepCopy(e.args),
+        })),
+      };
+    },
+  };
+
+  return lab;
+}

@@ -1,0 +1,43 @@
+{
+  "pairs": {
+    "P1": {
+      "label": "구별",
+      "quote": "if (this.samples.has(input.sampleId)) return { ok: false, code: \"ID_TAKEN\" };  /  if (this.containerToSample.has(input.containerId)) {"
+    },
+    "P2": {
+      "label": "구별",
+      "quote": "parentId: parentId,\n        rootId: parent.rootId,"
+    },
+    "P3": {
+      "label": "구별",
+      "quote": "const available = sample.remaining - sample.reserved;"
+    },
+    "P4": {
+      "label": "구별",
+      "quote": "sample.reserved += input.qty;  (reserve, remaining은 그대로)  /  sample.remaining -= qty;\n    sample.reserved -= qty;\n    sample.consumedQty += qty;  (consume)"
+    },
+    "P5": {
+      "label": "구별",
+      "quote": "parent.remaining -= totalQty;  (split은 consumedQty를 올리지 않고 자식 시료에 remaining: child.qty로 옮김)  /  sample.consumedQty += qty;  (consume에서만)"
+    },
+    "P6": {
+      "label": "구별",
+      "quote": "this.containerToSample.delete(sample.containerId!);\n    sample.containerId = targetContainerId;  (move)  /  sample.custodianId = custodianId;  (transferCustody)"
+    },
+    "P7": {
+      "label": "구별",
+      "quote": "sample.status = \"DISCARDED\";\n    sample.discardedQty += qty;  (discard)  /  sample.status = \"DEPLETED\";  (consume·split에서 remaining === 0일 때)"
+    },
+    "P8": {
+      "label": "구별",
+      "quote": "const existing = this.eventIdToSeq.get(eventId);  /  if (this.reservations.has(input.reservationId)) return { ok: false, code: \"ID_TAKEN\" };"
+    }
+  },
+  "assumptions": {
+    "total": 3,
+    "assumed": 3,
+    "needConfirm": 0,
+    "none": false
+  },
+  "costUsd": 0.12801225
+}

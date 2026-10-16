@@ -1,0 +1,43 @@
+{
+  "pairs": {
+    "P1": {
+      "label": "구별",
+      "quote": "if (usedSampleIds.has(sampleId)) { return fail(\"ID_TAKEN\"); } if (!containerMap.has(containerId)) { return fail(\"UNKNOWN_CONTAINER\"); }"
+    },
+    "P2": {
+      "label": "구별",
+      "quote": "rootId: parent.rootId, parentId,"
+    },
+    "P3": {
+      "label": "구별",
+      "quote": "available 캐싱 vs 계산: 매번 계산 → remaining - reserved (저장하지 않음, R3-1)"
+    },
+    "P4": {
+      "label": "구별",
+      "quote": "sample.reserved += qty;"
+    },
+    "P5": {
+      "label": "구별",
+      "quote": "sample.consumedQty += reservation.qty;"
+    },
+    "P6": {
+      "label": "구별",
+      "quote": "sample.custodianId = custodianId;"
+    },
+    "P7": {
+      "label": "구별",
+      "quote": "sample.discardedQty += sample.remaining; sample.remaining = 0; sample.status = \"DISCARDED\";"
+    },
+    "P8": {
+      "label": "구별",
+      "quote": "if (usedReservationIds.has(reservationId)) { return fail(\"ID_TAKEN\"); }"
+    }
+  },
+  "assumptions": {
+    "total": 3,
+    "assumed": 3,
+    "needConfirm": 0,
+    "none": false
+  },
+  "costUsd": 0.11664975
+}

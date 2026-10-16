@@ -1,0 +1,43 @@
+{
+  "pairs": {
+    "P1": {
+      "label": "구별",
+      "quote": "if (this.state.samples.has(input.sampleId)) { return this.cacheError(eventId, \"ID_TAKEN\"); } if (!this.state.containers.has(input.containerId)) { return this.cacheError(eventId, \"UNKNOWN_CONTAINER\"); }"
+    },
+    "P2": {
+      "label": "구별",
+      "quote": "parentId, rootId: parent.rootId, remaining: child.qty,"
+    },
+    "P3": {
+      "label": "구별",
+      "quote": "function getAvailable(sample: Sample, state: LabState): Qty { const reserved = calculateReserved(state, sample.sampleId); return sample.remaining - reserved; }"
+    },
+    "P4": {
+      "label": "구별",
+      "quote": "this.state.reservations.set(input.reservationId, reservation); sample.reserved = calculateReserved(this.state, input.sampleId);"
+    },
+    "P5": {
+      "label": "구별",
+      "quote": "parent.remaining -= totalSplitQty;"
+    },
+    "P6": {
+      "label": "구별",
+      "quote": "시료의 장소 = 현재 담긴 용기의 장소 (계산됨)"
+    },
+    "P7": {
+      "label": "구별",
+      "quote": "sample.discardedQty += sample.remaining; sample.remaining = 0; sample.status = \"DISCARDED\";"
+    },
+    "P8": {
+      "label": "구별",
+      "quote": "eventCache: Map<ID, CachedResult>; reservations: Map<ID, Reservation>;"
+    }
+  },
+  "assumptions": {
+    "total": 4,
+    "assumed": 4,
+    "needConfirm": 0,
+    "none": false
+  },
+  "costUsd": 0.15279975
+}

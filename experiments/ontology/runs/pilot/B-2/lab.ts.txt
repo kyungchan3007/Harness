@@ -1,0 +1,642 @@
+import type {
+  Catalog,
+  ErrorCode,
+  EventView,
+  ID,
+  Lab,
+  Qty,
+  Receipt,
+  ReservationStatus,
+  ReservationView,
+  Result,
+  SampleStatus,
+  SampleView,
+  Snapshot,
+} from "./types.js";
+
+// ──── 내부 상태 구조 ────
+
+interface SampleState {
+  sampleId: ID;
+  parentId: ID | null;
+  rootId: ID;
+  remaining: Qty;
+  reserved: Qty; // ACTIVE 예약의 합
+  consumedQty: Qty;
+  discardedQty: Qty;
+  status: SampleStatus;
+  containerId: ID | null;
+  custodianId: ID;
+  initialQty: Qty; // 계산 편의용: 불변식 검사를 위해 저장
+}
+
+interface ReservationState {
+  reservationId: ID;
+  sampleId: ID;
+  qty: Qty;
+  status: ReservationStatus;
+}
+
+interface ContainerState {
+  containerId: ID;
+  locationId: ID;
+  capacity: Qty;
+  occupant: ID | null; // sampleId or null
+}
+
+interface ExecutedCommand {
+  args: unknown;
+  receipt: Receipt;
+}
+
+// ──── 헬퍼 함수 ────
+
+function deepEqual(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (typeof a !== typeof b) return false;
+
+  if (typeof a === "object" && a !== null && typeof b === "object" && b !== null) {
+    if (Array.isArray(a) && Array.isArray(b)) {
+      if (a.length !== b.length) return false;
+      return a.every((item, i) => deepEqual(item, b[i]));
+    }
+    if (!Array.isArray(a) && !Array.isArray(b)) {
+      const keysA = Object.keys(a).sort();
+      const keysB = Object.keys(b).sort();
+      if (!deepEqual(keysA, keysB)) return false;
+      return keysA.every((key) => deepEqual((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key]));
+    }
+  }
+  return false;
+}
+
+// ──── 에러 반환 헬퍼 ────
+
+function err<T>(code: ErrorCode): Result<T> {
+  return { ok: false, code };
+}
+
+function ok<T>(value: T): Result<T> {
+  return { ok: true, value };
+}
+
+// ──── 메인 구현 ────
+
+export function createLab(catalog: Catalog): Lab {
+  // 상태 초기화
+  const samples = new Map<ID, SampleState>();
+  const reservations = new Map<ID, ReservationState>();
+  const containers = new Map<ID, ContainerState>();
+  const executedCommands = new Map<ID, ExecutedCommand>();
+  const events: EventView[] = [];
+  let seq = 0;
+
+  // Catalog 검증 및 컨테이너 초기화
+  const locationSet = new Set(catalog.locationIds);
+  const custodianSet = new Set(catalog.custodianIds);
+
+  for (const container of catalog.containers) {
+    if (!locationSet.has(container.locationId)) {
+      throw new Error(`Invalid catalog: location ${container.locationId} not found`);
+    }
+    containers.set(container.containerId, {
+      containerId: container.containerId,
+      locationId: container.locationId,
+      capacity: container.capacity,
+      occupant: null,
+    });
+  }
+
+  // ──── 유효성 검사 공통 함수 ────
+
+  function isQtyValid(qty: Qty): boolean {
+    return Number.isInteger(qty) && qty >= 1 && qty <= 1_000_000;
+  }
+
+  function getSample(sampleId: ID): SampleState | null {
+    return samples.get(sampleId) ?? null;
+  }
+
+  function getReservation(reservationId: ID): ReservationState | null {
+    return reservations.get(reservationId) ?? null;
+  }
+
+  function getContainer(containerId: ID): ContainerState | null {
+    return containers.get(containerId) ?? null;
+  }
+
+  // ──── 명령 구현 ────
+
+  function receive(eventId: ID, input: { sampleId: ID; containerId: ID; custodianId: ID; qty: Qty }): Result<Receipt> {
+    // 1. 이미 성공한 eventId 확인
+    if (executedCommands.has(eventId)) {
+      const stored = executedCommands.get(eventId)!;
+      if (deepEqual(stored.args, input)) {
+        return ok(stored.receipt);
+      }
+      return err("EVENT_CONFLICT");
+    }
+
+    // 2. 입력 유효성
+    if (!isQtyValid(input.qty)) {
+      return err("INVALID_INPUT");
+    }
+
+    // 3. 참조 존재 확인
+    const container = getContainer(input.containerId);
+    if (!container) return err("UNKNOWN_CONTAINER");
+
+    if (!custodianSet.has(input.custodianId)) {
+      return err("UNKNOWN_CUSTODIAN");
+    }
+
+    // 4. 상태 조건 확인
+    if (samples.has(input.sampleId)) {
+      return err("ID_TAKEN");
+    }
+
+    if (container.occupant !== null) {
+      return err("CONTAINER_OCCUPIED");
+    }
+
+    if (input.qty > container.capacity) {
+      return err("CAPACITY_EXCEEDED");
+    }
+
+    // 5. 샘플 생성 및 업데이트
+    const sample: SampleState = {
+      sampleId: input.sampleId,
+      parentId: null,
+      rootId: input.sampleId,
+      remaining: input.qty,
+      reserved: 0,
+      consumedQty: 0,
+      discardedQty: 0,
+      status: "ACTIVE",
+      containerId: input.containerId,
+      custodianId: input.custodianId,
+      initialQty: input.qty,
+    };
+
+    samples.set(input.sampleId, sample);
+    container.occupant = input.sampleId;
+
+    seq++;
+    const receipt: Receipt = { eventId, seq };
+    events.push({
+      seq,
+      eventId,
+      op: "receive",
+      args: input,
+    });
+    executedCommands.set(eventId, { args: input, receipt });
+
+    return ok(receipt);
+  }
+
+  function split(
+    eventId: ID,
+    parentId: ID,
+    children: Array<{ sampleId: ID; containerId: ID; qty: Qty }>
+  ): Result<Receipt> {
+    // 1. 이미 성공한 eventId 확인
+    if (executedCommands.has(eventId)) {
+      const stored = executedCommands.get(eventId)!;
+      const args = { parentId, children };
+      if (deepEqual(stored.args, args)) {
+        return ok(stored.receipt);
+      }
+      return err("EVENT_CONFLICT");
+    }
+
+    // 2. 부모 존재 & ACTIVE 확인
+    const parent = getSample(parentId);
+    if (!parent) return err("UNKNOWN_SAMPLE");
+
+    if (parent.status !== "ACTIVE") {
+      return err("NOT_ACTIVE");
+    }
+
+    // 3. 자식 배열 비움 확인
+    if (children.length === 0) {
+      return err("INVALID_INPUT");
+    }
+
+    // 4. 각 자식 사전 검사 (원자성: 모두 OK하거나 모두 실패)
+    const usedContainerIds = new Set<ID>();
+    let totalQty = 0;
+
+    for (const child of children) {
+      // 새 sampleId 중복 확인
+      if (samples.has(child.sampleId)) {
+        return err("ID_TAKEN");
+      }
+
+      // 새 containerId 참조 & 용량 확인
+      const container = getContainer(child.containerId);
+      if (!container) return err("UNKNOWN_CONTAINER");
+
+      if (container.occupant !== null) {
+        return err("CONTAINER_OCCUPIED");
+      }
+
+      if (child.qty > container.capacity) {
+        return err("CAPACITY_EXCEEDED");
+      }
+
+      // qty 범위 확인
+      if (!isQtyValid(child.qty)) {
+        return err("INVALID_INPUT");
+      }
+
+      // 용기 중복 사용 확인
+      if (usedContainerIds.has(child.containerId)) {
+        return err("CONTAINER_OCCUPIED");
+      }
+
+      // 부모 용기와 같은지 확인
+      if (child.containerId === parent.containerId) {
+        return err("CONTAINER_OCCUPIED");
+      }
+
+      usedContainerIds.add(child.containerId);
+      totalQty += child.qty;
+    }
+
+    // 5. 이용 가능량 확인
+    const availableQty = parent.remaining - parent.reserved;
+    if (totalQty > availableQty) {
+      return err("INSUFFICIENT");
+    }
+
+    // 6. 모두 OK → 원자적 업데이트
+    for (const child of children) {
+      const container = getContainer(child.containerId)!;
+      const childSample: SampleState = {
+        sampleId: child.sampleId,
+        parentId: parentId,
+        rootId: parent.rootId,
+        remaining: child.qty,
+        reserved: 0,
+        consumedQty: 0,
+        discardedQty: 0,
+        status: "ACTIVE",
+        containerId: child.containerId,
+        custodianId: parent.custodianId,
+        initialQty: child.qty,
+      };
+      samples.set(child.sampleId, childSample);
+      container.occupant = child.sampleId;
+    }
+
+    // 부모 상태 업데이트
+    parent.remaining -= totalQty;
+    if (parent.remaining === 0) {
+      parent.status = "DEPLETED";
+    }
+
+    seq++;
+    const receipt: Receipt = { eventId, seq };
+    const args = { parentId, children };
+    events.push({
+      seq,
+      eventId,
+      op: "split",
+      args,
+    });
+    executedCommands.set(eventId, { args, receipt });
+
+    return ok(receipt);
+  }
+
+  function reserve(eventId: ID, input: { reservationId: ID; sampleId: ID; qty: Qty }): Result<Receipt> {
+    // 1. 이미 성공한 eventId 확인
+    if (executedCommands.has(eventId)) {
+      const stored = executedCommands.get(eventId)!;
+      if (deepEqual(stored.args, input)) {
+        return ok(stored.receipt);
+      }
+      return err("EVENT_CONFLICT");
+    }
+
+    // 2. 샘플 존재 & ACTIVE 확인
+    const sample = getSample(input.sampleId);
+    if (!sample) return err("UNKNOWN_SAMPLE");
+
+    if (sample.status !== "ACTIVE") {
+      return err("NOT_ACTIVE");
+    }
+
+    // 3. reservationId 중복 확인
+    if (reservations.has(input.reservationId)) {
+      return err("ID_TAKEN");
+    }
+
+    // 4. qty 범위 확인
+    if (!isQtyValid(input.qty)) {
+      return err("INVALID_INPUT");
+    }
+
+    // 5. 이용 가능량 확인
+    const availableQty = sample.remaining - sample.reserved;
+    if (input.qty > availableQty) {
+      return err("INSUFFICIENT");
+    }
+
+    // 6. 예약 생성 및 업데이트
+    const reservation: ReservationState = {
+      reservationId: input.reservationId,
+      sampleId: input.sampleId,
+      qty: input.qty,
+      status: "ACTIVE",
+    };
+    reservations.set(input.reservationId, reservation);
+    sample.reserved += input.qty;
+
+    seq++;
+    const receipt: Receipt = { eventId, seq };
+    events.push({
+      seq,
+      eventId,
+      op: "reserve",
+      args: input,
+    });
+    executedCommands.set(eventId, { args: input, receipt });
+
+    return ok(receipt);
+  }
+
+  function cancel(eventId: ID, reservationId: ID): Result<Receipt> {
+    // 1. 이미 성공한 eventId 확인
+    if (executedCommands.has(eventId)) {
+      const stored = executedCommands.get(eventId)!;
+      if (deepEqual(stored.args, { reservationId })) {
+        return ok(stored.receipt);
+      }
+      return err("EVENT_CONFLICT");
+    }
+
+    // 2. 예약 존재 확인
+    const reservation = getReservation(reservationId);
+    if (!reservation) return err("UNKNOWN_RESERVATION");
+
+    // 3. ACTIVE 여부 확인
+    if (reservation.status !== "ACTIVE") {
+      return err("RESERVATION_CLOSED");
+    }
+
+    // 4. 예약 상태 변경 및 시료 업데이트
+    reservation.status = "CANCELED";
+    const sample = getSample(reservation.sampleId)!;
+    sample.reserved -= reservation.qty;
+
+    seq++;
+    const receipt: Receipt = { eventId, seq };
+    events.push({
+      seq,
+      eventId,
+      op: "cancel",
+      args: { reservationId },
+    });
+    executedCommands.set(eventId, { args: { reservationId }, receipt });
+
+    return ok(receipt);
+  }
+
+  function consume(eventId: ID, reservationId: ID): Result<Receipt> {
+    // 1. 이미 성공한 eventId 확인
+    if (executedCommands.has(eventId)) {
+      const stored = executedCommands.get(eventId)!;
+      if (deepEqual(stored.args, { reservationId })) {
+        return ok(stored.receipt);
+      }
+      return err("EVENT_CONFLICT");
+    }
+
+    // 2. 예약 존재 & ACTIVE 확인
+    const reservation = getReservation(reservationId);
+    if (!reservation) return err("UNKNOWN_RESERVATION");
+
+    if (reservation.status !== "ACTIVE") {
+      return err("RESERVATION_CLOSED");
+    }
+
+    // 3. 시료 존재 확인 (예약은 항상 유효한 시료를 참조)
+    const sample = getSample(reservation.sampleId);
+    if (!sample) return err("UNKNOWN_SAMPLE");
+
+    // 4. 양 전체 사용
+    const qty = reservation.qty;
+    sample.remaining -= qty;
+    sample.reserved -= qty;
+    sample.consumedQty += qty;
+    reservation.status = "CONSUMED";
+
+    // 5. 남은 양이 0이면 DEPLETED
+    if (sample.remaining === 0) {
+      sample.status = "DEPLETED";
+    }
+
+    seq++;
+    const receipt: Receipt = { eventId, seq };
+    events.push({
+      seq,
+      eventId,
+      op: "consume",
+      args: { reservationId },
+    });
+    executedCommands.set(eventId, { args: { reservationId }, receipt });
+
+    return ok(receipt);
+  }
+
+  function discard(eventId: ID, sampleId: ID): Result<Receipt> {
+    // 1. 이미 성공한 eventId 확인
+    if (executedCommands.has(eventId)) {
+      const stored = executedCommands.get(eventId)!;
+      if (deepEqual(stored.args, { sampleId })) {
+        return ok(stored.receipt);
+      }
+      return err("EVENT_CONFLICT");
+    }
+
+    // 2. 시료 존재 & ACTIVE 확인
+    const sample = getSample(sampleId);
+    if (!sample) return err("UNKNOWN_SAMPLE");
+
+    if (sample.status !== "ACTIVE") {
+      return err("NOT_ACTIVE");
+    }
+
+    // 3. ACTIVE 예약 있는지 확인
+    for (const res of reservations.values()) {
+      if (res.sampleId === sampleId && res.status === "ACTIVE") {
+        return err("HAS_RESERVATION");
+      }
+    }
+
+    // 4. 폐기 처리
+    sample.status = "DISCARDED";
+    sample.discardedQty += sample.remaining;
+    sample.remaining = 0;
+    if (sample.containerId !== null) {
+      const container = getContainer(sample.containerId);
+      if (container) {
+        container.occupant = null;
+      }
+      sample.containerId = null;
+    }
+
+    seq++;
+    const receipt: Receipt = { eventId, seq };
+    events.push({
+      seq,
+      eventId,
+      op: "discard",
+      args: { sampleId },
+    });
+    executedCommands.set(eventId, { args: { sampleId }, receipt });
+
+    return ok(receipt);
+  }
+
+  function move(eventId: ID, sampleId: ID, targetContainerId: ID): Result<Receipt> {
+    // 1. 이미 성공한 eventId 확인
+    if (executedCommands.has(eventId)) {
+      const stored = executedCommands.get(eventId)!;
+      if (deepEqual(stored.args, { sampleId, targetContainerId })) {
+        return ok(stored.receipt);
+      }
+      return err("EVENT_CONFLICT");
+    }
+
+    // 2. 시료 존재 & ACTIVE 확인
+    const sample = getSample(sampleId);
+    if (!sample) return err("UNKNOWN_SAMPLE");
+
+    if (sample.status !== "ACTIVE") {
+      return err("NOT_ACTIVE");
+    }
+
+    // 3. 목표 용기 참조 & 빔 확인
+    const targetContainer = getContainer(targetContainerId);
+    if (!targetContainer) return err("UNKNOWN_CONTAINER");
+
+    if (targetContainer.occupant !== null) {
+      return err("CONTAINER_OCCUPIED");
+    }
+
+    // 4. 목표 용기 용량 확인 (remaining 이상)
+    if (sample.remaining > targetContainer.capacity) {
+      return err("CAPACITY_EXCEEDED");
+    }
+
+    // 5. 현재 용기와 목표 용기가 같은지 확인
+    if (sample.containerId === targetContainerId) {
+      return err("CONTAINER_OCCUPIED");
+    }
+
+    // 6. 이동
+    if (sample.containerId !== null) {
+      const currentContainer = getContainer(sample.containerId);
+      if (currentContainer) {
+        currentContainer.occupant = null;
+      }
+    }
+    targetContainer.occupant = sampleId;
+    sample.containerId = targetContainerId;
+
+    seq++;
+    const receipt: Receipt = { eventId, seq };
+    events.push({
+      seq,
+      eventId,
+      op: "move",
+      args: { sampleId, targetContainerId },
+    });
+    executedCommands.set(eventId, { args: { sampleId, targetContainerId }, receipt });
+
+    return ok(receipt);
+  }
+
+  function transferCustody(eventId: ID, sampleId: ID, custodianId: ID): Result<Receipt> {
+    // 1. 이미 성공한 eventId 확인
+    if (executedCommands.has(eventId)) {
+      const stored = executedCommands.get(eventId)!;
+      if (deepEqual(stored.args, { sampleId, custodianId })) {
+        return ok(stored.receipt);
+      }
+      return err("EVENT_CONFLICT");
+    }
+
+    // 2. 시료 존재 & ACTIVE 확인
+    const sample = getSample(sampleId);
+    if (!sample) return err("UNKNOWN_SAMPLE");
+
+    if (sample.status !== "ACTIVE") {
+      return err("NOT_ACTIVE");
+    }
+
+    // 3. custodianId 참조 확인
+    if (!custodianSet.has(custodianId)) {
+      return err("UNKNOWN_CUSTODIAN");
+    }
+
+    // 4. 책임자 변경
+    sample.custodianId = custodianId;
+
+    seq++;
+    const receipt: Receipt = { eventId, seq };
+    events.push({
+      seq,
+      eventId,
+      op: "transferCustody",
+      args: { sampleId, custodianId },
+    });
+    executedCommands.set(eventId, { args: { sampleId, custodianId }, receipt });
+
+    return ok(receipt);
+  }
+
+  // ──── snapshot 구현 ────
+
+  function snapshot(): Snapshot {
+    const samples_view: SampleView[] = Array.from(samples.values()).map((s) => ({
+      sampleId: s.sampleId,
+      parentId: s.parentId,
+      rootId: s.rootId,
+      remaining: s.remaining,
+      reserved: s.reserved,
+      consumedQty: s.consumedQty,
+      discardedQty: s.discardedQty,
+      status: s.status,
+      containerId: s.containerId,
+      custodianId: s.custodianId,
+    }));
+
+    const reservations_view: ReservationView[] = Array.from(reservations.values()).map((r) => ({
+      reservationId: r.reservationId,
+      sampleId: r.sampleId,
+      qty: r.qty,
+      status: r.status,
+    }));
+
+    return {
+      samples: samples_view,
+      reservations: reservations_view,
+      events: events,
+    };
+  }
+
+  return {
+    receive,
+    split,
+    reserve,
+    cancel,
+    consume,
+    discard,
+    move,
+    transferCustody,
+    snapshot,
+  };
+}

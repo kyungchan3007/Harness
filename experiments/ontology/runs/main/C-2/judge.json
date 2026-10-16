@@ -1,0 +1,43 @@
+{
+  "pairs": {
+    "P1": {
+      "label": "구별",
+      "quote": "private containerUsage: Map<ID, ID | null>;  // containerId -> sampleId or null"
+    },
+    "P2": {
+      "label": "구별",
+      "quote": "분취 시료: parentId = 부모 ID, rootId = 부모의 rootId"
+    },
+    "P3": {
+      "label": "구별",
+      "quote": "const parentAvailable = parent.remaining - parent.reserved;"
+    },
+    "P4": {
+      "label": "구별",
+      "quote": "reserved는 remaining을 **줄이지 않음** (이용 가능량만 감소)"
+    },
+    "P5": {
+      "label": "구별",
+      "quote": "자식들의 remaining 합 + 부모의 remaining = 분취 전 부모의 remaining (분취는 소비 아님)"
+    },
+    "P6": {
+      "label": "구별",
+      "quote": "시료의 location은 따로 저장하지 않음\n- 실시간 location = 담긴 용기의 locationId"
+    },
+    "P7": {
+      "label": "구별",
+      "quote": "sample.discardedQty += sample.remaining;\n        sample.remaining = 0;\n        sample.status = \"DISCARDED\";"
+    },
+    "P8": {
+      "label": "구별",
+      "quote": "this.successfulEvents.set(eventId, {"
+    }
+  },
+  "assumptions": {
+    "total": 1,
+    "assumed": 0,
+    "needConfirm": 0,
+    "none": true
+  },
+  "costUsd": 0.18812475
+}

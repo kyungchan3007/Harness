@@ -1,0 +1,43 @@
+{
+  "pairs": {
+    "P1": {
+      "label": "구별",
+      "quote": "if (!validContainers.has(input.containerId)) {\n        return error(\"UNKNOWN_CONTAINER\");"
+    },
+    "P2": {
+      "label": "구별",
+      "quote": "parentId: parentId,\n          rootId: parent.rootId,"
+    },
+    "P3": {
+      "label": "구별",
+      "quote": "const availableQty = parent.remaining - parent.reserved;"
+    },
+    "P4": {
+      "label": "구별",
+      "quote": "reservations.set(input.reservationId, reservation);\n      sample.reserved += input.qty;"
+    },
+    "P5": {
+      "label": "구별",
+      "quote": "parent.remaining -= totalQty;"
+    },
+    "P6": {
+      "label": "구별",
+      "quote": "**고정값**: containerId, locationId, capacity"
+    },
+    "P7": {
+      "label": "구별",
+      "quote": "sample.discardedQty += sample.remaining;\n      sample.remaining = 0;\n      sample.status = \"DISCARDED\";"
+    },
+    "P8": {
+      "label": "구별",
+      "quote": "if (reservations.has(input.reservationId)) {\n        return error(\"ID_TAKEN\");"
+    }
+  },
+  "assumptions": {
+    "total": 1,
+    "assumed": 0,
+    "needConfirm": 0,
+    "none": true
+  },
+  "costUsd": 0.15664975
+}

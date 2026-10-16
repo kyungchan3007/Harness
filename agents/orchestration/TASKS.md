@@ -38,3 +38,4 @@
 | 0034 | (확인됨: 답)을 대화 기록과 대조 | claude | done | [0034](../intent/specs/0034-confirm-source/prd.md) · #50 |
 | 0035 | README 최신화: 연구 질문·핵심 결과를 맨 위에 | claude | done | [0035](../intent/specs/0035-readme-research/prd.md) · #52 |
 | 0036 | 다른 회사 모델로 역할 분리 (설계 Codex · 구현 Claude · 검증 Codex) | claude | done | [0036](../intent/specs/0036-cross-vendor-roles/prd.md) · #56 |
+| 0037 | 온톨로지를 더하면 좋아지는가 (intent만 vs 문서형 vs 기계 판독형) | claude | done | [0037](../intent/specs/0037-ontology-vs-intent/prd.md) · #58 |
