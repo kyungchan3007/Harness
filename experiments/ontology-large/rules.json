@@ -1,0 +1,197 @@
+{
+ "note": "0038 규칙 대장 — 분류·원출처·숨겨진 테스트 수. 채점은 이 목록 기준(예정=실행 검사 수)",
+ "rules": [
+  {
+   "id": "R9.1",
+   "group": "R9",
+   "class": "명시",
+   "source": "request",
+   "inRequest": true,
+   "tests": 2
+  },
+  {
+   "id": "R9.2",
+   "group": "R9",
+   "class": "명시",
+   "source": "request",
+   "inRequest": true,
+   "tests": 2
+  },
+  {
+   "id": "R9.3",
+   "group": "R9",
+   "class": "누락",
+   "source": "docs/quality.md",
+   "inRequest": false,
+   "tests": 2
+  },
+  {
+   "id": "R9.4",
+   "group": "R9",
+   "class": "누락",
+   "source": "docs/quality.md",
+   "inRequest": false,
+   "tests": 2
+  },
+  {
+   "id": "R9.5",
+   "group": "R9",
+   "class": "결합",
+   "source": "docs/quality.md + docs/reservations.md",
+   "inRequest": false,
+   "tests": 2
+  },
+  {
+   "id": "R10.1",
+   "group": "R10",
+   "class": "명시",
+   "source": "request + types",
+   "inRequest": true,
+   "tests": 2
+  },
+  {
+   "id": "R10.2",
+   "group": "R10",
+   "class": "명시",
+   "source": "request",
+   "inRequest": true,
+   "tests": 3
+  },
+  {
+   "id": "R10.3",
+   "group": "R10",
+   "class": "누락",
+   "source": "docs/storage.md",
+   "inRequest": false,
+   "tests": 2
+  },
+  {
+   "id": "R10.4",
+   "group": "R10",
+   "class": "누락",
+   "source": "src/lab/samples.ts 주석",
+   "inRequest": false,
+   "tests": 2
+  },
+  {
+   "id": "R10.5",
+   "group": "R10",
+   "class": "누락",
+   "source": "docs/storage.md",
+   "inRequest": false,
+   "tests": 2
+  },
+  {
+   "id": "R10.6",
+   "group": "R10",
+   "class": "결합",
+   "source": "docs/storage.md + docs/transit.md + docs/engine.md",
+   "inRequest": false,
+   "tests": 2
+  },
+  {
+   "id": "R11.1",
+   "group": "R11",
+   "class": "명시",
+   "source": "request + types",
+   "inRequest": true,
+   "tests": 2
+  },
+  {
+   "id": "R11.2",
+   "group": "R11",
+   "class": "명시",
+   "source": "request + types",
+   "inRequest": true,
+   "tests": 2
+  },
+  {
+   "id": "R11.3",
+   "group": "R11",
+   "class": "명시",
+   "source": "request",
+   "inRequest": true,
+   "tests": 2
+  },
+  {
+   "id": "R11.4",
+   "group": "R11",
+   "class": "누락",
+   "source": "docs/reservations.md",
+   "inRequest": false,
+   "tests": 2
+  },
+  {
+   "id": "R11.5",
+   "group": "R11",
+   "class": "누락",
+   "source": "docs/reservations.md",
+   "inRequest": false,
+   "tests": 2
+  },
+  {
+   "id": "R11.6",
+   "group": "R11",
+   "class": "결합",
+   "source": "docs/reservations.md + docs/quality.md + docs/transit.md",
+   "inRequest": false,
+   "tests": 2
+  },
+  {
+   "id": "R12.1",
+   "group": "R12",
+   "class": "명시",
+   "source": "request + types",
+   "inRequest": true,
+   "tests": 2
+  },
+  {
+   "id": "R12.2",
+   "group": "R12",
+   "class": "명시",
+   "source": "request",
+   "inRequest": true,
+   "tests": 2
+  },
+  {
+   "id": "R12.3",
+   "group": "R12",
+   "class": "명시",
+   "source": "request",
+   "inRequest": true,
+   "tests": 2
+  },
+  {
+   "id": "R12.4",
+   "group": "R12",
+   "class": "누락",
+   "source": "docs/transit.md + src/lab/storage.ts 주석",
+   "inRequest": false,
+   "tests": 2
+  },
+  {
+   "id": "R12.5",
+   "group": "R12",
+   "class": "누락",
+   "source": "docs/transit.md",
+   "inRequest": false,
+   "tests": 2
+  },
+  {
+   "id": "R12.6",
+   "group": "R12",
+   "class": "결합",
+   "source": "docs/engine.md + docs/transit.md",
+   "inRequest": false,
+   "tests": 2
+  },
+  {
+   "id": "R12.7",
+   "group": "R12",
+   "class": "결합",
+   "source": "docs/transit.md + docs/engine.md",
+   "inRequest": false,
+   "tests": 2
+  }
+ ]
+}
