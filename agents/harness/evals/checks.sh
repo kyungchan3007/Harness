@@ -30,6 +30,7 @@ run "No npm/yarn lockfiles" bash -c '! find . -type d -name node_modules -prune 
 run "Task records (prd·sdd·trace·TASKS)" node agents/harness/evals/check-task-records.mjs
 run "Experiment oracle self-check (0015)" node experiments/role-split/selfcheck.mjs
 run "Ontology experiment self-check (0037)" node experiments/ontology/selfcheck.mjs
+run "Ontology large self-check (0038)" node experiments/ontology-large/selfcheck.mjs
 
 # ── 새 검사는 위 형식으로 한 줄씩 추가 (실험 결과는 LEARNINGS.md에) ──
 

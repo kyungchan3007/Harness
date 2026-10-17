@@ -1,0 +1,110 @@
+// 시료 — 받기·분취·폐기·이동·책임자 변경
+import { active, finish, inTransit } from "./state.js";
+import type { Engine } from "./events.js";
+import type { Storage } from "./storage.js";
+import type { ID, Lab, Qty, StorageGrade } from "./types.js";
+
+const MAX = 1_000_000;
+export const isQty = (q: unknown): q is Qty => typeof q === "number" && Number.isInteger(q) && q >= 1 && q <= MAX;
+const GRADES: readonly StorageGrade[] = ["AMBIENT", "CHILLED", "FROZEN"];
+export const isGrade = (g: unknown): g is StorageGrade => GRADES.includes(g as StorageGrade);
+
+export function sampleCommands(engine: Engine, storage: Storage, custodians: Set<ID>): Pick<Lab, "receive" | "split" | "discard" | "move" | "transferCustody"> {
+  return {
+    receive(eventId, input) {
+      return engine.run(eventId, "receive", input, (s) => {
+        if (!isQty(input.qty) || !isGrade(input.storageGrade)) return "INVALID_INPUT";
+        if (s.samples.has(input.sampleId)) return "ID_TAKEN";
+        const c = storage.get(input.containerId);
+        if (!c) return "UNKNOWN_CONTAINER";
+        if (!custodians.has(input.custodianId)) return "UNKNOWN_CUSTODIAN";
+        if (!storage.supports(c.containerId, input.storageGrade)) return "STORAGE_INCOMPATIBLE";
+        if (!storage.isFree(s, c.containerId)) return "CONTAINER_OCCUPIED";
+        if (input.qty > c.capacity) return "CAPACITY_EXCEEDED";
+        s.samples.set(input.sampleId, {
+          sampleId: input.sampleId, parentId: null, rootId: input.sampleId, remaining: input.qty, reserved: 0, consumedQty: 0, discardedQty: 0,
+          status: "ACTIVE", containerId: c.containerId, custodianId: input.custodianId, storageGrade: input.storageGrade, quarantined: false,
+        });
+        s.occupied.set(c.containerId, input.sampleId);
+        return null;
+      });
+    },
+
+    split(eventId, parentId, children) {
+      return engine.run(eventId, "split", { parentId, children }, (s) => {
+        if (!Array.isArray(children) || children.length === 0 || !children.every((ch) => isQty(ch.qty))) return "INVALID_INPUT";
+        const parent = active(s, parentId);
+        if (typeof parent === "string") return parent;
+        if (parent.quarantined) return "QUARANTINED";
+        if (inTransit(s, parentId)) return "IN_TRANSIT";
+        const ids = new Set<ID>();
+        const used = new Set<ID>();
+        for (const ch of children) {
+          if (s.samples.has(ch.sampleId) || ids.has(ch.sampleId)) return "ID_TAKEN";
+          ids.add(ch.sampleId);
+          const c = storage.get(ch.containerId);
+          if (!c) return "UNKNOWN_CONTAINER";
+          if (!storage.supports(c.containerId, parent.storageGrade)) return "STORAGE_INCOMPATIBLE";
+          if (!storage.isFree(s, c.containerId) || used.has(c.containerId)) return "CONTAINER_OCCUPIED";
+          used.add(c.containerId);
+          if (ch.qty > c.capacity) return "CAPACITY_EXCEEDED";
+        }
+        const total = children.reduce((a, ch) => a + ch.qty, 0);
+        if (total > parent.remaining - parent.reserved) return "INSUFFICIENT";
+        for (const ch of children) {
+          s.samples.set(ch.sampleId, {
+            sampleId: ch.sampleId, parentId: parent.sampleId, rootId: parent.rootId, remaining: ch.qty, reserved: 0, consumedQty: 0, discardedQty: 0,
+            status: "ACTIVE", containerId: ch.containerId, custodianId: parent.custodianId,
+            // 정책(보관 등급 상속): 분취 자식의 요구 보관 등급은 부모의 등급을 상속한다. 호출자가 따로 지정하지 않는다.
+            storageGrade: parent.storageGrade,
+            quarantined: false,
+          });
+          s.occupied.set(ch.containerId, ch.sampleId);
+        }
+        parent.remaining -= total;
+        if (parent.remaining === 0) finish(s, parent, "DEPLETED");
+        return null;
+      });
+    },
+
+    discard(eventId, sampleId) {
+      return engine.run(eventId, "discard", { sampleId }, (s) => {
+        const x = active(s, sampleId);
+        if (typeof x === "string") return x;
+        if (x.reserved > 0) return "HAS_RESERVATION";
+        if (inTransit(s, sampleId)) return "IN_TRANSIT";
+        x.discardedQty += x.remaining;
+        x.remaining = 0;
+        finish(s, x, "DISCARDED");
+        return null;
+      });
+    },
+
+    move(eventId, sampleId, targetContainerId) {
+      return engine.run(eventId, "move", { sampleId, targetContainerId }, (s) => {
+        const x = active(s, sampleId);
+        if (typeof x === "string") return x;
+        if (inTransit(s, sampleId)) return "IN_TRANSIT";
+        const c = storage.get(targetContainerId);
+        if (!c) return "UNKNOWN_CONTAINER";
+        if (!storage.supports(c.containerId, x.storageGrade)) return "STORAGE_INCOMPATIBLE";
+        if (!storage.isFree(s, c.containerId)) return "CONTAINER_OCCUPIED";
+        if (x.remaining > c.capacity) return "CAPACITY_EXCEEDED";
+        s.occupied.delete(x.containerId!);
+        s.occupied.set(c.containerId, x.sampleId);
+        x.containerId = c.containerId;
+        return null;
+      });
+    },
+
+    transferCustody(eventId, sampleId, custodianId) {
+      return engine.run(eventId, "transferCustody", { sampleId, custodianId }, (s) => {
+        const x = active(s, sampleId);
+        if (typeof x === "string") return x;
+        if (!custodians.has(custodianId)) return "UNKNOWN_CUSTODIAN";
+        x.custodianId = custodianId;
+        return null;
+      });
+    },
+  };
+}

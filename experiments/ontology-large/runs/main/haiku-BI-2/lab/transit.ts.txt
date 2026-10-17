@@ -1,0 +1,74 @@
+// 운송 — 시작·도착 확정·취소 (docs/transit.md)
+import { active } from "./state.js";
+import type { Engine } from "./events.js";
+import type { ID } from "./types.js";
+import type { Storage } from "./storage.js";
+import type { Lab } from "./types.js";
+
+function inTransit(s: any, sampleId: ID): boolean {
+  for (const t of s.transits.values()) {
+    if (t.status === "ACTIVE" && t.sampleId === sampleId) return true;
+  }
+  return false;
+}
+
+export function transitCommands(engine: Engine, storage: Storage): Pick<Lab, "startTransit" | "confirmArrival" | "cancelTransit"> {
+  return {
+    startTransit(eventId, input) {
+      return engine.run(eventId, "startTransit", input, (s) => {
+        // Check transitId is new
+        if (s.transits.has(input.transitId)) return "ID_TAKEN";
+        // Check sample is ACTIVE
+        const sample = active(s, input.sampleId);
+        if (typeof sample === "string") return sample;
+        // Check sample is not already in transit
+        if (inTransit(s, input.sampleId)) return "IN_TRANSIT";
+        // Check target container exists, is free, has capacity, supports grade
+        const targetContainer = storage.get(input.targetContainerId);
+        if (!targetContainer) return "UNKNOWN_CONTAINER";
+        if (!storage.isFree(s, input.targetContainerId)) return "CONTAINER_OCCUPIED";
+        if (sample.remaining > targetContainer.capacity) return "CAPACITY_EXCEEDED";
+        if (!storage.supports(input.targetContainerId, sample.storageGrade)) return "STORAGE_INCOMPATIBLE";
+        // Create transit and occupy target container
+        s.transits.set(input.transitId, {
+          transitId: input.transitId,
+          sampleId: input.sampleId,
+          sourceContainerId: sample.containerId!,
+          targetContainerId: input.targetContainerId,
+          status: "ACTIVE",
+        });
+        s.occupied.set(input.targetContainerId, input.sampleId);
+        return null;
+      });
+    },
+    confirmArrival(eventId, transitId) {
+      return engine.run(eventId, "confirmArrival", { transitId }, (s) => {
+        // Check transit exists
+        const transit = s.transits.get(transitId);
+        if (!transit) return "UNKNOWN_TRANSIT";
+        if (transit.status !== "ACTIVE") return "TRANSIT_CLOSED";
+        // Move sample from source to target container
+        const sample = s.samples.get(transit.sampleId)!;
+        s.occupied.delete(transit.sourceContainerId);
+        s.occupied.set(transit.targetContainerId, transit.sampleId);
+        sample.containerId = transit.targetContainerId;
+        // Mark transit as arrived
+        transit.status = "ARRIVED";
+        return null;
+      });
+    },
+    cancelTransit(eventId, transitId) {
+      return engine.run(eventId, "cancelTransit", { transitId }, (s) => {
+        // Check transit exists
+        const transit = s.transits.get(transitId);
+        if (!transit) return "UNKNOWN_TRANSIT";
+        if (transit.status !== "ACTIVE") return "TRANSIT_CLOSED";
+        // Release target container hold
+        s.occupied.delete(transit.targetContainerId);
+        // Mark transit as canceled
+        transit.status = "CANCELED";
+        return null;
+      });
+    },
+  };
+}

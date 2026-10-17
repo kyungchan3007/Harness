@@ -1,0 +1,143 @@
+{
+  "id": "sonnet-A-5",
+  "model": "sonnet",
+  "modelId": "claude-sonnet-5-5",
+  "cond": "A",
+  "n": "5",
+  "phase": "main",
+  "cli": "2.1.299 (Claude Code)",
+  "copyDir": "/var/folders/ht/prc2m2q939d1l29154xtvtmw0000gn/T/run-YdqTuZ",
+  "sessionId": "2b37cc78-acc0-4b2b-8913-27953c1e1b83",
+  "minutes": 0.04,
+  "costUsd": 0,
+  "budget": 4,
+  "turns": 1,
+  "endings": [
+    {
+      "subtype": "success",
+      "isError": true,
+      "timedOut": false
+    }
+  ],
+  "timedOut": false,
+  "budgetHit": false,
+  "apiError": false,
+  "asked": 0,
+  "stubsLeft": 3,
+  "implemented": false,
+  "gatePassed": false,
+  "missing": {
+    "score": 0,
+    "groups": {
+      "R9": 0,
+      "R10": 0,
+      "R11": 0,
+      "R12": 0
+    },
+    "rulesAllPass": 0,
+    "rules": 9
+  },
+  "explicit": {
+    "score": 6.3,
+    "groups": {
+      "R9": 0,
+      "R10": 25,
+      "R11": 0,
+      "R12": 0
+    },
+    "rulesAllPass": 0,
+    "rules": 10
+  },
+  "combined": {
+    "score": 0,
+    "groups": {
+      "R9": 0,
+      "R10": 0,
+      "R11": 0,
+      "R12": 0
+    },
+    "rulesAllPass": 0,
+    "rules": 5
+  },
+  "regression": {
+    "passed": 45,
+    "total": 45,
+    "ran": 45
+  },
+  "legacyDiff": {
+    "passed": 20,
+    "total": 20
+  },
+  "diff": {
+    "passed": 0,
+    "total": 20,
+    "firstFailures": [
+      "AssertionError: expected '시드 1 단계 2 startTransit([\"d2\",{\"transi…' to be null",
+      "AssertionError: expected '시드 2 단계 5 cancelTransit([\"d5\",\"x0\"]):…' to be null",
+      "AssertionError: expected '시드 3 단계 2 confirmArrival([\"d2\",\"x0\"])…' to be null"
+    ]
+  },
+  "incomplete": [],
+  "failedRules": [
+    "R9.1 0/2",
+    "R9.2 0/2",
+    "R9.3 0/2",
+    "R9.4 0/2",
+    "R9.5 0/2",
+    "R10.1 1/2",
+    "R10.2 0/3",
+    "R10.3 0/2",
+    "R10.4 0/2",
+    "R10.5 0/2",
+    "R10.6 0/2",
+    "R11.1 0/2",
+    "R11.2 0/2",
+    "R11.3 0/2",
+    "R11.4 0/2",
+    "R11.5 0/2",
+    "R11.6 0/2",
+    "R12.1 0/2",
+    "R12.2 0/2",
+    "R12.3 0/2",
+    "R12.4 0/2",
+    "R12.5 0/2",
+    "R12.6 0/2",
+    "R12.7 0/2"
+  ],
+  "invariants": {
+    "ran": true,
+    "passed": false,
+    "failed": [
+      "I8",
+      "I9",
+      "I12",
+      "I13"
+    ]
+  },
+  "stopBlocks": 0,
+  "stopChecks": 0,
+  "endedBlocked": false,
+  "tamper": [],
+  "outsideAccess": [],
+  "ontoReads": 0,
+  "docReads": {
+    "engine": 0,
+    "quality": 0,
+    "storage": 0,
+    "reservations": 0,
+    "transit": 0
+  },
+  "usage": {
+    "requests": 1,
+    "sessions": 1,
+    "models": [
+      "<synthetic>"
+    ],
+    "input": 0,
+    "cacheWrite": 0,
+    "cacheRead": 0,
+    "output": 0,
+    "maxContext": 0,
+    "lastContext": 0
+  }
+}

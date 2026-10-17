@@ -1,0 +1,55 @@
+// 운송 — 시작·도착 확정·취소 (docs/transit.md)
+import { active, inTransit } from "./state.js";
+import type { Engine } from "./events.js";
+import type { Storage } from "./storage.js";
+import type { ErrorCode, Lab } from "./types.js";
+import type { State } from "./state.js";
+
+export function transitCommands(engine: Engine, storage: Storage): Pick<Lab, "startTransit" | "confirmArrival" | "cancelTransit"> {
+  // 끝낼 수 있는 운송(ACTIVE)을 찾는다
+  const open = (s: State, transitId: string) => {
+    const t = s.transits.get(transitId);
+    if (!t) return "UNKNOWN_TRANSIT" as ErrorCode;
+    return t.status === "ACTIVE" ? t : ("TRANSIT_CLOSED" as ErrorCode);
+  };
+  return {
+    startTransit(eventId, input) {
+      return engine.run(eventId, "startTransit", input, (s) => {
+        if (s.transits.has(input.transitId)) return "ID_TAKEN";
+        const x = active(s, input.sampleId);
+        if (typeof x === "string") return x;
+        if (inTransit(s, x.sampleId)) return "IN_TRANSIT";
+        const c = storage.get(input.targetContainerId);
+        if (!c) return "UNKNOWN_CONTAINER";
+        // 출발 용기와 확보된 용기도 isFree가 막는다 (운송 점유 정책)
+        if (!storage.isFree(s, c.containerId)) return "CONTAINER_OCCUPIED";
+        if (x.remaining > c.capacity) return "CAPACITY_EXCEEDED";
+        if (!storage.supports(c.containerId, x.storageGrade)) return "STORAGE_INCOMPATIBLE";
+        s.occupied.set(c.containerId, x.sampleId); // 목적 용기 배타 확보
+        s.transits.set(input.transitId, {
+          transitId: input.transitId, sampleId: x.sampleId, sourceContainerId: x.containerId!, targetContainerId: c.containerId, status: "ACTIVE",
+        });
+        return null;
+      });
+    },
+    confirmArrival(eventId, transitId) {
+      return engine.run(eventId, "confirmArrival", { transitId }, (s) => {
+        const t = open(s, transitId);
+        if (typeof t === "string") return t;
+        s.occupied.delete(t.sourceContainerId);
+        s.samples.get(t.sampleId)!.containerId = t.targetContainerId; // 목적 확보는 이미 occupied에 있다
+        t.status = "ARRIVED";
+        return null;
+      });
+    },
+    cancelTransit(eventId, transitId) {
+      return engine.run(eventId, "cancelTransit", { transitId }, (s) => {
+        const t = open(s, transitId);
+        if (typeof t === "string") return t;
+        s.occupied.delete(t.targetContainerId);
+        t.status = "CANCELED";
+        return null;
+      });
+    },
+  };
+}

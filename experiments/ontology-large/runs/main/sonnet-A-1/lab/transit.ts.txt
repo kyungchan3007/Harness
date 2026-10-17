@@ -1,0 +1,55 @@
+// 운송 — 시작·도착 확정·취소 (docs/transit.md)
+import type { Engine } from "./events.js";
+import type { Storage } from "./storage.js";
+import { active, transitOf, type State } from "./state.js";
+import type { ErrorCode, ID, Lab, TransitView } from "./types.js";
+
+export function transitCommands(engine: Engine, storage: Storage): Pick<Lab, "startTransit" | "confirmArrival" | "cancelTransit"> {
+  const open = (s: State, transitId: ID): TransitView | ErrorCode => {
+    const t = s.transits.get(transitId);
+    if (!t) return "UNKNOWN_TRANSIT";
+    return t.status === "ACTIVE" ? t : "TRANSIT_CLOSED";
+  };
+
+  return {
+    startTransit(eventId, input) {
+      return engine.run(eventId, "startTransit", input, (s) => {
+        if (s.transits.has(input.transitId)) return "ID_TAKEN";
+        const x = active(s, input.sampleId);
+        if (typeof x === "string") return x;
+        if (transitOf(s, x.sampleId)) return "IN_TRANSIT";
+        const c = storage.get(input.targetContainerId);
+        if (!c) return "UNKNOWN_CONTAINER";
+        if (!storage.isFree(s, c.containerId)) return "CONTAINER_OCCUPIED";
+        if (x.remaining > c.capacity) return "CAPACITY_EXCEEDED";
+        if (!storage.supports(c.containerId, x.storageGrade)) return "STORAGE_INCOMPATIBLE";
+        s.transits.set(input.transitId, {
+          transitId: input.transitId, sampleId: x.sampleId, sourceContainerId: x.containerId!, targetContainerId: c.containerId, status: "ACTIVE",
+        });
+        s.occupied.set(c.containerId, x.sampleId);
+        return null;
+      });
+    },
+
+    confirmArrival(eventId, transitId) {
+      return engine.run(eventId, "confirmArrival", { transitId }, (s) => {
+        const t = open(s, transitId);
+        if (typeof t === "string") return t;
+        s.occupied.delete(t.sourceContainerId);
+        s.samples.get(t.sampleId)!.containerId = t.targetContainerId;
+        t.status = "ARRIVED";
+        return null;
+      });
+    },
+
+    cancelTransit(eventId, transitId) {
+      return engine.run(eventId, "cancelTransit", { transitId }, (s) => {
+        const t = open(s, transitId);
+        if (typeof t === "string") return t;
+        s.occupied.delete(t.targetContainerId);
+        t.status = "CANCELED";
+        return null;
+      });
+    },
+  };
+}

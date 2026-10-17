@@ -1,0 +1,40 @@
+{
+  "seed": 3805,
+  "batches": [
+    {
+      "n": 1,
+      "models": [
+        "sonnet",
+        "haiku"
+      ]
+    },
+    {
+      "n": 2,
+      "models": [
+        "sonnet",
+        "haiku"
+      ]
+    },
+    {
+      "n": 3,
+      "models": [
+        "haiku",
+        "sonnet"
+      ]
+    },
+    {
+      "n": 4,
+      "models": [
+        "haiku",
+        "sonnet"
+      ]
+    },
+    {
+      "n": 5,
+      "models": [
+        "sonnet",
+        "haiku"
+      ]
+    }
+  ]
+}

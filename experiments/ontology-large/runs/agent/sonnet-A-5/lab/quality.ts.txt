@@ -1,0 +1,17 @@
+// 품질관리 — 격리·해제 (docs/quality.md)
+import { active } from "./state.js";
+import type { Engine } from "./events.js";
+import type { ErrorCode, ID, Lab } from "./types.js";
+import type { State } from "./state.js";
+
+export function qualityCommands(engine: Engine): Pick<Lab, "quarantine" | "release"> {
+  // 격리 여부만 바꾼다. 예약·양·용기·운송은 건드리지 않는다.
+  const set = (op: "quarantine" | "release", value: boolean) => (eventId: ID, sampleId: ID) =>
+    engine.run(eventId, op, { sampleId }, (s: State): ErrorCode | null => {
+      const x = active(s, sampleId);
+      if (typeof x === "string") return x;
+      x.quarantined = value;
+      return null;
+    });
+  return { quarantine: set("quarantine", true), release: set("release", false) };
+}

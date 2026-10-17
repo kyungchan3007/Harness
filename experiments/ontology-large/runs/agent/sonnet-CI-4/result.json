@@ -1,0 +1,83 @@
+{
+  "id": "sonnet-CI-4",
+  "model": "sonnet",
+  "modelId": "subagent:sonnet",
+  "cond": "CI",
+  "n": "4",
+  "phase": "agent",
+  "runner": "subagent",
+  "copyDir": "/var/folders/ht/prc2m2q939d1l29154xtvtmw0000gn/T/run-w3lIce",
+  "minutes": 2.29,
+  "costUsd": null,
+  "turns": null,
+  "timedOut": false,
+  "budgetHit": false,
+  "apiError": false,
+  "asked": 0,
+  "stubsLeft": 0,
+  "implemented": true,
+  "gatePassed": true,
+  "missing": {
+    "score": 100,
+    "groups": {
+      "R9": 100,
+      "R10": 100,
+      "R11": 100,
+      "R12": 100
+    },
+    "rulesAllPass": 9,
+    "rules": 9
+  },
+  "explicit": {
+    "score": 100,
+    "groups": {
+      "R9": 100,
+      "R10": 100,
+      "R11": 100,
+      "R12": 100
+    },
+    "rulesAllPass": 10,
+    "rules": 10
+  },
+  "combined": {
+    "score": 100,
+    "groups": {
+      "R9": 100,
+      "R10": 100,
+      "R11": 100,
+      "R12": 100
+    },
+    "rulesAllPass": 5,
+    "rules": 5
+  },
+  "regression": {
+    "passed": 45,
+    "total": 45,
+    "ran": 45
+  },
+  "legacyDiff": {
+    "passed": 20,
+    "total": 20
+  },
+  "diff": {
+    "passed": 20,
+    "total": 20,
+    "firstFailures": []
+  },
+  "incomplete": [],
+  "failedRules": [],
+  "invariants": {
+    "ran": true,
+    "passed": true,
+    "failed": []
+  },
+  "stopBlocks": 0,
+  "endedBlocked": false,
+  "tamper": [],
+  "outsideAccess": [],
+  "ontoReads": null,
+  "docReads": {},
+  "tokens": 107618,
+  "toolUses": 12,
+  "durationMs": 110157
+}

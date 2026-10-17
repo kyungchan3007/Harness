@@ -1,0 +1,536 @@
+{
+  "haiku/A": {
+    "runs": 5,
+    "missing": 100,
+    "missingEach": [
+      100,
+      100,
+      100,
+      100,
+      100
+    ],
+    "missingRulesAllPass": [
+      "9/9",
+      "9/9",
+      "9/9",
+      "9/9",
+      "9/9"
+    ],
+    "missingGroups": {
+      "R10": 100,
+      "R11": 100,
+      "R12": 100,
+      "R9": 100
+    },
+    "explicit": 98.8,
+    "combined": 98.8,
+    "regression": [
+      45,
+      45,
+      45,
+      45,
+      45
+    ],
+    "legacyDiff": [
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "diff": [
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "diffMean": 20,
+    "perfect": 3,
+    "invariantsPassed": 5,
+    "implemented": 5,
+    "ontoReads": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "docReads": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "asked": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "stopBlocks": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "endedBlocked": 0,
+    "costUsd": null,
+    "minutes": 4,
+    "turns": null,
+    "gatePassed": 5,
+    "budgetHit": 0,
+    "timedOut": 0,
+    "apiError": 0,
+    "tamper": [],
+    "outside": []
+  },
+  "haiku/BI": {
+    "runs": 5,
+    "missing": 100,
+    "missingEach": [
+      100,
+      100,
+      100,
+      100,
+      100
+    ],
+    "missingRulesAllPass": [
+      "9/9",
+      "9/9",
+      "9/9",
+      "9/9",
+      "9/9"
+    ],
+    "missingGroups": {
+      "R10": 100,
+      "R11": 100,
+      "R12": 100,
+      "R9": 100
+    },
+    "explicit": 100,
+    "combined": 100,
+    "regression": [
+      45,
+      45,
+      45,
+      45,
+      45
+    ],
+    "legacyDiff": [
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "diff": [
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "diffMean": 20,
+    "perfect": 5,
+    "invariantsPassed": 5,
+    "implemented": 5,
+    "ontoReads": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "docReads": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "asked": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "stopBlocks": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "endedBlocked": 0,
+    "costUsd": null,
+    "minutes": 3.7,
+    "turns": null,
+    "gatePassed": 5,
+    "budgetHit": 0,
+    "timedOut": 0,
+    "apiError": 0,
+    "tamper": [],
+    "outside": []
+  },
+  "haiku/CI": {
+    "runs": 5,
+    "missing": 100,
+    "missingEach": [
+      100,
+      100,
+      100,
+      100,
+      100
+    ],
+    "missingRulesAllPass": [
+      "9/9",
+      "9/9",
+      "9/9",
+      "9/9",
+      "9/9"
+    ],
+    "missingGroups": {
+      "R10": 100,
+      "R11": 100,
+      "R12": 100,
+      "R9": 100
+    },
+    "explicit": 100,
+    "combined": 100,
+    "regression": [
+      45,
+      45,
+      45,
+      45,
+      45
+    ],
+    "legacyDiff": [
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "diff": [
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "diffMean": 20,
+    "perfect": 5,
+    "invariantsPassed": 5,
+    "implemented": 5,
+    "ontoReads": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "docReads": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "asked": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "stopBlocks": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "endedBlocked": 0,
+    "costUsd": null,
+    "minutes": 4.1,
+    "turns": null,
+    "gatePassed": 5,
+    "budgetHit": 0,
+    "timedOut": 0,
+    "apiError": 0,
+    "tamper": [],
+    "outside": []
+  },
+  "sonnet/A": {
+    "runs": 5,
+    "missing": 100,
+    "missingEach": [
+      100,
+      100,
+      100,
+      100,
+      100
+    ],
+    "missingRulesAllPass": [
+      "9/9",
+      "9/9",
+      "9/9",
+      "9/9",
+      "9/9"
+    ],
+    "missingGroups": {
+      "R10": 100,
+      "R11": 100,
+      "R12": 100,
+      "R9": 100
+    },
+    "explicit": 100,
+    "combined": 100,
+    "regression": [
+      45,
+      45,
+      45,
+      45,
+      45
+    ],
+    "legacyDiff": [
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "diff": [
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "diffMean": 20,
+    "perfect": 5,
+    "invariantsPassed": 5,
+    "implemented": 5,
+    "ontoReads": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "docReads": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "asked": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "stopBlocks": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "endedBlocked": 0,
+    "costUsd": null,
+    "minutes": 2.3,
+    "turns": null,
+    "gatePassed": 5,
+    "budgetHit": 0,
+    "timedOut": 0,
+    "apiError": 0,
+    "tamper": [],
+    "outside": []
+  },
+  "sonnet/BI": {
+    "runs": 5,
+    "missing": 100,
+    "missingEach": [
+      100,
+      100,
+      100,
+      100,
+      100
+    ],
+    "missingRulesAllPass": [
+      "9/9",
+      "9/9",
+      "9/9",
+      "9/9",
+      "9/9"
+    ],
+    "missingGroups": {
+      "R10": 100,
+      "R11": 100,
+      "R12": 100,
+      "R9": 100
+    },
+    "explicit": 100,
+    "combined": 100,
+    "regression": [
+      45,
+      45,
+      45,
+      45,
+      45
+    ],
+    "legacyDiff": [
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "diff": [
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "diffMean": 20,
+    "perfect": 5,
+    "invariantsPassed": 5,
+    "implemented": 5,
+    "ontoReads": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "docReads": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "asked": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "stopBlocks": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "endedBlocked": 0,
+    "costUsd": null,
+    "minutes": 2.6,
+    "turns": null,
+    "gatePassed": 5,
+    "budgetHit": 0,
+    "timedOut": 0,
+    "apiError": 0,
+    "tamper": [],
+    "outside": []
+  },
+  "sonnet/CI": {
+    "runs": 5,
+    "missing": 100,
+    "missingEach": [
+      100,
+      100,
+      100,
+      100,
+      100
+    ],
+    "missingRulesAllPass": [
+      "9/9",
+      "9/9",
+      "9/9",
+      "9/9",
+      "9/9"
+    ],
+    "missingGroups": {
+      "R10": 100,
+      "R11": 100,
+      "R12": 100,
+      "R9": 100
+    },
+    "explicit": 100,
+    "combined": 100,
+    "regression": [
+      45,
+      45,
+      45,
+      45,
+      45
+    ],
+    "legacyDiff": [
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "diff": [
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "diffMean": 20,
+    "perfect": 5,
+    "invariantsPassed": 5,
+    "implemented": 5,
+    "ontoReads": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "docReads": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "asked": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "stopBlocks": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "endedBlocked": 0,
+    "costUsd": null,
+    "minutes": 2.6,
+    "turns": null,
+    "gatePassed": 5,
+    "budgetHit": 0,
+    "timedOut": 0,
+    "apiError": 0,
+    "tamper": [],
+    "outside": []
+  }
+}

@@ -1,0 +1,30 @@
+// 용기 — 존재·점유·용량 검사와 점유 변경
+import type { State } from "./state.js";
+import type { Catalog, ID, StorageGrade } from "./types.js";
+
+export type ContainerInfo = Catalog["containers"][number];
+
+export class Storage {
+  readonly containers: Map<ID, ContainerInfo>;
+  constructor(catalog: Catalog) {
+    this.containers = new Map(catalog.containers.map((c) => [c.containerId, c]));
+  }
+
+  get(id: ID): ContainerInfo | undefined {
+    return this.containers.get(id);
+  }
+
+  /**
+   * 시료를 새로 넣을 수 있는 빈 용기인가.
+   * 정책(운송 점유): 운송 중인 시료는 운송이 끝날 때까지 출발 용기를 계속 점유하고, 운송 목적 용기는 그 운송이
+   * 끝날 때까지 배타적으로 확보된다. 확보된 용기는 다른 시료의 받기·분취·이동과 다른 운송의 목적지로 쓸 수 없다.
+   */
+  isFree(s: State, id: ID): boolean {
+    return !s.occupied.has(id) && !s.transitTargets.has(id);
+  }
+
+  /** 용기가 이 보관 등급을 지원하는가 (docs/storage.md) — TODO: 받기·분취·이동·운송에 연결 */
+  supports(id: ID, grade: StorageGrade): boolean {
+    return this.containers.get(id)?.supportedGrades.includes(grade) ?? false;
+  }
+}

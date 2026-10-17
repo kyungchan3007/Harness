@@ -1,0 +1,109 @@
+{
+  "id": "sonnet-CI-1",
+  "model": "sonnet",
+  "modelId": "claude-sonnet-5-5",
+  "cond": "CI",
+  "n": "1",
+  "phase": "main",
+  "cli": "2.1.299 (Claude Code)",
+  "copyDir": "/var/folders/ht/prc2m2q939d1l29154xtvtmw0000gn/T/run-kLIZa7",
+  "sessionId": "80dde45d-2b6d-4981-b353-216dc3df1e1f",
+  "minutes": 4.3,
+  "costUsd": 0.766,
+  "budget": 4,
+  "turns": 68,
+  "endings": [
+    {
+      "subtype": "success",
+      "isError": false,
+      "timedOut": false
+    }
+  ],
+  "timedOut": false,
+  "budgetHit": false,
+  "apiError": false,
+  "asked": 0,
+  "stubsLeft": 0,
+  "implemented": true,
+  "gatePassed": true,
+  "missing": {
+    "score": 100,
+    "groups": {
+      "R9": 100,
+      "R10": 100,
+      "R11": 100,
+      "R12": 100
+    },
+    "rulesAllPass": 9,
+    "rules": 9
+  },
+  "explicit": {
+    "score": 100,
+    "groups": {
+      "R9": 100,
+      "R10": 100,
+      "R11": 100,
+      "R12": 100
+    },
+    "rulesAllPass": 10,
+    "rules": 10
+  },
+  "combined": {
+    "score": 100,
+    "groups": {
+      "R9": 100,
+      "R10": 100,
+      "R11": 100,
+      "R12": 100
+    },
+    "rulesAllPass": 5,
+    "rules": 5
+  },
+  "regression": {
+    "passed": 45,
+    "total": 45,
+    "ran": 45
+  },
+  "legacyDiff": {
+    "passed": 20,
+    "total": 20
+  },
+  "diff": {
+    "passed": 20,
+    "total": 20,
+    "firstFailures": []
+  },
+  "incomplete": [],
+  "failedRules": [],
+  "invariants": {
+    "ran": true,
+    "passed": true,
+    "failed": []
+  },
+  "stopBlocks": 0,
+  "stopChecks": 1,
+  "endedBlocked": false,
+  "tamper": [],
+  "outsideAccess": [],
+  "ontoReads": 0,
+  "docReads": {
+    "engine": 3,
+    "quality": 7,
+    "storage": 3,
+    "reservations": 7,
+    "transit": 7
+  },
+  "usage": {
+    "requests": 23,
+    "sessions": 1,
+    "models": [
+      "claude-sonnet-5-5"
+    ],
+    "input": 46,
+    "cacheWrite": 89754,
+    "cacheRead": 1515078,
+    "output": 38983,
+    "maxContext": 102420,
+    "lastContext": 102420
+  }
+}

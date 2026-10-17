@@ -1,0 +1,17 @@
+// 품질관리 — 격리·해제 (docs/quality.md)
+import type { Engine } from "./events.js";
+import type { Lab } from "./types.js";
+
+import { active } from "./state.js";
+import type { ID, Receipt, Result } from "./types.js";
+
+export function qualityCommands(engine: Engine): Pick<Lab, "quarantine" | "release"> {
+  const set = (op: "quarantine" | "release", value: boolean) => (eventId: ID, sampleId: ID): Result<Receipt> =>
+    engine.run(eventId, op, { sampleId }, (s) => {
+      const x = active(s, sampleId);
+      if (typeof x === "string") return x;
+      x.quarantined = value;
+      return null;
+    });
+  return { quarantine: set("quarantine", true), release: set("release", false) };
+}

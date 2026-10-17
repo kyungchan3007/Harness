@@ -1,0 +1,50 @@
+{"ts":"2026-10-16T14:22:02.604Z","session":"851e3ad9","event":"PostToolUse","tool":"Write","detail":"agents/intent/specs/0040-lab/prd.md","ok":true}
+{"ts":"2026-10-16T14:22:05.935Z","session":"851e3ad9","event":"PostToolUse","tool":"Write","detail":"agents/intent/specs/0040-lab/sdd.md","ok":true}
+{"ts":"2026-10-16T14:22:07.727Z","session":"851e3ad9","event":"PostToolUse","tool":"Write","detail":"agents/intent/specs/0040-lab/trace.md","ok":true}
+{"ts":"2026-10-16T14:22:12.594Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"agents/orchestration/TASKS.md","ok":true}
+{"ts":"2026-10-16T14:22:14.278Z","session":"851e3ad9","event":"PreToolUse","tool":"Edit","detail":"src/lab/state.ts","ok":false,"blocked":true,"error":"[기록 강제] src/lab/state.ts 수정 차단: 코드보다 PRD·SDD·TASKS가 먼저입니다."}
+{"ts":"2026-10-16T14:22:16.368Z","session":"851e3ad9","event":"PreToolUse","tool":"Write","detail":"src/lab/quality.ts","ok":false,"blocked":true,"error":"[기록 강제] src/lab/quality.ts 수정 차단: 코드보다 PRD·SDD·TASKS가 먼저입니다."}
+{"ts":"2026-10-16T14:22:21.917Z","session":"851e3ad9","event":"PreToolUse","tool":"Write","detail":"src/lab/transit.ts","ok":false,"blocked":true,"error":"[기록 강제] src/lab/transit.ts 수정 차단: 코드보다 PRD·SDD·TASKS가 먼저입니다."}
+{"ts":"2026-10-16T14:22:27.236Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"agents/intent/specs/0040-lab/prd.md","ok":true}
+{"ts":"2026-10-16T14:22:30.502Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"src/lab/state.ts","ok":true}
+{"ts":"2026-10-16T14:22:32.612Z","session":"851e3ad9","event":"PostToolUse","tool":"Write","detail":"src/lab/quality.ts","ok":true}
+{"ts":"2026-10-16T14:22:37.796Z","session":"851e3ad9","event":"PostToolUse","tool":"Write","detail":"src/lab/transit.ts","ok":true}
+{"ts":"2026-10-16T14:22:51.471Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"src/lab/reservations.ts","ok":true}
+{"ts":"2026-10-16T14:22:52.855Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"src/lab/reservations.ts","ok":true}
+{"ts":"2026-10-16T14:22:54.541Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"src/lab/reservations.ts","ok":true}
+{"ts":"2026-10-16T14:22:56.054Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"src/lab/reservations.ts","ok":true}
+{"ts":"2026-10-16T14:22:57.817Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"src/lab/reservations.ts","ok":true}
+{"ts":"2026-10-16T14:23:00.015Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"src/lab/reservations.ts","ok":true}
+{"ts":"2026-10-16T14:23:01.254Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"src/lab/samples.ts","ok":true}
+{"ts":"2026-10-16T14:23:02.920Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"src/lab/samples.ts","ok":true}
+{"ts":"2026-10-16T14:23:04.441Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"src/lab/samples.ts","ok":true}
+{"ts":"2026-10-16T14:23:06.011Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"src/lab/samples.ts","ok":true}
+{"ts":"2026-10-16T14:23:07.555Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"src/lab/samples.ts","ok":true}
+{"ts":"2026-10-16T14:23:09.121Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"src/lab/samples.ts","ok":true}
+{"ts":"2026-10-16T14:23:10.605Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"src/lab/samples.ts","ok":true}
+{"ts":"2026-10-16T14:23:12.052Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"src/lab/samples.ts","ok":true}
+{"ts":"2026-10-16T14:23:13.594Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"src/lab/samples.ts","ok":true}
+{"ts":"2026-10-16T14:23:15.317Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"src/lab/samples.ts","ok":true}
+{"ts":"2026-10-16T14:23:16.399Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"src/lab/storage.ts","ok":true}
+{"ts":"2026-10-16T14:23:47.168Z","session":"851e3ad9","event":"PostToolUse","tool":"Write","detail":"src/lab/lab.test.ts","ok":true}
+{"ts":"2026-10-16T14:23:57.710Z","session":"851e3ad9","event":"PostToolUse","tool":"Bash","detail":"pnpm check 2>&1 | tail -50","ok":true}
+{"ts":"2026-10-16T14:24:02.125Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"src/lab/lab.test.ts","ok":true}
+{"ts":"2026-10-16T14:24:03.712Z","session":"851e3ad9","event":"PostToolUse","tool":"Bash","detail":"pnpm exec tsc --noEmit 2>&1 | head -20","ok":true}
+{"ts":"2026-10-16T14:24:13.609Z","session":"851e3ad9","event":"PostToolUse","tool":"Grep","detail":"\\[0\\] @ src/lab/lab.test.ts","ok":true}
+{"ts":"2026-10-16T14:24:16.688Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"src/lab/lab.test.ts","ok":true}
+{"ts":"2026-10-16T14:24:18.052Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"src/lab/lab.test.ts","ok":true}
+{"ts":"2026-10-16T14:24:19.260Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"src/lab/lab.test.ts","ok":true}
+{"ts":"2026-10-16T14:24:21.042Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"src/lab/lab.test.ts","ok":true}
+{"ts":"2026-10-16T14:24:22.427Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"src/lab/lab.test.ts","ok":true}
+{"ts":"2026-10-16T14:24:23.993Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"src/lab/lab.test.ts","ok":true}
+{"ts":"2026-10-16T14:24:32.049Z","session":"851e3ad9","event":"PostToolUse","tool":"Bash","detail":"pnpm check 2>&1 | tail -25","ok":true}
+{"ts":"2026-10-16T14:24:36.973Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"agents/intent/specs/0040-lab/sdd.md","ok":true}
+{"ts":"2026-10-16T14:24:41.481Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"agents/intent/specs/0040-lab/trace.md","ok":true}
+{"ts":"2026-10-16T14:24:42.746Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"agents/orchestration/TASKS.md","ok":true}
+{"ts":"2026-10-16T14:24:43.876Z","session":"851e3ad9","event":"PostToolUse","tool":"Bash","detail":"tail -c 300 agents/JOURNAL.md | cat -A | tail -2 | cut -c1-80","ok":true}
+{"ts":"2026-10-16T14:24:46.491Z","session":"851e3ad9","event":"PostToolUse","tool":"Read","detail":"agents/intent/specs/0040-lab/prd.md","ok":true}
+{"ts":"2026-10-16T14:24:47.654Z","session":"851e3ad9","event":"PostToolUse","tool":"Grep","detail":"0031 파일을 넘는 @ agents/JOURNAL.md","ok":true}
+{"ts":"2026-10-16T14:24:52.985Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"agents/intent/specs/0040-lab/prd.md","ok":true}
+{"ts":"2026-10-16T14:24:58.852Z","session":"851e3ad9","event":"PostToolUse","tool":"Edit","detail":"agents/JOURNAL.md","ok":true}
+{"ts":"2026-10-16T14:25:05.265Z","session":"851e3ad9","event":"PostToolUse","tool":"Bash","detail":"pnpm check 2>&1 | tail -4; git status --short","ok":true}
+{"ts":"2026-10-16T14:25:17.070Z","session":"851e3ad9","event":"Stop"}
