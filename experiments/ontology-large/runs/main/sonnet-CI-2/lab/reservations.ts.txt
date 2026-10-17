@@ -1,0 +1,69 @@
+// 예약 — 예약·취소·소비, 논리 시각
+import { active, finish, inTransit } from "./state.js";
+import { isQty } from "./samples.js";
+import type { Engine } from "./events.js";
+import type { Lab, Tick } from "./types.js";
+
+/** 유효 논리 시각: 0 이상 MAX_SAFE_INTEGER 이하의 정수 */
+const isTick = (t: unknown): t is Tick => typeof t === "number" && Number.isSafeInteger(t) && t >= 0;
+
+export function reservationCommands(engine: Engine): Pick<Lab, "reserve" | "cancel" | "consume" | "advanceTime"> {
+  return {
+    reserve(eventId, input) {
+      return engine.run(eventId, "reserve", input, (s) => {
+        if (!isQty(input.qty)) return "INVALID_INPUT";
+        if (input.expiresAt !== null && !(isTick(input.expiresAt) && input.expiresAt > s.now)) return "INVALID_INPUT";
+        if (s.reservations.has(input.reservationId)) return "ID_TAKEN";
+        const x = active(s, input.sampleId);
+        if (typeof x === "string") return x;
+        if (x.quarantined) return "QUARANTINED";
+        if (input.qty > x.remaining - x.reserved) return "INSUFFICIENT";
+        x.reserved += input.qty;
+        s.reservations.set(input.reservationId, { reservationId: input.reservationId, sampleId: x.sampleId, qty: input.qty, status: "ACTIVE", expiresAt: input.expiresAt });
+        return null;
+      });
+    },
+
+    cancel(eventId, reservationId) {
+      return engine.run(eventId, "cancel", { reservationId }, (s) => {
+        const r = s.reservations.get(reservationId);
+        if (!r) return "UNKNOWN_RESERVATION";
+        if (r.status !== "ACTIVE") return "RESERVATION_CLOSED";
+        r.status = "CANCELED";
+        s.samples.get(r.sampleId)!.reserved -= r.qty;
+        return null;
+      });
+    },
+
+    consume(eventId, reservationId) {
+      return engine.run(eventId, "consume", { reservationId }, (s) => {
+        const r = s.reservations.get(reservationId);
+        if (!r) return "UNKNOWN_RESERVATION";
+        if (r.status !== "ACTIVE") return "RESERVATION_CLOSED";
+        const x = s.samples.get(r.sampleId)!;
+        if (x.quarantined) return "QUARANTINED";
+        if (inTransit(s, x.sampleId)) return "IN_TRANSIT";
+        r.status = "CONSUMED";
+        x.reserved -= r.qty;
+        x.remaining -= r.qty;
+        x.consumedQty += r.qty;
+        if (x.remaining === 0) finish(s, x, "DEPLETED");
+        return null;
+      });
+    },
+
+    advanceTime(eventId, to) {
+      return engine.run(eventId, "advanceTime", { to }, (s) => {
+        if (!isTick(to) || to < s.now) return "INVALID_INPUT";
+        s.now = to;
+        // 만료 판정은 경계 포함: expiresAt <= now. 예약 양만 풀고 남은 양·소비·폐기·격리·용기는 그대로
+        for (const r of s.reservations.values()) {
+          if (r.status !== "ACTIVE" || r.expiresAt === null || r.expiresAt > s.now) continue;
+          r.status = "EXPIRED";
+          s.samples.get(r.sampleId)!.reserved -= r.qty;
+        }
+        return null;
+      });
+    },
+  };
+}

@@ -1,0 +1,85 @@
+import { describe, expect, it } from "vitest";
+import { createLab } from "./lab.js";
+
+const mk = () =>
+  createLab({
+    locationIds: ["L"],
+    custodianIds: ["u1", "u2"],
+    containers: [
+      { containerId: "A", locationId: "L", capacity: 100, supportedGrades: ["AMBIENT"] },
+      { containerId: "B", locationId: "L", capacity: 100, supportedGrades: ["AMBIENT", "CHILLED"] },
+      { containerId: "C", locationId: "L", capacity: 100, supportedGrades: ["AMBIENT"] },
+      { containerId: "F", locationId: "L", capacity: 100, supportedGrades: ["FROZEN"] },
+    ],
+  });
+const rcv = (lab = mk()) => (lab.receive("e0", { sampleId: "S", containerId: "A", custodianId: "u1", qty: 50, storageGrade: "AMBIENT" }), lab);
+const code = (r: any) => (r.ok ? "OK" : r.code);
+
+describe("격리", () => {
+  it("격리 시 분취·예약·소비 거절, 해제 후 가능, 중복 성공", () => {
+    const lab = rcv();
+    lab.reserve("r", { reservationId: "R", sampleId: "S", qty: 5, expiresAt: null });
+    expect(code(lab.quarantine("q", "S"))).toBe("OK");
+    expect(code(lab.quarantine("q2", "S"))).toBe("OK");
+    expect(code(lab.split("s", "S", [{ sampleId: "K", containerId: "B", qty: 1 }]))).toBe("QUARANTINED");
+    expect(code(lab.reserve("r2", { reservationId: "R2", sampleId: "S", qty: 1, expiresAt: null }))).toBe("QUARANTINED");
+    expect(code(lab.consume("c", "R"))).toBe("QUARANTINED");
+    expect(code(lab.cancel("x", "R"))).toBe("OK");
+    expect(code(lab.release("rl", "S"))).toBe("OK");
+    expect(code(lab.split("s", "S", [{ sampleId: "K", containerId: "B", qty: 1 }]))).toBe("OK");
+  });
+});
+
+describe("보관 등급", () => {
+  it("받기·이동·분취 적합성, 자식은 부모 등급 상속", () => {
+    const lab = mk();
+    expect(code(lab.receive("a", { sampleId: "X", containerId: "F", custodianId: "u1", qty: 5, storageGrade: "CHILLED" }))).toBe("STORAGE_INCOMPATIBLE");
+    rcv(lab);
+    expect(code(lab.move("m", "S", "F"))).toBe("STORAGE_INCOMPATIBLE");
+    expect(code(lab.split("s", "S", [{ sampleId: "K", containerId: "F", qty: 1 }]))).toBe("STORAGE_INCOMPATIBLE");
+    lab.split("s2", "S", [{ sampleId: "K", containerId: "B", qty: 1 }]);
+    expect(lab.snapshot().samples.find((x) => x.sampleId === "K")!.storageGrade).toBe("AMBIENT");
+  });
+});
+
+describe("예약 만료", () => {
+  it("검증과 만료(경계 포함), 실제 양 불변", () => {
+    const lab = rcv();
+    expect(code(lab.reserve("r", { reservationId: "R", sampleId: "S", qty: 5, expiresAt: 0 }))).toBe("INVALID_INPUT");
+    lab.reserve("r", { reservationId: "R", sampleId: "S", qty: 5, expiresAt: 10 });
+    lab.reserve("r1", { reservationId: "R1", sampleId: "S", qty: 5, expiresAt: 10 });
+    expect(code(lab.advanceTime("t", 9))).toBe("OK");
+    expect(code(lab.advanceTime("t2", 5))).toBe("INVALID_INPUT");
+    const n = lab.snapshot().events.length;
+    lab.advanceTime("t3", 10);
+    const snap = lab.snapshot();
+    expect(snap.events.length).toBe(n + 1);
+    expect(snap.reservations.map((r) => r.status)).toEqual(["EXPIRED", "EXPIRED"]);
+    expect(snap.samples[0]!).toMatchObject({ reserved: 0, remaining: 50, consumedQty: 0 });
+    expect(code(lab.cancel("c", "R"))).toBe("RESERVATION_CLOSED");
+  });
+});
+
+describe("운송", () => {
+  it("확보·도착·취소·금지 명령·ID 재사용", () => {
+    const lab = rcv();
+    expect(code(lab.startTransit("t", { transitId: "T", sampleId: "S", targetContainerId: "F" }))).toBe("STORAGE_INCOMPATIBLE");
+    expect(lab.snapshot().transits).toEqual([]);
+    expect(code(lab.startTransit("t", { transitId: "T", sampleId: "S", targetContainerId: "B" }))).toBe("OK");
+    expect(code(lab.receive("r", { sampleId: "Y", containerId: "B", custodianId: "u1", qty: 1, storageGrade: "AMBIENT" }))).toBe("CONTAINER_OCCUPIED");
+    expect(code(lab.discard("d", "S"))).toBe("IN_TRANSIT");
+    expect(code(lab.move("m", "S", "C"))).toBe("IN_TRANSIT");
+    expect(code(lab.startTransit("t2", { transitId: "T2", sampleId: "S", targetContainerId: "C" }))).toBe("IN_TRANSIT");
+    expect(code(lab.cancelTransit("c", "T"))).toBe("OK");
+    expect(code(lab.cancelTransit("c", "T"))).toBe("OK");
+    expect(code(lab.cancelTransit("c2", "T"))).toBe("TRANSIT_CLOSED");
+    expect(code(lab.startTransit("t3", { transitId: "T", sampleId: "S", targetContainerId: "B" }))).toBe("ID_TAKEN");
+    lab.startTransit("t4", { transitId: "T4", sampleId: "S", targetContainerId: "B" });
+    expect(code(lab.confirmArrival("a", "T4"))).toBe("OK");
+    const s = lab.snapshot();
+    expect(s.samples[0]!.containerId).toBe("B");
+    expect(s.transits.map((t) => t.status)).toEqual(["CANCELED", "ARRIVED"]);
+    expect(code(lab.confirmArrival("a9", "NOPE"))).toBe("UNKNOWN_TRANSIT");
+    expect(code(lab.move("m2", "S", "A"))).toBe("OK");
+  });
+});

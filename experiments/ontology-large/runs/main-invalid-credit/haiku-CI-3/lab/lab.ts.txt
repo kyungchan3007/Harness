@@ -1,0 +1,28 @@
+// 공개 진입점 — 명령 모듈을 조립한다
+import { clone, Engine } from "./events.js";
+import { qualityCommands } from "./quality.js";
+import { reservationCommands } from "./reservations.js";
+import { sampleCommands } from "./samples.js";
+import { Storage } from "./storage.js";
+import { transitCommands } from "./transit.js";
+import type { Catalog, Lab, Snapshot } from "./types.js";
+
+export function createLab(catalog: Catalog): Lab {
+  const engine = new Engine();
+  const storage = new Storage(catalog);
+  const custodians = new Set(catalog.custodianIds);
+  const samples = sampleCommands(engine, storage, custodians);
+  const reservations = reservationCommands(engine);
+  const quality = qualityCommands(engine);
+  const transit = transitCommands(engine, storage);
+  return {
+    ...samples,
+    ...reservations,
+    ...quality,
+    ...transit,
+    snapshot(): Snapshot {
+      const s = engine.st;
+      return clone({ now: s.now, samples: [...s.samples.values()], reservations: [...s.reservations.values()], transits: [...s.transits.values()], events: s.events });
+    },
+  };
+}

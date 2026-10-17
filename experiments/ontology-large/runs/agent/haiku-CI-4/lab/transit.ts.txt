@@ -1,0 +1,57 @@
+// 운송 — 시작·도착 확정·취소 (docs/transit.md)
+import { active, inTransit } from "./state.js";
+import type { Engine } from "./events.js";
+import type { Storage } from "./storage.js";
+import type { Lab, TransitView } from "./types.js";
+
+export function transitCommands(engine: Engine, storage: Storage): Pick<Lab, "startTransit" | "confirmArrival" | "cancelTransit"> {
+  return {
+    startTransit(eventId, input) {
+      return engine.run(eventId, "startTransit", input, (s) => {
+        if (s.transits.has(input.transitId)) return "ID_TAKEN";
+        const x = active(s, input.sampleId);
+        if (typeof x === "string") return x;
+        if (inTransit(s, x.sampleId)) return "IN_TRANSIT";
+        const c = storage.get(input.targetContainerId);
+        if (!c) return "UNKNOWN_CONTAINER";
+        if (!storage.isFree(s, c.containerId)) return "CONTAINER_OCCUPIED";
+        if (x.remaining > c.capacity) return "CAPACITY_EXCEEDED";
+        if (!storage.supports(c.containerId, x.storageGrade)) return "STORAGE_INCOMPATIBLE";
+        s.transits.set(input.transitId, { transitId: input.transitId, sampleId: x.sampleId, sourceContainerId: x.containerId!, targetContainerId: c.containerId, status: "ACTIVE" });
+        s.targets.set(c.containerId, input.transitId);
+        return null;
+      });
+    },
+
+    confirmArrival(eventId, transitId) {
+      return engine.run(eventId, "confirmArrival", { transitId }, (s) => {
+        const t = activeTransit(s, transitId);
+        if (typeof t === "string") return t;
+        const x = s.samples.get(t.sampleId)!;
+        s.targets.delete(t.targetContainerId);
+        s.occupied.delete(t.sourceContainerId);
+        s.occupied.set(t.targetContainerId, x.sampleId);
+        x.containerId = t.targetContainerId;
+        t.status = "ARRIVED";
+        return null;
+      });
+    },
+
+    cancelTransit(eventId, transitId) {
+      return engine.run(eventId, "cancelTransit", { transitId }, (s) => {
+        const t = activeTransit(s, transitId);
+        if (typeof t === "string") return t;
+        s.targets.delete(t.targetContainerId);
+        t.status = "CANCELED";
+        return null;
+      });
+    },
+  };
+}
+
+/** 운송 조회: 없으면 UNKNOWN_TRANSIT, 끝났으면 TRANSIT_CLOSED */
+function activeTransit(s: { transits: Map<string, TransitView> }, transitId: string): TransitView | "UNKNOWN_TRANSIT" | "TRANSIT_CLOSED" {
+  const t = s.transits.get(transitId);
+  if (!t) return "UNKNOWN_TRANSIT";
+  return t.status === "ACTIVE" ? t : "TRANSIT_CLOSED";
+}

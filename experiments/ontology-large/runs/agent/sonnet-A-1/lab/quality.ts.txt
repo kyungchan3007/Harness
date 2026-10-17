@@ -1,0 +1,15 @@
+// 품질관리 — 격리·해제 (docs/quality.md)
+import { active } from "./state.js";
+import type { Engine } from "./events.js";
+import type { ID, Lab } from "./types.js";
+
+export function qualityCommands(engine: Engine): Pick<Lab, "quarantine" | "release"> {
+  const set = (op: "quarantine" | "release", value: boolean) => (eventId: ID, sampleId: ID) =>
+    engine.run(eventId, op, { sampleId }, (s) => {
+      const x = active(s, sampleId);
+      if (typeof x === "string") return x;
+      x.quarantined = value; // 예약·용기·운송은 건드리지 않는다
+      return null;
+    });
+  return { quarantine: set("quarantine", true), release: set("release", false) };
+}

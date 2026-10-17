@@ -14,11 +14,11 @@
 - 조건별 실행 횟수 — 파일럿 각 2번, 본 실험 각 5번 (가정: 0037과 같은 규모)
 
 ## Acceptance
-- [ ] request.md 고정, prd·sdd·trace 작성
-- [ ] Codex 설계 토론 기록
-- [ ] 큰 과제 + 숨겨진 테스트·대조 — 기준 구현 통과·틀린 구현 탈락 자체 검증
-- [ ] 파일럿 → 동결 → 본 실험 (모델 2 × 조건 3 × 각 5회)
-- [ ] 결과표 + 원본 표본 직접 확인
-- [ ] LEARNINGS·README·Notion 반영, pnpm check PASS
+- [x] request.md 고정, prd·sdd·trace 작성
+- [x] Codex 설계 토론 기록
+- [x] 큰 과제 + 숨겨진 테스트·대조 — 기준 구현 통과·틀린 구현 탈락 자체 검증
+- [x] 파일럿 → 동결 → 본 실험 (모델 2 × 조건 3 × 각 5회) — CLI는 크레딧 소진으로 13회에서 중단, 서브에이전트로 30회 완료
+- [x] 결과표 + 원본 표본 직접 확인
+- [x] LEARNINGS·README·Notion 반영, pnpm check PASS
 
 설계와 검증 결과: [sdd.md](sdd.md) · 과정 기록: [trace.md](trace.md)

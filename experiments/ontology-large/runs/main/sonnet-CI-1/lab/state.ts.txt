@@ -1,0 +1,47 @@
+// 엔진 상태 — 작업 복사본·종료 처리·활성 시료 조회
+import type { ErrorCode, EventView, ID, Receipt, ReservationView, SampleView, Tick, TransitView } from "./types.js";
+
+export interface State {
+  now: Tick;
+  samples: Map<ID, SampleView>;
+  reservations: Map<ID, ReservationView>;
+  transits: Map<ID, TransitView>;
+  events: EventView[];
+  seen: Map<ID, { op: string; key: string; receipt: Receipt }>;
+  /** containerId → sampleId */
+  occupied: Map<ID, ID>;
+}
+
+export const initialState = (): State => ({ now: 0, samples: new Map(), reservations: new Map(), transits: new Map(), events: [], seen: new Map(), occupied: new Map() });
+
+/** 명령은 작업 복사본에서 실행하고 성공할 때만 반영한다 (docs/engine.md E6) */
+export const copyState = (s: State): State => ({
+  now: s.now,
+  samples: new Map([...s.samples].map(([k, v]) => [k, { ...v }])),
+  reservations: new Map([...s.reservations].map(([k, v]) => [k, { ...v }])),
+  transits: new Map([...s.transits].map(([k, v]) => [k, { ...v }])),
+  events: [...s.events],
+  seen: new Map(s.seen),
+  occupied: new Map(s.occupied),
+});
+
+/** 0 이상 MAX_SAFE_INTEGER 이하의 정수 (Tick) */
+export const isTick = (v: unknown): v is Tick => typeof v === "number" && Number.isInteger(v) && v >= 0 && v <= Number.MAX_SAFE_INTEGER;
+
+/** 시료의 ACTIVE 운송 */
+export function transitOf(s: State, sampleId: ID): TransitView | undefined {
+  for (const t of s.transits.values()) if (t.sampleId === sampleId && t.status === "ACTIVE") return t;
+  return undefined;
+}
+
+export function finish(s: State, sample: SampleView, status: "DEPLETED" | "DISCARDED") {
+  sample.status = status;
+  if (sample.containerId) s.occupied.delete(sample.containerId);
+  sample.containerId = null;
+}
+
+export function active(s: State, id: ID): SampleView | ErrorCode {
+  const x = s.samples.get(id);
+  if (!x) return "UNKNOWN_SAMPLE";
+  return x.status === "ACTIVE" ? x : "NOT_ACTIVE";
+}

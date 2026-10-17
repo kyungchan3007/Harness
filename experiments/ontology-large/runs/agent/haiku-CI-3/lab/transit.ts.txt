@@ -1,0 +1,56 @@
+// 운송 — 시작·도착 확정·취소 (docs/transit.md)
+import { active, transitOf } from "./state.js";
+import type { Engine } from "./events.js";
+import type { Storage } from "./storage.js";
+import type { Lab } from "./types.js";
+
+export function transitCommands(engine: Engine, storage: Storage): Pick<Lab, "startTransit" | "confirmArrival" | "cancelTransit"> {
+  return {
+    startTransit(eventId, input) {
+      return engine.run(eventId, "startTransit", input, (s) => {
+        const { transitId, sampleId, targetContainerId } = input;
+        if (s.transits.has(transitId)) return "ID_TAKEN";
+        const x = active(s, sampleId);
+        if (typeof x === "string") return x;
+        if (transitOf(s, x.sampleId)) return "IN_TRANSIT";
+        const c = storage.get(targetContainerId);
+        if (!c) return "UNKNOWN_CONTAINER";
+        // 출발 용기는 시료가 점유 중이므로 여기서도 막힌다 (가정: 같은 용기 목적지는 CONTAINER_OCCUPIED)
+        if (!storage.isFree(s, c.containerId)) return "CONTAINER_OCCUPIED";
+        if (x.remaining > c.capacity) return "CAPACITY_EXCEEDED";
+        if (!storage.supports(c.containerId, x.storageGrade)) return "STORAGE_INCOMPATIBLE";
+        s.transits.set(transitId, { transitId, sampleId: x.sampleId, sourceContainerId: x.containerId!, targetContainerId: c.containerId, status: "ACTIVE" });
+        s.claimed.set(c.containerId, transitId);
+        return null;
+      });
+    },
+
+    confirmArrival(eventId, transitId) {
+      return engine.run(eventId, "confirmArrival", { transitId }, (s) => {
+        const t = s.transits.get(transitId);
+        if (!t) return "UNKNOWN_TRANSIT";
+        if (t.status !== "ACTIVE") return "TRANSIT_CLOSED";
+        const x = s.samples.get(t.sampleId)!;
+        // 도착: 출발 용기를 비우고 목적 용기로 옮긴다. 확보는 시료 점유로 바뀐다
+        s.occupied.delete(t.sourceContainerId);
+        s.claimed.delete(t.targetContainerId);
+        s.occupied.set(t.targetContainerId, x.sampleId);
+        x.containerId = t.targetContainerId;
+        t.status = "ARRIVED";
+        return null;
+      });
+    },
+
+    cancelTransit(eventId, transitId) {
+      return engine.run(eventId, "cancelTransit", { transitId }, (s) => {
+        const t = s.transits.get(transitId);
+        if (!t) return "UNKNOWN_TRANSIT";
+        if (t.status !== "ACTIVE") return "TRANSIT_CLOSED";
+        // 취소: 시료는 출발 용기에 그대로 있고, 목적 용기 확보만 풀린다
+        s.claimed.delete(t.targetContainerId);
+        t.status = "CANCELED";
+        return null;
+      });
+    },
+  };
+}

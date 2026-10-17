@@ -1,0 +1,112 @@
+{
+  "id": "haiku-BI-2",
+  "model": "haiku",
+  "modelId": "claude-haiku-4-5-20251001",
+  "cond": "BI",
+  "n": "2",
+  "phase": "main",
+  "cli": "2.1.299 (Claude Code)",
+  "copyDir": "/var/folders/ht/prc2m2q939d1l29154xtvtmw0000gn/T/run-OVClkV",
+  "sessionId": "4d7d095f-f7b2-4c9d-abd9-4835f5f5a4cf",
+  "minutes": 13.94,
+  "costUsd": 1.509,
+  "budget": 1.5,
+  "turns": 3,
+  "endings": [
+    {
+      "subtype": "error_max_budget_usd",
+      "isError": true,
+      "timedOut": false
+    }
+  ],
+  "timedOut": false,
+  "budgetHit": true,
+  "apiError": false,
+  "asked": 0,
+  "stubsLeft": 0,
+  "implemented": true,
+  "gatePassed": true,
+  "missing": {
+    "score": 100,
+    "groups": {
+      "R9": 100,
+      "R10": 100,
+      "R11": 100,
+      "R12": 100
+    },
+    "rulesAllPass": 9,
+    "rules": 9
+  },
+  "explicit": {
+    "score": 89.6,
+    "groups": {
+      "R9": 100,
+      "R10": 75,
+      "R11": 83.3,
+      "R12": 100
+    },
+    "rulesAllPass": 8,
+    "rules": 10
+  },
+  "combined": {
+    "score": 100,
+    "groups": {
+      "R9": 100,
+      "R10": 100,
+      "R11": 100,
+      "R12": 100
+    },
+    "rulesAllPass": 5,
+    "rules": 5
+  },
+  "regression": {
+    "passed": 45,
+    "total": 45,
+    "ran": 45
+  },
+  "legacyDiff": {
+    "passed": 20,
+    "total": 20
+  },
+  "diff": {
+    "passed": 20,
+    "total": 20,
+    "firstFailures": []
+  },
+  "incomplete": [],
+  "failedRules": [
+    "R10.1 1/2",
+    "R11.1 1/2"
+  ],
+  "invariants": {
+    "ran": true,
+    "passed": true,
+    "failed": []
+  },
+  "stopBlocks": 0,
+  "stopChecks": 0,
+  "endedBlocked": false,
+  "tamper": [],
+  "outsideAccess": [],
+  "ontoReads": 0,
+  "docReads": {
+    "engine": 10,
+    "quality": 15,
+    "storage": 5,
+    "reservations": 6,
+    "transit": 6
+  },
+  "usage": {
+    "requests": 160,
+    "sessions": 1,
+    "models": [
+      "claude-haiku-4-5-20251001"
+    ],
+    "input": 1309,
+    "cacheWrite": 233834,
+    "cacheRead": 8213610,
+    "output": 23092,
+    "maxContext": 97139,
+    "lastContext": 92813
+  }
+}

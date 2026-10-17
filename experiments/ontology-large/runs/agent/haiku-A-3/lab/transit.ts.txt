@@ -1,0 +1,55 @@
+// 운송 — 시작·도착 확정·취소 (docs/transit.md)
+// 출발 용기는 운송이 끝날 때까지 시료가 계속 점유하고, 목적 용기는 claimed로 배타적으로 확보한다.
+import { active, transitOf } from "./state.js";
+import type { Engine } from "./events.js";
+import type { Storage } from "./storage.js";
+import type { Lab } from "./types.js";
+
+export function transitCommands(engine: Engine, storage: Storage): Pick<Lab, "startTransit" | "confirmArrival" | "cancelTransit"> {
+  return {
+    startTransit(eventId, input) {
+      return engine.run(eventId, "startTransit", input, (s) => {
+        if (s.transits.has(input.transitId)) return "ID_TAKEN";
+        const x = active(s, input.sampleId);
+        if (typeof x === "string") return x;
+        if (transitOf(s, x.sampleId)) return "IN_TRANSIT";
+        const c = storage.get(input.targetContainerId);
+        if (!c) return "UNKNOWN_CONTAINER";
+        if (!storage.isFree(s, c.containerId)) return "CONTAINER_OCCUPIED";
+        // 도착 후에도 용량·등급 불변식(E1.3, docs/storage.md)이 지켜지도록 시작 시점에 확인한다
+        if (x.remaining > c.capacity) return "CAPACITY_EXCEEDED";
+        if (!storage.supports(c.containerId, x.storageGrade)) return "STORAGE_INCOMPATIBLE";
+        s.transits.set(input.transitId, { transitId: input.transitId, sampleId: x.sampleId, sourceContainerId: x.containerId!, targetContainerId: c.containerId, status: "ACTIVE" });
+        s.claimed.set(c.containerId, input.transitId);
+        return null;
+      });
+    },
+
+    confirmArrival(eventId, transitId) {
+      return engine.run(eventId, "confirmArrival", { transitId }, (s) => {
+        const t = s.transits.get(transitId);
+        if (!t) return "UNKNOWN_TRANSIT";
+        if (t.status !== "ACTIVE") return "TRANSIT_CLOSED";
+        const x = s.samples.get(t.sampleId)!;
+        if (x.status !== "ACTIVE") return "NOT_ACTIVE";
+        s.claimed.delete(t.targetContainerId);
+        s.occupied.delete(t.sourceContainerId);
+        s.occupied.set(t.targetContainerId, x.sampleId);
+        x.containerId = t.targetContainerId;
+        t.status = "ARRIVED";
+        return null;
+      });
+    },
+
+    cancelTransit(eventId, transitId) {
+      return engine.run(eventId, "cancelTransit", { transitId }, (s) => {
+        const t = s.transits.get(transitId);
+        if (!t) return "UNKNOWN_TRANSIT";
+        if (t.status !== "ACTIVE") return "TRANSIT_CLOSED";
+        s.claimed.delete(t.targetContainerId);
+        t.status = "CANCELED";
+        return null;
+      });
+    },
+  };
+}

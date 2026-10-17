@@ -160,8 +160,9 @@ export function runOnce({ model, cond, n, phase = "pilot", timeoutMin = 50, roun
     stopBlocks: stopLog.filter((s) => s.blocked).length, stopChecks: stopLog.length, endedBlocked: stopLog.length > 0 && stopLog.at(-1).blocked,
     tamper: tamper ? tamper.split("\n") : [],
     outsideAccess: outsideHits(inputs, dir).slice(0, 5),
+    // 파일럿: Sonnet은 Read 대신 Bash cat으로 읽음 → 도구 입력 전체에서 센다 (docs/*도 포함)
     ontoReads: inputs.split("\n").filter((l) => /"file_path":"[^"]*ontology/.test(l)).length,
-    docReads: Object.fromEntries(["engine", "quality", "storage", "reservations", "transit"].map((d) => [d, inputs.split("\n").filter((l) => new RegExp(`"file_path":"[^"]*docs/${d}\\.md`).test(l)).length])),
+    docReads: Object.fromEntries(["engine", "quality", "storage", "reservations", "transit"].map((d) => [d, inputs.split("\n").filter((l) => new RegExp(`docs/(${d}\\.md|\\*)`).test(l)).length])),
     usage: usageSummary(extractRequests(lines)),
   };
   writeFileSync(join(out, "result.json"), JSON.stringify(result, null, 2) + "\n");

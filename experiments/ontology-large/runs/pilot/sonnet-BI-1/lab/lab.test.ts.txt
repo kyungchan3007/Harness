@@ -1,0 +1,236 @@
+import { describe, expect, it } from "vitest";
+import { createLab } from "./lab.js";
+import type { ErrorCode, Lab, StorageGrade } from "./types.js";
+
+const catalog = {
+  locationIds: ["L1", "L2"],
+  custodianIds: ["alice", "bob"],
+  containers: [
+    { containerId: "A", locationId: "L1", capacity: 100, supportedGrades: ["AMBIENT", "CHILLED"] as StorageGrade[] },
+    { containerId: "B", locationId: "L1", capacity: 100, supportedGrades: ["AMBIENT", "CHILLED"] as StorageGrade[] },
+    { containerId: "C", locationId: "L2", capacity: 100, supportedGrades: ["AMBIENT", "CHILLED"] as StorageGrade[] },
+    { containerId: "D", locationId: "L2", capacity: 100, supportedGrades: ["AMBIENT", "CHILLED"] as StorageGrade[] },
+    { containerId: "F", locationId: "L2", capacity: 100, supportedGrades: ["FROZEN"] as StorageGrade[] },
+    { containerId: "S", locationId: "L2", capacity: 10, supportedGrades: ["AMBIENT"] as StorageGrade[] },
+  ],
+};
+
+let n = 0;
+const id = () => `e${++n}`;
+const code = (r: { ok: boolean } & { code?: ErrorCode }) => (r.ok ? "OK" : r.code);
+
+function lab(): Lab {
+  const l = createLab(catalog);
+  expect(l.receive(id(), { sampleId: "s1", containerId: "A", custodianId: "alice", qty: 50, storageGrade: "CHILLED" }).ok).toBe(true);
+  return l;
+}
+const sample = (l: Lab, sampleId = "s1") => l.snapshot().samples.find((s) => s.sampleId === sampleId)!;
+/** 실패 명령 뒤 스냅숏이 그대로인지 확인하며 코드를 돌려준다 */
+function failsWith(l: Lab, expected: ErrorCode, run: () => { ok: boolean; code?: ErrorCode }) {
+  const before = JSON.stringify(l.snapshot());
+  expect(code(run() as never)).toBe(expected);
+  expect(JSON.stringify(l.snapshot())).toBe(before);
+}
+
+describe("격리", () => {
+  it("설정·해제, 같은 값도 성공, 끝난 시료는 NOT_ACTIVE", () => {
+    const l = lab();
+    expect(l.quarantine(id(), "s1").ok).toBe(true);
+    expect(l.quarantine(id(), "s1").ok).toBe(true);
+    expect(sample(l).quarantined).toBe(true);
+    expect(l.release(id(), "s1").ok).toBe(true);
+    expect(l.release(id(), "s1").ok).toBe(true);
+    expect(sample(l).quarantined).toBe(false);
+    failsWith(l, "UNKNOWN_SAMPLE", () => l.quarantine(id(), "zz"));
+    l.discard(id(), "s1");
+    failsWith(l, "NOT_ACTIVE", () => l.quarantine(id(), "s1"));
+  });
+
+  it("분취·새 예약·소비는 막고 취소·이동·폐기·책임자 변경은 허용, 예약은 그대로", () => {
+    const l = lab();
+    l.reserve(id(), { reservationId: "r1", sampleId: "s1", qty: 10, expiresAt: 5 });
+    l.reserve(id(), { reservationId: "r2", sampleId: "s1", qty: 10, expiresAt: null });
+    l.quarantine(id(), "s1");
+    expect(l.snapshot().reservations.map((r) => [r.status, r.qty, r.expiresAt])).toEqual([["ACTIVE", 10, 5], ["ACTIVE", 10, null]]);
+    failsWith(l, "QUARANTINED", () => l.split(id(), "s1", [{ sampleId: "c1", containerId: "B", qty: 5 }]));
+    failsWith(l, "QUARANTINED", () => l.reserve(id(), { reservationId: "r3", sampleId: "s1", qty: 1, expiresAt: null }));
+    failsWith(l, "QUARANTINED", () => l.consume(id(), "r1"));
+    expect(l.cancel(id(), "r1").ok).toBe(true);
+    expect(sample(l)).toMatchObject({ reserved: 10, remaining: 50, quarantined: true });
+    expect(l.move(id(), "s1", "B").ok).toBe(true);
+    expect(l.transferCustody(id(), "s1", "bob").ok).toBe(true);
+    failsWith(l, "HAS_RESERVATION", () => l.discard(id(), "s1"));
+    l.cancel(id(), "r2");
+    expect(l.discard(id(), "s1").ok).toBe(true);
+  });
+});
+
+describe("보관 등급", () => {
+  it("받기·이동은 정확 일치만, FROZEN 용기는 CHILLED를 못 받음", () => {
+    const l = lab();
+    failsWith(l, "STORAGE_INCOMPATIBLE", () => l.receive(id(), { sampleId: "s2", containerId: "F", custodianId: "alice", qty: 5, storageGrade: "CHILLED" }));
+    failsWith(l, "STORAGE_INCOMPATIBLE", () => l.move(id(), "s1", "F"));
+    failsWith(l, "INVALID_INPUT", () => l.receive(id(), { sampleId: "s2", containerId: "B", custodianId: "alice", qty: 5, storageGrade: "HOT" as never }));
+    expect(l.receive(id(), { sampleId: "s3", containerId: "F", custodianId: "alice", qty: 5, storageGrade: "FROZEN" }).ok).toBe(true);
+  });
+
+  it("분취 자식은 부모 등급을 상속하고 자식 용기가 지원해야 함", () => {
+    const l = lab();
+    failsWith(l, "STORAGE_INCOMPATIBLE", () => l.split(id(), "s1", [{ sampleId: "c1", containerId: "S", qty: 5 }]));
+    expect(l.split(id(), "s1", [{ sampleId: "c1", containerId: "B", qty: 5 }, { sampleId: "c2", containerId: "C", qty: 5 }]).ok).toBe(true);
+    expect(sample(l, "c1").storageGrade).toBe("CHILLED");
+    expect(sample(l, "c1").custodianId).toBe("alice");
+  });
+
+  it("운송 목적지도 등급 검사, 실패하면 기록·확보 없음", () => {
+    const l = lab();
+    failsWith(l, "STORAGE_INCOMPATIBLE", () => l.startTransit(id(), { transitId: "t1", sampleId: "s1", targetContainerId: "F" }));
+    expect(l.snapshot().transits).toEqual([]);
+    expect(l.receive(id(), { sampleId: "s9", containerId: "S", custodianId: "bob", qty: 5, storageGrade: "AMBIENT" }).ok).toBe(true);
+  });
+});
+
+describe("예약 만료·시각", () => {
+  it("advanceTime 검증과 경계 만료(이벤트 하나)", () => {
+    const l = lab();
+    l.reserve(id(), { reservationId: "r1", sampleId: "s1", qty: 10, expiresAt: 5 });
+    l.reserve(id(), { reservationId: "r2", sampleId: "s1", qty: 10, expiresAt: 5 });
+    l.reserve(id(), { reservationId: "r3", sampleId: "s1", qty: 10, expiresAt: 6 });
+    l.reserve(id(), { reservationId: "r4", sampleId: "s1", qty: 5, expiresAt: null });
+    const events = l.snapshot().events.length;
+    expect(l.advanceTime(id(), 5).ok).toBe(true);
+    const snap = l.snapshot();
+    expect(snap.now).toBe(5);
+    expect(snap.events.length).toBe(events + 1);
+    expect(snap.reservations.map((r) => r.status)).toEqual(["EXPIRED", "EXPIRED", "ACTIVE", "ACTIVE"]);
+    expect(sample(l)).toMatchObject({ reserved: 15, remaining: 50, consumedQty: 0, discardedQty: 0 });
+    failsWith(l, "RESERVATION_CLOSED", () => l.cancel(id(), "r1"));
+    failsWith(l, "RESERVATION_CLOSED", () => l.consume(id(), "r2"));
+    failsWith(l, "INVALID_INPUT", () => l.advanceTime(id(), 4));
+    failsWith(l, "INVALID_INPUT", () => l.advanceTime(id(), 5.5));
+    failsWith(l, "INVALID_INPUT", () => l.advanceTime(id(), Number.MAX_SAFE_INTEGER + 2));
+    failsWith(l, "INVALID_INPUT", () => l.advanceTime(id(), NaN));
+    expect(l.advanceTime(id(), 5).ok).toBe(true); // to == now
+  });
+
+  it("expiresAt는 null 또는 now보다 큰 유효 정수", () => {
+    const l = lab();
+    l.advanceTime(id(), 10);
+    for (const bad of [10, 9, 10.5, -1, NaN, undefined as never]) {
+      failsWith(l, "INVALID_INPUT", () => l.reserve(id(), { reservationId: "rx", sampleId: "s1", qty: 1, expiresAt: bad }));
+    }
+    expect(l.reserve(id(), { reservationId: "rx", sampleId: "s1", qty: 1, expiresAt: 11 }).ok).toBe(true);
+  });
+
+  it("격리·운송 중 시료의 예약도 만료되고 격리·용기·확보는 그대로", () => {
+    const l = lab();
+    l.reserve(id(), { reservationId: "r1", sampleId: "s1", qty: 10, expiresAt: 3 });
+    l.quarantine(id(), "s1");
+    l.startTransit(id(), { transitId: "t1", sampleId: "s1", targetContainerId: "C" });
+    l.advanceTime(id(), 3);
+    expect(sample(l)).toMatchObject({ reserved: 0, quarantined: true, containerId: "A" });
+    failsWith(l, "CONTAINER_OCCUPIED", () => l.receive(id(), { sampleId: "s2", containerId: "C", custodianId: "alice", qty: 1, storageGrade: "AMBIENT" }));
+  });
+});
+
+describe("운송", () => {
+  const setup = () => {
+    const l = lab();
+    expect(l.startTransit(id(), { transitId: "t1", sampleId: "s1", targetContainerId: "C" }).ok).toBe(true);
+    return l;
+  };
+
+  it("시작: 출발 점유 유지, 목적 용기 배타 확보", () => {
+    const l = setup();
+    expect(l.snapshot().transits).toEqual([{ transitId: "t1", sampleId: "s1", sourceContainerId: "A", targetContainerId: "C", status: "ACTIVE" }]);
+    expect(sample(l).containerId).toBe("A");
+    failsWith(l, "CONTAINER_OCCUPIED", () => l.receive(id(), { sampleId: "s2", containerId: "A", custodianId: "alice", qty: 1, storageGrade: "AMBIENT" }));
+    failsWith(l, "CONTAINER_OCCUPIED", () => l.receive(id(), { sampleId: "s2", containerId: "C", custodianId: "alice", qty: 1, storageGrade: "AMBIENT" }));
+    l.receive(id(), { sampleId: "s2", containerId: "B", custodianId: "alice", qty: 5, storageGrade: "AMBIENT" });
+    failsWith(l, "CONTAINER_OCCUPIED", () => l.move(id(), "s2", "C"));
+    failsWith(l, "CONTAINER_OCCUPIED", () => l.startTransit(id(), { transitId: "t2", sampleId: "s2", targetContainerId: "C" }));
+    failsWith(l, "CONTAINER_OCCUPIED", () => l.split(id(), "s2", [{ sampleId: "k", containerId: "C", qty: 1 }]));
+  });
+
+  it("시작 검증: ID_TAKEN·IN_TRANSIT·UNKNOWN·용량", () => {
+    const l = setup();
+    failsWith(l, "ID_TAKEN", () => l.startTransit(id(), { transitId: "t1", sampleId: "s1", targetContainerId: "D" }));
+    failsWith(l, "IN_TRANSIT", () => l.startTransit(id(), { transitId: "t2", sampleId: "s1", targetContainerId: "D" }));
+    failsWith(l, "UNKNOWN_SAMPLE", () => l.startTransit(id(), { transitId: "t3", sampleId: "zz", targetContainerId: "D" }));
+    const l2 = lab();
+    failsWith(l2, "UNKNOWN_CONTAINER", () => l2.startTransit(id(), { transitId: "t3", sampleId: "s1", targetContainerId: "zz" }));
+    failsWith(l2, "CONTAINER_OCCUPIED", () => l2.startTransit(id(), { transitId: "t3", sampleId: "s1", targetContainerId: "A" }));
+    l2.receive(id(), { sampleId: "big", containerId: "B", custodianId: "alice", qty: 20, storageGrade: "AMBIENT" });
+    failsWith(l2, "CAPACITY_EXCEEDED", () => l2.startTransit(id(), { transitId: "t4", sampleId: "big", targetContainerId: "S" }));
+  });
+
+  it("운송 중 분취·소비·폐기·이동은 IN_TRANSIT, 예약·취소·책임자·격리는 허용", () => {
+    const l = lab();
+    l.reserve(id(), { reservationId: "r1", sampleId: "s1", qty: 10, expiresAt: null });
+    l.startTransit(id(), { transitId: "t1", sampleId: "s1", targetContainerId: "C" });
+    failsWith(l, "IN_TRANSIT", () => l.split(id(), "s1", [{ sampleId: "k", containerId: "B", qty: 1 }]));
+    failsWith(l, "IN_TRANSIT", () => l.consume(id(), "r1"));
+    failsWith(l, "IN_TRANSIT", () => l.discard(id(), "s1"));
+    failsWith(l, "IN_TRANSIT", () => l.move(id(), "s1", "B"));
+    expect(l.reserve(id(), { reservationId: "r2", sampleId: "s1", qty: 5, expiresAt: null }).ok).toBe(true);
+    expect(l.cancel(id(), "r2").ok).toBe(true);
+    expect(l.transferCustody(id(), "s1", "bob").ok).toBe(true);
+    expect(l.quarantine(id(), "s1").ok).toBe(true);
+  });
+
+  it("도착: 시료가 목적 용기로, 출발 용기는 빔, 양·등급·격리 그대로", () => {
+    const l = setup();
+    l.quarantine(id(), "s1");
+    expect(l.confirmArrival(id(), "t1").ok).toBe(true);
+    expect(sample(l)).toMatchObject({ containerId: "C", remaining: 50, storageGrade: "CHILLED", quarantined: true, custodianId: "alice" });
+    expect(l.snapshot().transits[0]!.status).toBe("ARRIVED");
+    expect(l.receive(id(), { sampleId: "s2", containerId: "A", custodianId: "alice", qty: 1, storageGrade: "AMBIENT" }).ok).toBe(true);
+    failsWith(l, "TRANSIT_CLOSED", () => l.confirmArrival(id(), "t1"));
+    failsWith(l, "TRANSIT_CLOSED", () => l.cancelTransit(id(), "t1"));
+    failsWith(l, "ID_TAKEN", () => l.startTransit(id(), { transitId: "t1", sampleId: "s1", targetContainerId: "D" }));
+    failsWith(l, "UNKNOWN_TRANSIT", () => l.confirmArrival(id(), "zz"));
+    expect(l.move(id(), "s1", "D").ok).toBe(true);
+  });
+
+  it("취소: 출발 용기에 그대로, 목적 확보 풀림", () => {
+    const l = setup();
+    expect(l.cancelTransit(id(), "t1").ok).toBe(true);
+    expect(sample(l).containerId).toBe("A");
+    expect(l.snapshot().transits[0]!.status).toBe("CANCELED");
+    expect(l.receive(id(), { sampleId: "s2", containerId: "C", custodianId: "alice", qty: 1, storageGrade: "AMBIENT" }).ok).toBe(true);
+    failsWith(l, "UNKNOWN_TRANSIT", () => l.cancelTransit(id(), "zz"));
+    expect(l.discard(id(), "s1").ok).toBe(true);
+  });
+
+  it("끝난 운송의 같은 성공 이벤트 재전송은 처음 Receipt, 이력 불변", () => {
+    const l = lab();
+    const [e1, e2, e3] = [id(), id(), id()];
+    const r1 = l.startTransit(e1, { transitId: "t1", sampleId: "s1", targetContainerId: "C" });
+    const r2 = l.confirmArrival(e2, "t1");
+    const events = l.snapshot().events.length;
+    expect(l.startTransit(e1, { targetContainerId: "C", sampleId: "s1", transitId: "t1" })).toEqual(r1);
+    expect(l.confirmArrival(e2, "t1")).toEqual(r2);
+    expect(l.snapshot().events.length).toBe(events);
+    failsWith(l, "EVENT_CONFLICT", () => l.cancelTransit(e2, "t1"));
+    const r3 = l.startTransit(e3, { transitId: "t2", sampleId: "s1", targetContainerId: "D" });
+    l.cancelTransit(id(), "t2");
+    expect(l.startTransit(e3, { transitId: "t2", sampleId: "s1", targetContainerId: "D" })).toEqual(r3);
+    expect(sample(l).containerId).toBe("C");
+  });
+});
+
+describe("이력·재전송", () => {
+  it("새 명령의 이력 args와 재전송", () => {
+    const l = lab();
+    const e = id();
+    const r = l.advanceTime(e, 7);
+    expect(l.advanceTime(e, 7)).toEqual(r);
+    failsWith(l, "EVENT_CONFLICT", () => l.advanceTime(e, 8));
+    const q = l.quarantine(id(), "s1");
+    expect(q).toMatchObject({ ok: true, value: { seq: 3 } });
+    const ev = l.snapshot().events;
+    expect(ev.map((x) => x.seq)).toEqual([1, 2, 3]);
+    expect(ev[1]).toMatchObject({ op: "advanceTime", args: { to: 7 } });
+    expect(ev[2]).toMatchObject({ op: "quarantine", args: { sampleId: "s1" } });
+  });
+});

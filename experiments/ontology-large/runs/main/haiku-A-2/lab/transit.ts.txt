@@ -1,0 +1,69 @@
+// 운송 — 시작·도착 확정·취소 (docs/transit.md)
+import { active } from "./state.js";
+import type { Engine } from "./events.js";
+import type { Storage } from "./storage.js";
+import type { Lab } from "./types.js";
+
+export function transitCommands(engine: Engine, storage: Storage): Pick<Lab, "startTransit" | "confirmArrival" | "cancelTransit"> {
+  return {
+    startTransit(eventId, input) {
+      return engine.run(eventId, "startTransit", input, (s) => {
+        if (s.transits.has(input.transitId)) return "ID_TAKEN";
+
+        const x = active(s, input.sampleId);
+        if (typeof x === "string") return x;
+        if (s.transitTargets.has(x.containerId!)) return "IN_TRANSIT";
+
+        const target = storage.get(input.targetContainerId);
+        if (!target) return "UNKNOWN_CONTAINER";
+        if (!storage.isFree(s, target.containerId)) return "CONTAINER_OCCUPIED";
+        if (!storage.supports(target.containerId, x.storageGrade)) return "STORAGE_INCOMPATIBLE";
+
+        s.transits.set(input.transitId, {
+          transitId: input.transitId,
+          sampleId: x.sampleId,
+          sourceContainerId: x.containerId!,
+          targetContainerId: target.containerId,
+          status: "ACTIVE",
+        });
+        s.transitTargets.set(target.containerId, input.transitId);
+        return null;
+      });
+    },
+
+    confirmArrival(eventId, transitId) {
+      return engine.run(eventId, "confirmArrival", { transitId }, (s) => {
+        const t = s.transits.get(transitId);
+        if (!t) return "UNKNOWN_TRANSIT";
+        if (t.status !== "ACTIVE") return "TRANSIT_CLOSED";
+
+        const x = s.samples.get(t.sampleId)!;
+
+        // 시료를 목적 용기로 이동
+        s.occupied.delete(t.sourceContainerId);
+        s.occupied.set(t.targetContainerId, t.sampleId);
+        x.containerId = t.targetContainerId;
+
+        // 운송 상태 업데이트
+        t.status = "ARRIVED";
+        s.transitTargets.delete(t.targetContainerId);
+
+        return null;
+      });
+    },
+
+    cancelTransit(eventId, transitId) {
+      return engine.run(eventId, "cancelTransit", { transitId }, (s) => {
+        const t = s.transits.get(transitId);
+        if (!t) return "UNKNOWN_TRANSIT";
+        if (t.status !== "ACTIVE") return "TRANSIT_CLOSED";
+
+        // 운송 상태 업데이트
+        t.status = "CANCELED";
+        s.transitTargets.delete(t.targetContainerId);
+
+        return null;
+      });
+    },
+  };
+}

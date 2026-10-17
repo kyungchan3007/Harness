@@ -1,0 +1,23 @@
+// 품질관리 — 격리·해제 (docs/quality.md)
+import { active } from "./state.js";
+import type { Engine } from "./events.js";
+import type { Lab } from "./types.js";
+
+/** 격리 여부만 설정한다. 이미 같은 값이어도 성공. 예약·운송·용기는 건드리지 않는다 */
+export function qualityCommands(engine: Engine): Pick<Lab, "quarantine" | "release"> {
+  const setQuarantine = (eventId: string, op: "quarantine" | "release", sampleId: string, value: boolean) =>
+    engine.run(eventId, op, { sampleId }, (s) => {
+      const x = active(s, sampleId);
+      if (typeof x === "string") return x;
+      x.quarantined = value;
+      return null;
+    });
+  return {
+    quarantine(eventId, sampleId) {
+      return setQuarantine(eventId, "quarantine", sampleId, true);
+    },
+    release(eventId, sampleId) {
+      return setQuarantine(eventId, "release", sampleId, false);
+    },
+  };
+}
