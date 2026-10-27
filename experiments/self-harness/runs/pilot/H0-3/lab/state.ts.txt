@@ -1,0 +1,49 @@
+// 엔진 상태 — 작업 복사본·종료 처리·활성 시료 조회
+import type { ErrorCode, EventView, ID, Receipt, ReservationView, SampleView, StorageGrade, Tick, TransitView } from "./types.js";
+
+/** 논리 시각 — 정수 0 이상 Number.MAX_SAFE_INTEGER 이하 */
+export const isTick = (t: unknown): t is Tick => typeof t === "number" && Number.isSafeInteger(t) && t >= 0;
+export const GRADES: readonly StorageGrade[] = ["AMBIENT", "CHILLED", "FROZEN"];
+export const isGrade = (g: unknown): g is StorageGrade => GRADES.includes(g as StorageGrade);
+
+export interface State {
+  now: Tick;
+  samples: Map<ID, SampleView>;
+  reservations: Map<ID, ReservationView>;
+  transits: Map<ID, TransitView>;
+  events: EventView[];
+  seen: Map<ID, { op: string; key: string; receipt: Receipt }>;
+  /** containerId → sampleId */
+  occupied: Map<ID, ID>;
+}
+
+export const initialState = (): State => ({ now: 0, samples: new Map(), reservations: new Map(), transits: new Map(), events: [], seen: new Map(), occupied: new Map() });
+
+/** 명령은 작업 복사본에서 실행하고 성공할 때만 반영한다 (docs/engine.md E6) */
+export const copyState = (s: State): State => ({
+  now: s.now,
+  samples: new Map([...s.samples].map(([k, v]) => [k, { ...v }])),
+  reservations: new Map([...s.reservations].map(([k, v]) => [k, { ...v }])),
+  transits: new Map([...s.transits].map(([k, v]) => [k, { ...v }])),
+  events: [...s.events],
+  seen: new Map(s.seen),
+  occupied: new Map(s.occupied),
+});
+
+export function finish(s: State, sample: SampleView, status: "DEPLETED" | "DISCARDED") {
+  sample.status = status;
+  if (sample.containerId) s.occupied.delete(sample.containerId);
+  sample.containerId = null;
+}
+
+export function active(s: State, id: ID): SampleView | ErrorCode {
+  const x = s.samples.get(id);
+  if (!x) return "UNKNOWN_SAMPLE";
+  return x.status === "ACTIVE" ? x : "NOT_ACTIVE";
+}
+
+/** 이 시료가 지금 운송 중인가 (ACTIVE 운송이 하나라도 이 시료를 가리키면) */
+export function inTransit(s: State, sampleId: ID): boolean {
+  for (const t of s.transits.values()) if (t.status === "ACTIVE" && t.sampleId === sampleId) return true;
+  return false;
+}

@@ -1,0 +1,19 @@
+// 품질관리 — 격리·해제 (docs/quality.md)
+// 격리는 quarantined 플래그만 바꾼다. 예약·용기·운송·양은 건드리지 않는다.
+import { active } from "./state.js";
+import type { Engine } from "./events.js";
+import type { Lab } from "./types.js";
+
+export function qualityCommands(engine: Engine): Pick<Lab, "quarantine" | "release"> {
+  const setQuarantined = (op: "quarantine" | "release", value: boolean) => (eventId: string, sampleId: string) =>
+    engine.run(eventId, op, { sampleId }, (s) => {
+      const x = active(s, sampleId);
+      if (typeof x === "string") return x;
+      x.quarantined = value;
+      return null;
+    });
+  return {
+    quarantine: setQuarantined("quarantine", true),
+    release: setQuarantined("release", false),
+  };
+}

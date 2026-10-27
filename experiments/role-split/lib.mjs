@@ -14,7 +14,7 @@ export const IMPL_PATH = "src/pricing/coupon.ts";
 export const ORACLE_PATH = "src/pricing/coupon.oracle.test.ts";
 
 /** 실험을 설계·준비한 태스크 — 기록 폴더를 빼고, 작업 보드·일지의 행도 지운다 */
-export const EXCLUDED_TASKS = ["0012", "0013", "0014", "0015", "0016", "0022", "0023", "0024", "0025", "0026", "0027", "0028", "0029", "0030", "0032", "0033", "0034", "0035", "0036", "0037", "0038"]; // 0022~0030·0032~0038: 실험 결과·채점 내용·정답지가 적혀 있어 힌트가 됨
+export const EXCLUDED_TASKS = ["0012", "0013", "0014", "0015", "0016", "0022", "0023", "0024", "0025", "0026", "0027", "0028", "0029", "0030", "0032", "0033", "0034", "0035", "0036", "0037", "0038", "0039"]; // 0022~0030·0032~0039: 실험 결과·채점 내용·정답지가 적혀 있어 힌트가 됨
 /** 복사본에 넣지 않는 경로 — 실험 자체(채점·정답)와 위 태스크 기록, 실험 결과를 소개하는 README(0035) */
 export const EXCLUDED_PATHS = ["experiments/**", "README.md", ...EXCLUDED_TASKS.map((id) => `agents/intent/specs/${id}-*/**`)];
 /** 표 행 단위로 위 태스크를 지울 파일 */
@@ -35,6 +35,7 @@ export const LEAK_PATTERNS = [
   /쿠폰 감/,
   /experiments\/ontology/, // 0037·0038: 온톨로지 실험 장치·채점 (ontology-large 포함)
   /onto-eval/,
+  /self-harness/i, // 0039: 자기 개선 실험 장치·신고
 ];
 
 const SKIP_DIRS = new Set(["node_modules", ".git"]);
